@@ -354,7 +354,7 @@ export default function ColorPaletteGeneratorTool() {
                         <button
                             type="button"
                             onClick={() => handleCopy(cssOutput)}
-                            className="mt-4 hidden items-center justify-center gap-2 rounded-2xl border border-[#F4C8BA] bg-white px-5 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F28C6F] hover:bg-[#FFF7F3] md:inline-flex"
+                            className="mt-4 hidden w-fit items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:inline-flex"
                         >
                             {copied ? (
                                 <>
@@ -537,7 +537,7 @@ export default function ColorPaletteGeneratorTool() {
                         <button
                             type="button"
                             onClick={handleDownload}
-                            className="hidden w-full items-center justify-center gap-2 rounded-2xl border border-[#F1E5DF] bg-white px-5 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F28C6F] hover:bg-[#FFF7F3] md:inline-flex"
+                            className="hidden w-full items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:inline-flex"
                         >
                             <Download className="h-4 w-4" />
                             Download Palette
@@ -595,7 +595,7 @@ export default function ColorPaletteGeneratorTool() {
                         <button
                             type="button"
                             onClick={handleDownload}
-                            className="flex min-h-[64px] flex-col items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white px-1.5 text-center text-[#2A1F1B]"
+                            className="flex min-h-[64px] flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-1.5 text-center text-white shadow-sm"
                         >
                             <Download className="mb-1 h-5 w-5" />
                             <span className="text-xs font-semibold leading-tight">
