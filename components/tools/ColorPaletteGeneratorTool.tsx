@@ -2,534 +2,609 @@
 
 import { useMemo, useState } from "react";
 import {
-  Clipboard,
-  Copy,
-  Download,
-  Dices,
-  Shuffle,
+    Check,
+    ChevronDown,
+    Clipboard,
+    Copy,
+    Dice5,
+    Download,
+    Shuffle,
 } from "lucide-react";
 
-type PaletteType = "analogous" | "complementary" | "triadic" | "monochromatic";
+type PaletteType =
+    | "analogous"
+    | "monochromatic"
+    | "complementary"
+    | "triadic"
+    | "pastel";
 
-const paletteTypes: { label: string; value: PaletteType }[] = [
-  { label: "Analogous", value: "analogous" },
-  { label: "Complementary", value: "complementary" },
-  { label: "Triadic", value: "triadic" },
-  { label: "Monochromatic", value: "monochromatic" },
+const PALETTE_TYPES: { label: string; value: PaletteType }[] = [
+    { label: "Analogous", value: "analogous" },
+    { label: "Monochromatic", value: "monochromatic" },
+    { label: "Complementary", value: "complementary" },
+    { label: "Triadic", value: "triadic" },
+    { label: "Pastel", value: "pastel" },
 ];
 
-const colorCounts = [3, 4, 5, 6, 7, 8];
+const COLOR_COUNTS = [3, 4, 5, 6, 7, 8];
 
 function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
-}
-
-function normalizeHex(value: string) {
-  const cleaned = value.trim().replace("#", "");
-
-  if (/^[0-9A-Fa-f]{3}$/.test(cleaned)) {
-    return `#${cleaned
-      .split("")
-      .map((char) => char + char)
-      .join("")
-      .toUpperCase()}`;
-  }
-
-  if (/^[0-9A-Fa-f]{6}$/.test(cleaned)) {
-    return `#${cleaned.toUpperCase()}`;
-  }
-
-  return "#FF6A5B";
+    return Math.min(Math.max(value, min), max);
 }
 
 function hexToRgb(hex: string) {
-  const normalized = normalizeHex(hex).replace("#", "");
+    const cleanHex = hex.replace("#", "");
+    const bigint = parseInt(cleanHex, 16);
 
-  return {
-    r: parseInt(normalized.slice(0, 2), 16),
-    g: parseInt(normalized.slice(2, 4), 16),
-    b: parseInt(normalized.slice(4, 6), 16),
-  };
+    return {
+        r: (bigint >> 16) & 255,
+        g: (bigint >> 8) & 255,
+        b: bigint & 255,
+    };
 }
 
 function rgbToHex(r: number, g: number, b: number) {
-  const toHex = (value: number) =>
-    clamp(Math.round(value), 0, 255).toString(16).padStart(2, "0");
-
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+    return (
+        "#" +
+        [r, g, b]
+            .map((x) => {
+                const hex = clamp(Math.round(x), 0, 255).toString(16);
+                return hex.length === 1 ? "0" + hex : hex;
+            })
+            .join("")
+    ).toUpperCase();
 }
 
 function rgbToHsl(r: number, g: number, b: number) {
-  const red = r / 255;
-  const green = g / 255;
-  const blue = b / 255;
+    r /= 255;
+    g /= 255;
+    b /= 255;
 
-  const max = Math.max(red, green, blue);
-  const min = Math.min(red, green, blue);
-  let h = 0;
-  let s = 0;
-  const l = (max + min) / 2;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
 
-  if (max !== min) {
-    const delta = max - min;
-    s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+    let h = 0;
+    let s = 0;
+    const l = (max + min) / 2;
 
-    switch (max) {
-      case red:
-        h = (green - blue) / delta + (green < blue ? 6 : 0);
-        break;
-      case green:
-        h = (blue - red) / delta + 2;
-        break;
-      case blue:
-        h = (red - green) / delta + 4;
-        break;
-      default:
-        h = 0;
+    if (max !== min) {
+        const d = max - min;
+
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+        switch (max) {
+            case r:
+                h = (g - b) / d + (g < b ? 6 : 0);
+                break;
+
+            case g:
+                h = (b - r) / d + 2;
+                break;
+
+            case b:
+                h = (r - g) / d + 4;
+                break;
+        }
+
+        h /= 6;
     }
 
-    h /= 6;
-  }
-
-  return {
-    h: h * 360,
-    s: s * 100,
-    l: l * 100,
-  };
+    return {
+        h: h * 360,
+        s: s * 100,
+        l: l * 100,
+    };
 }
 
 function hslToRgb(h: number, s: number, l: number) {
-  const hue = (((h % 360) + 360) % 360) / 360;
-  const saturation = clamp(s, 0, 100) / 100;
-  const lightness = clamp(l, 0, 100) / 100;
+    h = ((h % 360) + 360) % 360;
+    s = clamp(s, 0, 100) / 100;
+    l = clamp(l, 0, 100) / 100;
 
-  if (saturation === 0) {
-    const gray = lightness * 255;
-    return { r: gray, g: gray, b: gray };
-  }
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+    const m = l - c / 2;
 
-  const hueToRgb = (p: number, q: number, t: number) => {
-    let temp = t;
+    let r1 = 0;
+    let g1 = 0;
+    let b1 = 0;
 
-    if (temp < 0) temp += 1;
-    if (temp > 1) temp -= 1;
-    if (temp < 1 / 6) return p + (q - p) * 6 * temp;
-    if (temp < 1 / 2) return q;
-    if (temp < 2 / 3) return p + (q - p) * (2 / 3 - temp) * 6;
+    if (h >= 0 && h < 60) {
+        r1 = c;
+        g1 = x;
+    } else if (h >= 60 && h < 120) {
+        r1 = x;
+        g1 = c;
+    } else if (h >= 120 && h < 180) {
+        g1 = c;
+        b1 = x;
+    } else if (h >= 180 && h < 240) {
+        g1 = x;
+        b1 = c;
+    } else if (h >= 240 && h < 300) {
+        r1 = x;
+        b1 = c;
+    } else {
+        r1 = c;
+        b1 = x;
+    }
 
-    return p;
-  };
-
-  const q =
-    lightness < 0.5
-      ? lightness * (1 + saturation)
-      : lightness + saturation - lightness * saturation;
-  const p = 2 * lightness - q;
-
-  return {
-    r: hueToRgb(p, q, hue + 1 / 3) * 255,
-    g: hueToRgb(p, q, hue) * 255,
-    b: hueToRgb(p, q, hue - 1 / 3) * 255,
-  };
+    return {
+        r: (r1 + m) * 255,
+        g: (g1 + m) * 255,
+        b: (b1 + m) * 255,
+    };
 }
 
 function hslToHex(h: number, s: number, l: number) {
-  const { r, g, b } = hslToRgb(h, s, l);
-  return rgbToHex(r, g, b);
+    const rgb = hslToRgb(h, s, l);
+    return rgbToHex(rgb.r, rgb.g, rgb.b);
 }
 
-function getOffsets(type: PaletteType, count: number) {
-  if (type === "complementary") {
-    const base = [0, 180, 150, 210, 30, -30, 120, 240];
-    return base.slice(0, count);
-  }
-
-  if (type === "triadic") {
-    const base = [0, 120, 240, 90, 150, 210, 270, 30];
-    return base.slice(0, count);
-  }
-
-  if (type === "monochromatic") {
-    return Array.from({ length: count }, (_, index) => index);
-  }
-
-  const middle = (count - 1) / 2;
-  return Array.from({ length: count }, (_, index) => (index - middle) * 18);
-}
-
-function generatePalette(baseHex: string, type: PaletteType, count: number) {
-  const { r, g, b } = hexToRgb(baseHex);
-  const baseHsl = rgbToHsl(r, g, b);
-  const offsets = getOffsets(type, count);
-
-  if (type === "monochromatic") {
-    return offsets.map((_, index) => {
-      const step = count === 1 ? 0 : index / (count - 1);
-      const lightness = clamp(32 + step * 48, 18, 88);
-      const saturation = clamp(baseHsl.s + 4 - step * 8, 18, 88);
-
-      return hslToHex(baseHsl.h, saturation, lightness);
-    });
-  }
-
-  return offsets.map((offset, index) => {
-    const step = count === 1 ? 0 : index / (count - 1);
-    const lightnessShift = (step - 0.5) * 18;
-    const saturationShift = type === "analogous" ? -step * 8 : -step * 4;
-
-    return hslToHex(
-      baseHsl.h + offset,
-      clamp(baseHsl.s + saturationShift, 20, 90),
-      clamp(baseHsl.l + lightnessShift, 24, 86),
-    );
-  });
+function hexToHsl(hex: string) {
+    const rgb = hexToRgb(hex);
+    return rgbToHsl(rgb.r, rgb.g, rgb.b);
 }
 
 function getRandomHex() {
-  return rgbToHex(
-    Math.floor(Math.random() * 256),
-    Math.floor(Math.random() * 256),
-    Math.floor(Math.random() * 256),
-  );
-}
-
-function getRandomPaletteType(current?: PaletteType) {
-  const options = current
-    ? paletteTypes.filter((item) => item.value !== current)
-    : paletteTypes;
-
-  return options[Math.floor(Math.random() * options.length)].value;
-}
-
-export default function ColorPaletteGenerator() {
-  const [baseColor, setBaseColor] = useState("#FF6A5B");
-  const [paletteType, setPaletteType] = useState<PaletteType>("analogous");
-  const [colorCount, setColorCount] = useState(5);
-  const [copiedAction, setCopiedAction] = useState<string | null>(null);
-
-  const palette = useMemo(
-    () => generatePalette(baseColor, paletteType, colorCount),
-    [baseColor, paletteType, colorCount],
-  );
-
-  const cssOutput = useMemo(() => {
-    const lines = palette.map(
-      (color, index) => `  --color-${index + 1}: ${color};`,
+    return rgbToHex(
+        Math.floor(Math.random() * 256),
+        Math.floor(Math.random() * 256),
+        Math.floor(Math.random() * 256)
     );
+}
 
-    return [".palette {", ...lines, "}"].join("\n");
-  }, [palette]);
+function getRandomPaletteType(): PaletteType {
+    const randomIndex = Math.floor(Math.random() * PALETTE_TYPES.length);
+    return PALETTE_TYPES[randomIndex].value;
+}
 
-  const showCopied = (key: string) => {
-    setCopiedAction(key);
-    window.setTimeout(() => setCopiedAction(null), 1500);
-  };
+function getRandomColorCount() {
+    return COLOR_COUNTS[Math.floor(Math.random() * COLOR_COUNTS.length)];
+}
 
-  const copyText = async (text: string, key: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      showCopied(key);
-    } catch {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-      showCopied(key);
+function generatePalette(
+    baseColor: string,
+    paletteType: PaletteType,
+    colorCount: number
+) {
+    const base = hexToHsl(baseColor);
+    const colors: string[] = [];
+
+    for (let index = 0; index < colorCount; index++) {
+        const ratio = colorCount === 1 ? 0 : index / (colorCount - 1);
+
+        let h = base.h;
+        let s = base.s;
+        let l = base.l;
+
+        if (paletteType === "analogous") {
+            const spread = 56;
+            h = base.h - spread / 2 + spread * ratio;
+            s = clamp(base.s + (index % 2 === 0 ? 4 : -4), 38, 86);
+            l = clamp(base.l + (ratio - 0.5) * 18, 42, 84);
+        }
+
+        if (paletteType === "monochromatic") {
+            h = base.h;
+            s = clamp(base.s + (ratio - 0.5) * 18, 30, 88);
+            l = clamp(24 + ratio * 58, 22, 86);
+        }
+
+        if (paletteType === "complementary") {
+            const useComplement = index >= Math.ceil(colorCount / 2);
+            h = useComplement ? base.h + 180 : base.h;
+            s = clamp(base.s + (ratio - 0.5) * 14, 36, 88);
+            l = clamp(base.l + (ratio - 0.5) * 24, 28, 86);
+        }
+
+        if (paletteType === "triadic") {
+            const triadOffset = [0, 120, 240][index % 3];
+            h = base.h + triadOffset;
+            s = clamp(base.s + (ratio - 0.5) * 12, 36, 88);
+            l = clamp(base.l + (index % 2 === 0 ? 8 : -8), 34, 84);
+        }
+
+        if (paletteType === "pastel") {
+            h = base.h - 32 + ratio * 64;
+            s = clamp(42 + ratio * 18, 36, 68);
+            l = clamp(76 + (index % 2 === 0 ? 4 : -4), 68, 90);
+        }
+
+        colors.push(hslToHex(h, s, l));
     }
-  };
 
-  const handleShuffle = () => {
-    setPaletteType((current) => getRandomPaletteType(current));
-  };
+    return colors;
+}
 
-  const handleRandomAll = () => {
-    setBaseColor(getRandomHex());
-    setPaletteType(getRandomPaletteType());
-    setColorCount(colorCounts[Math.floor(Math.random() * colorCounts.length)]);
-  };
+function getCssOutput(colors: string[]) {
+    const colorLines = colors
+        .map((color, index) => `  --color-${index + 1}: ${color};`)
+        .join("\n");
 
-  const handleDownload = () => {
-    const blob = new Blob([cssOutput], { type: "text/css;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    return `.palette {
+${colorLines}
+}`;
+}
 
-    link.href = url;
-    link.download = "peach-lab-palette.css";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
+export default function ColorPaletteGeneratorTool() {
+    const [baseColor, setBaseColor] = useState("#FF6A5B");
+    const [paletteType, setPaletteType] = useState<PaletteType>("analogous");
+    const [colorCount, setColorCount] = useState(5);
+    const [copied, setCopied] = useState(false);
 
-  return (
-    <div className="pb-32 lg:pb-0">
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-6">
-        <div className="min-w-0 space-y-5">
-          <section className="rounded-[24px] border border-[#f3ddd4] bg-white p-4 shadow-sm sm:p-5">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-neutral-900">
-                Palette Preview
-              </h2>
-            </div>
+    const palette = useMemo(() => {
+        return generatePalette(baseColor, paletteType, colorCount);
+    }, [baseColor, paletteType, colorCount]);
 
-            <div
-              className="grid gap-2 sm:gap-3"
-              style={{
-                gridTemplateColumns: `repeat(${palette.length}, minmax(0, 1fr))`,
-              }}
-            >
-              {palette.map((color, index) => (
-                <div key={`${color}-${index}`} className="min-w-0">
-                  <div
-                    className="h-24 rounded-2xl shadow-inner sm:h-28 lg:h-32"
-                    style={{ backgroundColor: color }}
-                  />
-                  <div className="mt-2 truncate text-center text-[11px] font-medium text-neutral-700 sm:text-xs">
-                    {color}
-                  </div>
+    const cssOutput = useMemo(() => {
+        return getCssOutput(palette);
+    }, [palette]);
+
+    const handleCopy = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+
+            window.setTimeout(() => {
+                setCopied(false);
+            }, 1500);
+        } catch {
+            setCopied(false);
+        }
+    };
+
+    const handleShuffle = () => {
+        /**
+         * Shuffle:
+         * Keep the current base color, randomize the other settings.
+         */
+        setPaletteType(getRandomPaletteType());
+        setColorCount(getRandomColorCount());
+    };
+
+    const handleRandomAll = () => {
+        /**
+         * Random All:
+         * Randomize color, palette type, and color count.
+         */
+        setBaseColor(getRandomHex());
+        setPaletteType(getRandomPaletteType());
+        setColorCount(getRandomColorCount());
+    };
+
+    const handleDownload = () => {
+        const content = [
+            "Peach Lab Color Palette",
+            "",
+            "HEX Values:",
+            ...palette.map((color, index) => `${index + 1}. ${color}`),
+            "",
+            "CSS:",
+            cssOutput,
+        ].join("\n");
+
+        const blob = new Blob([content], {
+            type: "text/plain;charset=utf-8",
+        });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "peach-lab-color-palette.txt";
+        link.click();
+
+        URL.revokeObjectURL(url);
+    };
+
+    return (
+        <div className="relative pb-28 md:pb-0">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+                <div className="space-y-6">
+                    <section className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm md:p-6">
+                        <div className="mb-4 flex items-center justify-between gap-4">
+                            <h2 className="text-lg font-semibold text-[#2A1F1B]">
+                                Palette Preview
+                            </h2>
+                        </div>
+
+                        <div
+                            className="grid gap-2 md:gap-4"
+                            style={{
+                                gridTemplateColumns: `repeat(${palette.length}, minmax(0, 1fr))`,
+                            }}
+                        >
+                            {palette.map((color, index) => (
+                                <div
+                                    key={`${color}-${index}`}
+                                    className="group relative overflow-hidden rounded-2xl border border-[#F1E5DF] shadow-sm"
+                                >
+                                    <div
+                                        className="h-28 md:h-64"
+                                        style={{
+                                            backgroundColor: color,
+                                        }}
+                                    />
+
+                                    <button
+                                        type="button"
+                                        onClick={() => handleCopy(color)}
+                                        className="absolute bottom-2 left-1/2 w-[calc(100%-10px)] -translate-x-1/2 rounded-lg bg-white/90 px-1 py-1 text-center text-[9px] font-semibold leading-none text-[#2A1F1B] shadow-sm backdrop-blur transition hover:bg-white md:bottom-3 md:w-auto md:min-w-[72px] md:px-3 md:py-1.5 md:text-xs md:leading-normal"
+                                        aria-label={`Copy ${color}`}
+                                    >
+                                        {color}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm md:p-6">
+                        <div className="mb-4 flex items-center justify-between gap-4">
+                            <h2 className="text-lg font-semibold text-[#2A1F1B]">
+                                CSS Output
+                            </h2>
+                        </div>
+
+                        <pre className="overflow-x-auto rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm leading-7 text-[#2A1F1B]">
+                            <code>{cssOutput}</code>
+                        </pre>
+
+                        <button
+                            type="button"
+                            onClick={() => handleCopy(cssOutput)}
+                            className="mt-4 hidden items-center justify-center gap-2 rounded-2xl border border-[#F4C8BA] bg-white px-5 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F28C6F] hover:bg-[#FFF7F3] md:inline-flex"
+                        >
+                            {copied ? (
+                                <>
+                                    <Check className="h-4 w-4" />
+                                    Copied
+                                </>
+                            ) : (
+                                <>
+                                    <Copy className="h-4 w-4" />
+                                    Copy CSS
+                                </>
+                            )}
+                        </button>
+                    </section>
                 </div>
-              ))}
-            </div>
-          </section>
 
-          <section className="rounded-[24px] border border-[#f3ddd4] bg-white p-4 shadow-sm sm:p-5">
-            <h2 className="mb-4 text-lg font-semibold text-neutral-900">
-              CSS Output
-            </h2>
+                <aside className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm md:p-6 lg:self-start">
+                    <h2 className="mb-4 text-lg font-semibold text-[#2A1F1B]">
+                        Controls
+                    </h2>
 
-            <pre className="max-w-full overflow-x-auto rounded-2xl border border-[#f4e1d9] bg-[#fff8f5] p-4 text-xs leading-6 text-neutral-800 sm:text-sm">
-              <code>{cssOutput}</code>
-            </pre>
+                    <div className="mb-5 hidden grid-cols-2 gap-3 md:grid">
+                        <button
+                            type="button"
+                            onClick={handleShuffle}
+                            className="flex min-h-[68px] items-center justify-center gap-3 rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-[#F28C6F] transition hover:bg-[#FFF7F3]"
+                        >
+                            <Shuffle className="h-5 w-5" />
+                            <span className="text-left">
+                                <span className="block text-sm font-semibold">Shuffle</span>
+                                <span className="block text-xs text-[#A17F74]">
+                                    Keep colors
+                                </span>
+                            </span>
+                        </button>
 
-            <button
-              type="button"
-              onClick={() => copyText(cssOutput, "desktop-css")}
-              className="mt-4 hidden items-center justify-center gap-2 rounded-xl border border-[#f4b9a9] bg-white px-4 py-2 text-sm font-medium text-[#c96f56] transition hover:bg-[#fff4ef] lg:inline-flex"
-            >
-              <Copy className="h-4 w-4" />
-              {copiedAction === "desktop-css" ? "Copied" : "Copy CSS"}
-            </button>
-          </section>
-        </div>
-
-        <aside className="min-w-0">
-          <section className="rounded-[24px] border border-[#f3ddd4] bg-white p-4 shadow-sm sm:p-5 lg:sticky lg:top-6">
-            <h2 className="mb-4 text-lg font-semibold text-neutral-900">
-              Controls
-            </h2>
-
-            <div className="mb-5 hidden grid-cols-2 gap-3 lg:grid">
-              <button
-                type="button"
-                onClick={handleShuffle}
-                className="flex min-h-[64px] items-center justify-center gap-3 rounded-2xl border border-[#f4b9a9] bg-white px-4 py-3 text-[#d96f55] transition hover:bg-[#fff4ef]"
-              >
-                <Shuffle className="h-5 w-5" />
-                <span className="text-left">
-                  <span className="block text-sm font-semibold">Shuffle</span>
-                  <span className="block text-xs opacity-75">Keep colors</span>
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleRandomAll}
-                className="flex min-h-[64px] items-center justify-center gap-3 rounded-2xl bg-[#f48768] px-4 py-3 text-white shadow-sm transition hover:bg-[#ed7656]"
-              >
-                <Dices className="h-5 w-5" />
-                <span className="text-left">
-                  <span className="block text-sm font-semibold">
-                    Random All
-                  </span>
-                  <span className="block text-xs opacity-85">
-                    New palette & settings
-                  </span>
-                </span>
-              </button>
-            </div>
-
-            <div className="space-y-5">
-              <div>
-                <label
-                  htmlFor="base-color"
-                  className="mb-2 block text-sm font-medium text-neutral-800"
-                >
-                  Base Color
-                </label>
-
-                <div className="flex items-center gap-3 rounded-2xl border border-[#f2ddd5] bg-white px-3 py-2">
-                  <input
-                    id="base-color"
-                    type="color"
-                    value={normalizeHex(baseColor)}
-                    onChange={(event) => setBaseColor(event.target.value)}
-                    className="h-9 w-12 cursor-pointer rounded-xl border-0 bg-transparent p-0"
-                    aria-label="Choose base color"
-                  />
-
-                  <input
-                    value={baseColor}
-                    onChange={(event) =>
-                      setBaseColor(normalizeHex(event.target.value))
-                    }
-                    className="min-w-0 flex-1 bg-transparent text-sm font-medium text-neutral-800 outline-none"
-                    aria-label="Base color hex value"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="palette-type"
-                  className="mb-2 block text-sm font-medium text-neutral-800"
-                >
-                  Palette Type
-                </label>
-
-                <select
-                  id="palette-type"
-                  value={paletteType}
-                  onChange={(event) =>
-                    setPaletteType(event.target.value as PaletteType)
-                  }
-                  className="w-full rounded-2xl border border-[#f2ddd5] bg-white px-4 py-3 text-sm font-medium text-neutral-800 outline-none transition focus:border-[#f4a28c]"
-                >
-                  {paletteTypes.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <p className="mb-2 text-sm font-medium text-neutral-800">
-                  Color Count
-                </p>
-
-                <div className="grid grid-cols-6 gap-2">
-                  {colorCounts.map((count) => {
-                    const active = colorCount === count;
-
-                    return (
-                      <button
-                        key={count}
-                        type="button"
-                        onClick={() => setColorCount(count)}
-                        className={
-                          active
-                            ? "rounded-xl border border-[#f48768] bg-[#fff2ed] px-2 py-2 text-sm font-semibold text-[#e46f50]"
-                            : "rounded-xl border border-[#f2ddd5] bg-white px-2 py-2 text-sm font-medium text-neutral-600 transition hover:bg-[#fff8f5]"
-                        }
-                      >
-                        {count}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <p className="mb-2 text-sm font-medium text-neutral-800">
-                  Hex Values
-                </p>
-
-                <div className="space-y-2">
-                  {palette.map((color, index) => (
-                    <div
-                      key={`${color}-row-${index}`}
-                      className="flex items-center gap-3 rounded-2xl border border-[#f2ddd5] bg-white px-3 py-2"
-                    >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#f2ddd5] text-xs font-medium text-neutral-500">
-                        {index + 1}
-                      </span>
-
-                      <span
-                        className="h-6 w-6 shrink-0 rounded-lg border border-black/5"
-                        style={{ backgroundColor: color }}
-                      />
-
-                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-800">
-                        {color}
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={() => copyText(color, `hex-${index}`)}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-500 transition hover:bg-[#fff2ed] hover:text-[#d96f55]"
-                        aria-label={`Copy ${color}`}
-                      >
-                        <Clipboard className="h-4 w-4" />
-                      </button>
+                        <button
+                            type="button"
+                            onClick={handleRandomAll}
+                            className="flex min-h-[68px] items-center justify-center gap-3 rounded-2xl bg-[#F28C6F] px-4 py-3 text-white shadow-sm transition hover:bg-[#E6765B]"
+                        >
+                            <Dice5 className="h-5 w-5" />
+                            <span className="text-left">
+                                <span className="block text-sm font-semibold">
+                                    Random All
+                                </span>
+                                <span className="block text-xs text-white/85">
+                                    New palette
+                                </span>
+                            </span>
+                        </button>
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              <button
-                type="button"
-                onClick={handleDownload}
-                className="hidden w-full items-center justify-center gap-2 rounded-2xl border border-[#f2ddd5] bg-white px-4 py-3 text-sm font-semibold text-neutral-700 transition hover:bg-[#fff8f5] lg:flex"
-              >
-                <Download className="h-4 w-4" />
-                Download CSS
-              </button>
+                    <div className="space-y-5">
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-[#2A1F1B]">
+                                Base Color
+                            </label>
+
+                            <div className="flex items-center gap-3 rounded-2xl border border-[#F1E5DF] bg-white px-3 py-2">
+                                <input
+                                    type="color"
+                                    value={baseColor}
+                                    onChange={(event) =>
+                                        setBaseColor(event.target.value.toUpperCase())
+                                    }
+                                    className="h-9 w-12 cursor-pointer rounded-lg border-0 bg-transparent p-0"
+                                    aria-label="Choose base color"
+                                />
+
+                                <input
+                                    type="text"
+                                    value={baseColor}
+                                    onChange={(event) => {
+                                        const value = event.target.value.toUpperCase();
+
+                                        if (/^#[0-9A-F]{0,6}$/.test(value)) {
+                                            setBaseColor(value);
+                                        }
+                                    }}
+                                    onBlur={() => {
+                                        if (!/^#[0-9A-F]{6}$/.test(baseColor)) {
+                                            setBaseColor("#FF6A5B");
+                                        }
+                                    }}
+                                    className="min-w-0 flex-1 bg-transparent text-sm font-medium text-[#2A1F1B] outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-[#2A1F1B]">
+                                Palette Type
+                            </label>
+
+                            <div className="relative">
+                                <select
+                                    value={paletteType}
+                                    onChange={(event) =>
+                                        setPaletteType(event.target.value as PaletteType)
+                                    }
+                                    className="w-full appearance-none rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-medium text-[#2A1F1B] outline-none transition focus:border-[#F28C6F]"
+                                >
+                                    {PALETTE_TYPES.map((item) => (
+                                        <option key={item.value} value={item.value}>
+                                            {item.label}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A17F74]" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-[#2A1F1B]">
+                                Color Count
+                            </label>
+
+                            <div className="grid grid-cols-3 gap-2 md:grid-cols-6 lg:grid-cols-3">
+                                {COLOR_COUNTS.map((count) => {
+                                    const isActive = colorCount === count;
+
+                                    return (
+                                        <button
+                                            key={count}
+                                            type="button"
+                                            onClick={() => setColorCount(count)}
+                                            className={[
+                                                "rounded-xl border px-3 py-2 text-sm font-semibold transition",
+                                                isActive
+                                                    ? "border-[#F4C8BA] bg-[#FFF1EC] text-[#F28C6F]"
+                                                    : "border-[#F1E5DF] bg-white text-[#5F514C] hover:bg-[#FFF7F3]",
+                                            ].join(" ")}
+                                        >
+                                            {count}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-[#2A1F1B]">
+                                Hex Values
+                            </label>
+
+                            <div className="space-y-2">
+                                {palette.map((color, index) => (
+                                    <div
+                                        key={`${color}-row-${index}`}
+                                        className="flex items-center gap-3 rounded-xl border border-[#F1E5DF] bg-white px-3 py-2"
+                                    >
+                                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#FFF7F3] text-xs font-semibold text-[#A17F74]">
+                                            {index + 1}
+                                        </span>
+
+                                        <span
+                                            className="h-5 w-5 shrink-0 rounded-md border border-[#F1E5DF]"
+                                            style={{ backgroundColor: color }}
+                                        />
+
+                                        <span className="min-w-0 flex-1 text-sm font-medium text-[#2A1F1B]">
+                                            {color}
+                                        </span>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => handleCopy(color)}
+                                            className="shrink-0 rounded-lg p-1.5 text-[#5F514C] transition hover:bg-[#FFF7F3] hover:text-[#F28C6F]"
+                                            aria-label={`Copy ${color}`}
+                                        >
+                                            <Clipboard className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={handleDownload}
+                            className="hidden w-full items-center justify-center gap-2 rounded-2xl border border-[#F1E5DF] bg-white px-5 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F28C6F] hover:bg-[#FFF7F3] md:inline-flex"
+                        >
+                            <Download className="h-4 w-4" />
+                            Download Palette
+                        </button>
+                    </div>
+                </aside>
             </div>
-          </section>
-        </aside>
-      </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#f3ddd4] bg-white/95 px-3 py-3 shadow-[0_-14px_34px_rgba(244,135,104,0.16)] backdrop-blur lg:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
-          <button
-            type="button"
-            onClick={handleShuffle}
-            className="flex min-h-[64px] flex-col items-center justify-center rounded-2xl border border-[#f4b9a9] bg-white px-2 text-[#d96f55]"
-          >
-            <Shuffle className="mb-1 h-5 w-5" />
-            <span className="text-xs font-semibold">Shuffle</span>
-            <span className="text-[10px] leading-none opacity-75">
-              Keep colors
-            </span>
-          </button>
+            <div className="fixed inset-x-3 bottom-3 z-40 md:hidden">
+                <div className="rounded-[24px] border border-[#F1E5DF] bg-white/95 p-3 shadow-[0_12px_30px_rgba(42,31,27,0.16)] backdrop-blur">
+                    <div className="grid grid-cols-4 gap-2">
+                        <button
+                            type="button"
+                            onClick={handleShuffle}
+                            className="flex min-h-[64px] flex-col items-center justify-center rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-1.5 text-center text-[#F28C6F]"
+                        >
+                            <Shuffle className="mb-1 h-5 w-5" />
+                            <span className="text-xs font-semibold leading-tight">
+                                Shuffle
+                            </span>
+                            <span className="mt-0.5 text-[10px] leading-tight text-[#A17F74]">
+                                Keep colors
+                            </span>
+                        </button>
 
-          <button
-            type="button"
-            onClick={handleRandomAll}
-            className="flex min-h-[64px] flex-col items-center justify-center rounded-2xl bg-[#f48768] px-2 text-white shadow-sm"
-          >
-            <Dices className="mb-1 h-5 w-5" />
-            <span className="text-xs font-semibold">Random All</span>
-            <span className="text-[10px] leading-none opacity-85">
-              All settings
-            </span>
-          </button>
+                        <button
+                            type="button"
+                            onClick={handleRandomAll}
+                            className="flex min-h-[64px] flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-1.5 text-center text-white shadow-sm"
+                        >
+                            <Dice5 className="mb-1 h-5 w-5" />
+                            <span className="text-xs font-semibold leading-tight">
+                                Random All
+                            </span>
+                            <span className="mt-0.5 text-[10px] leading-tight text-white/85">
+                                New palette
+                            </span>
+                        </button>
 
-          <button
-            type="button"
-            onClick={() => copyText(cssOutput, "mobile-css")}
-            className="flex min-h-[64px] flex-col items-center justify-center rounded-2xl border border-[#f2ddd5] bg-white px-2 text-neutral-700"
-          >
-            <Copy className="mb-1 h-5 w-5" />
-            <span className="text-xs font-semibold">
-              {copiedAction === "mobile-css" ? "Copied" : "Copy"}
-            </span>
-          </button>
+                        <button
+                            type="button"
+                            onClick={() => handleCopy(cssOutput)}
+                            className="flex min-h-[64px] flex-col items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white px-1.5 text-center text-[#2A1F1B]"
+                        >
+                            {copied ? (
+                                <Check className="mb-1 h-5 w-5" />
+                            ) : (
+                                <Copy className="mb-1 h-5 w-5" />
+                            )}
+                            <span className="text-xs font-semibold leading-tight">
+                                {copied ? "Copied" : "Copy"}
+                            </span>
+                        </button>
 
-          <button
-            type="button"
-            onClick={handleDownload}
-            className="flex min-h-[64px] flex-col items-center justify-center rounded-2xl border border-[#f2ddd5] bg-white px-2 text-neutral-700"
-          >
-            <Download className="mb-1 h-5 w-5" />
-            <span className="text-xs font-semibold">Download</span>
-          </button>
+                        <button
+                            type="button"
+                            onClick={handleDownload}
+                            className="flex min-h-[64px] flex-col items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white px-1.5 text-center text-[#2A1F1B]"
+                        >
+                            <Download className="mb-1 h-5 w-5" />
+                            <span className="text-xs font-semibold leading-tight">
+                                Download
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
