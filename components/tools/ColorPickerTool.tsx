@@ -595,7 +595,7 @@ export default function ColorPickerTool() {
             </div>
 
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)] lg:gap-6">
-                <div className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm md:p-6">
+                <div className="p-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-6 md:shadow-sm">
                     <div className="flex items-start justify-between gap-4">
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900">
@@ -652,7 +652,7 @@ export default function ColorPickerTool() {
                     )}
                 </div>
 
-                <div className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm md:p-6">
+                <div className="p-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-6 md:shadow-sm">
                     <h3 className="text-lg font-semibold text-gray-900">
                         {t.colorPicker.pickedColor}
                     </h3>
