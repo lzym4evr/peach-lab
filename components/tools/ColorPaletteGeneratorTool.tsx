@@ -299,7 +299,7 @@ export default function ColorPaletteGeneratorTool() {
     };
 
     return (
-        <div className="relative pb-28 md:pb-0">
+        <div className="relative">
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
                 <div className="space-y-6">
                     <section className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm md:p-6">

@@ -50,7 +50,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
     <main className="min-h-screen bg-[#FFFDFC] text-[#111827]">
       <Header />
 
-      <section className="mx-auto max-w-5xl px-6 py-12">
+      <section className="mx-auto max-w-5xl px-6 py-10 md:py-12">
         <a href="/" className="text-sm font-medium text-[#F28C6F]">
           {t.common.backToHome}
         </a>
@@ -83,7 +83,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
             </a>
           </div>
 
-          <div className="mt-10 rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-5 md:p-8">
+          <div className="mt-10">
             <ToolRenderer slug={tool.slug} icon={tool.icon} />
           </div>
         </div>
