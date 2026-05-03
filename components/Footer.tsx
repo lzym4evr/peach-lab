@@ -60,9 +60,16 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-[#F1E5DF] py-5 text-center text-sm text-gray-500">
+      <div className="border-t border-[#F1E5DF] px-6 py-5 text-center text-sm text-gray-500">
         {t.home.footerCopyright}
       </div>
+
+      <div className="h-[calc(var(--mobile-action-bar-space,0px)+env(safe-area-inset-bottom))] md:hidden" />
+
+      {/* Mobile Action Bar spacer. 
+          No action bar = 0px.
+          Action bar page = height is set automatically by the action bar component. */}
+      <div className="h-[var(--mobile-action-bar-space,0px)] md:hidden" />
     </footer>
   );
 }
