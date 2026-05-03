@@ -541,7 +541,7 @@ export default function ColorPickerTool() {
     }
 
     return (
-        <div className="space-y-5 md:space-y-6">
+        <div className="space-y-5 pb-28 md:space-y-6 lg:pb-0">
             <div
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -652,80 +652,51 @@ export default function ColorPickerTool() {
                     )}
                 </div>
 
-                <div className="p-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-6 md:shadow-sm">
+                <div className="hidden lg:block lg:rounded-3xl lg:border lg:border-[#F1E5DF] lg:bg-white lg:p-6 lg:shadow-sm">
                     <h3 className="text-lg font-semibold text-gray-900">
                         {t.colorPicker.pickedColor}
                     </h3>
 
-                    <div className="mt-4 lg:mt-5 lg:rounded-2xl lg:border lg:border-[#F1E5DF] lg:bg-[#FFFDFC] lg:p-4">
-                        <div className="hidden lg:block">
-                            <div className="mb-4 flex items-center justify-between gap-3">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-900">
-                                        {t.colorPicker.pixelMagnifier}
-                                    </p>
-                                    <p className="mt-1 text-xs leading-5 text-gray-500">
-                                        {t.colorPicker.magnifierHint}
-                                    </p>
-                                </div>
-
-                                <div
-                                    className="h-9 w-9 shrink-0 rounded-xl border border-[#F1E5DF]"
-                                    style={{ backgroundColor: magnifier.color }}
-                                />
+                    <div className="mt-5 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                        <div className="mb-4 flex items-center justify-between gap-3">
+                            <div>
+                                <p className="text-sm font-semibold text-gray-900">
+                                    {t.colorPicker.pixelMagnifier}
+                                </p>
+                                <p className="mt-1 text-xs leading-5 text-gray-500">
+                                    {t.colorPicker.magnifierHint}
+                                </p>
                             </div>
 
-                            <div className="grid gap-4 lg:grid-cols-[150px_minmax(0,1fr)] lg:items-center">
-                                <canvas
-                                    ref={magnifierCanvasRef}
-                                    className={`mx-auto h-[140px] w-[140px] rounded-xl border border-[#F1E5DF] bg-white transition lg:mx-0 lg:h-[150px] lg:w-[150px] ${magnifier.visible ? "opacity-100" : "opacity-30"
-                                        }`}
-                                />
-
-                                <div className="min-w-0 text-center lg:text-left">
-                                    <p className="text-base font-bold text-gray-900">
-                                        {magnifier.color}
-                                    </p>
-                                    <p className="mt-1 text-sm text-gray-500">{magnifier.rgb}</p>
-                                    <p className="mt-1 text-xs text-gray-400">
-                                        x {magnifier.x}, y {magnifier.y}
-                                    </p>
-                                </div>
-                            </div>
+                            <div
+                                className="h-9 w-9 shrink-0 rounded-xl border border-[#F1E5DF]"
+                                style={{ backgroundColor: magnifier.color }}
+                            />
                         </div>
 
-                        <div className="lg:hidden">
-                            {pickedColor ? (
-                                <div className="flex items-center gap-4 rounded-2xl bg-[#FFFDFC] p-3">
-                                    <div
-                                        className="h-16 w-16 shrink-0 rounded-2xl border border-[#F1E5DF]"
-                                        style={{ backgroundColor: pickedColor.hex }}
-                                    />
+                        <div className="grid gap-4 lg:grid-cols-[150px_minmax(0,1fr)] lg:items-center">
+                            <canvas
+                                ref={magnifierCanvasRef}
+                                className={`mx-auto h-[140px] w-[140px] rounded-xl border border-[#F1E5DF] bg-white transition lg:mx-0 lg:h-[150px] lg:w-[150px] ${magnifier.visible ? "opacity-100" : "opacity-30"
+                                    }`}
+                            />
 
-                                    <div className="min-w-0">
-                                        <p className="break-all text-xl font-bold text-gray-900">
-                                            {pickedColor.hex}
-                                        </p>
-                                        <p className="mt-1 break-all text-sm text-gray-500">
-                                            {pickedColor.rgb}
-                                        </p>
-                                        <p className="mt-1 break-all text-xs text-gray-400">
-                                            {pickedColor.hsl}
-                                        </p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="rounded-2xl bg-[#FFF7F3] px-4 py-4 text-center text-sm leading-6 text-gray-500">
-                                    Upload an image and tap any pixel to pick a color.
+                            <div className="min-w-0 text-center lg:text-left">
+                                <p className="text-base font-bold text-gray-900">
+                                    {magnifier.color}
                                 </p>
-                            )}
+                                <p className="mt-1 text-sm text-gray-500">{magnifier.rgb}</p>
+                                <p className="mt-1 text-xs text-gray-400">
+                                    x {magnifier.x}, y {magnifier.y}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
                     {pickedColor ? (
                         <div className="mt-5 space-y-4">
                             <div
-                                className="hidden h-28 rounded-2xl border border-[#F1E5DF] md:h-32 lg:block"
+                                className="h-28 rounded-2xl border border-[#F1E5DF] md:h-32"
                                 style={{ backgroundColor: pickedColor.hex }}
                             />
 
@@ -792,9 +763,57 @@ export default function ColorPickerTool() {
                             </div>
                         </div>
                     ) : (
-                        <p className="mt-5 hidden text-center text-sm leading-6 text-gray-500 lg:block lg:rounded-2xl lg:border lg:border-dashed lg:border-[#F4C8BA] lg:bg-[#FFF7F3] lg:p-6">
+                        <p className="mt-5 text-center text-sm leading-6 text-gray-500 lg:rounded-2xl lg:border lg:border-dashed lg:border-[#F4C8BA] lg:bg-[#FFF7F3] lg:p-6">
                             {t.colorPicker.emptyPickedColor}
                         </p>
+                    )}
+                </div>
+            </div>
+
+            <div className="fixed inset-x-3 bottom-3 z-50 lg:hidden">
+                <div className="rounded-3xl border border-[#F1E5DF] bg-white/95 p-3 shadow-[0_12px_40px_rgba(42,31,27,0.16)] backdrop-blur">
+                    {pickedColor ? (
+                        <div className="flex items-center gap-3">
+                            <div
+                                className="h-14 w-14 shrink-0 rounded-2xl border border-[#F1E5DF]"
+                                style={{ backgroundColor: pickedColor.hex }}
+                            />
+
+                            <div className="min-w-0 flex-1">
+                                <p className="truncate text-base font-bold text-gray-900">
+                                    {pickedColor.hex}
+                                </p>
+                                <p className="mt-0.5 truncate text-xs text-gray-500">
+                                    {pickedColor.rgb}
+                                </p>
+                                <p className="mt-0.5 truncate text-[11px] text-gray-400">
+                                    {pickedColor.hsl}
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => copyValue("HEX", pickedColor.hex)}
+                                className="shrink-0 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                {copied === "HEX" ? t.common.copied : t.common.copy}
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#FFF7F3] text-xl">
+                                🎨
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                                <p className="text-sm font-semibold text-gray-900">
+                                    Pick a color
+                                </p>
+                                <p className="mt-0.5 text-xs text-gray-500">
+                                    Upload an image and tap any pixel.
+                                </p>
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>
