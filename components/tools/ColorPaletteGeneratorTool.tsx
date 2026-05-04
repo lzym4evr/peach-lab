@@ -1109,7 +1109,12 @@ export default function ColorPaletteGenerator() {
                 </button>
             </div>
 
-            <div className="pointer-events-none fixed inset-x-0 bottom-3 z-40 px-3 md:hidden">
+            <div
+                className={[
+                    "pointer-events-none fixed inset-x-0 bottom-3 px-3 md:hidden",
+                    isPickerOpen ? "z-[60]" : "z-40",
+                ].join(" ")}
+            >
                 <div
                     ref={mobileActionBarRef}
                     className="pointer-events-auto mx-auto max-w-md rounded-[30px] border border-[#F1E5DF] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
@@ -1173,15 +1178,15 @@ export default function ColorPaletteGenerator() {
             </div>
 
             {isPickerOpen ? (
-                <div className="fixed inset-0 z-50 overflow-hidden md:hidden">
+                <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden md:hidden">
                     <button
                         type="button"
                         aria-label="Close color picker"
                         onClick={closePicker}
-                        className="absolute inset-0 bg-[#2A1F1B]/35 backdrop-blur-[2px]"
+                        className="pointer-events-auto absolute inset-0 bg-[#2A1F1B]/35 backdrop-blur-[2px]"
                     />
 
-                    <div className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto overflow-x-hidden rounded-t-[32px] border border-[#F1E5DF] bg-white px-5 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-4 shadow-[0_-16px_45px_rgba(42,31,27,0.18)]">
+                    <div className="pointer-events-auto absolute inset-x-0 bottom-[calc(var(--mobile-action-bar-space,0px)+8px)] max-h-[72vh] overflow-y-auto overflow-x-hidden rounded-[32px] border border-[#F1E5DF] bg-white px-5 pb-5 pt-4 shadow-[0_-16px_45px_rgba(42,31,27,0.18)]">
                         <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-200" />
                         {renderColorPickerPanel("mobile", mobileWheelRef)}
                     </div>
