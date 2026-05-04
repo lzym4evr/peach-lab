@@ -399,7 +399,6 @@ export default function ColorPaletteGenerator() {
     const mobileActionBarRef = useRef<HTMLDivElement | null>(null);
     const mobileWheelRef = useRef<HTMLDivElement | null>(null);
     const desktopWheelRef = useRef<HTMLDivElement | null>(null);
-    const scrollPositionRef = useRef(0);
 
     const draftColor = useMemo(() => {
         return hslToHex(draftHsl.h, draftHsl.s, draftHsl.l);
@@ -437,40 +436,6 @@ export default function ColorPaletteGenerator() {
             document.documentElement.style.removeProperty("--mobile-action-bar-space");
         };
     }, []);
-
-    useEffect(() => {
-        if (!isPickerOpen) return;
-
-        scrollPositionRef.current = window.scrollY;
-
-        const originalBodyPosition = document.body.style.position;
-        const originalBodyTop = document.body.style.top;
-        const originalBodyLeft = document.body.style.left;
-        const originalBodyRight = document.body.style.right;
-        const originalBodyWidth = document.body.style.width;
-        const originalHtmlScrollBehavior =
-            document.documentElement.style.scrollBehavior;
-
-        document.documentElement.style.scrollBehavior = "auto";
-        document.body.style.position = "fixed";
-        document.body.style.top = `-${scrollPositionRef.current}px`;
-        document.body.style.left = "0";
-        document.body.style.right = "0";
-        document.body.style.width = "100%";
-
-        return () => {
-            document.body.style.position = originalBodyPosition;
-            document.body.style.top = originalBodyTop;
-            document.body.style.left = originalBodyLeft;
-            document.body.style.right = originalBodyRight;
-            document.body.style.width = originalBodyWidth;
-            document.documentElement.style.scrollBehavior = originalHtmlScrollBehavior;
-
-            window.requestAnimationFrame(() => {
-                window.scrollTo(0, scrollPositionRef.current);
-            });
-        };
-    }, [isPickerOpen]);
 
     useEffect(() => {
         if (isPickerOpen) return;
@@ -745,9 +710,9 @@ export default function ColorPaletteGenerator() {
         const isDesktop = mode === "desktop";
 
         return (
-            <div>
-                <div className="mb-5 flex items-center justify-between gap-4">
-                    <div>
+            <div className="min-w-0">
+                <div className="mb-5 flex min-w-0 items-center justify-between gap-4">
+                    <div className="min-w-0">
                         <h2 className="text-xl font-semibold text-[#2A1F1B] md:text-2xl">
                             Choose base color
                         </h2>
@@ -768,8 +733,8 @@ export default function ColorPaletteGenerator() {
                     ) : null}
                 </div>
 
-                <div className="grid gap-5 md:grid-cols-[1.05fr_0.95fr] md:items-start md:gap-8">
-                    <div className="space-y-5">
+                <div className="grid min-w-0 gap-5 md:grid-cols-[1.05fr_0.95fr] md:items-start md:gap-8">
+                    <div className="min-w-0 space-y-5">
                         <div
                             ref={wheelRef}
                             onPointerDown={(event) => {
@@ -811,12 +776,12 @@ export default function ColorPaletteGenerator() {
                             />
                         </div>
 
-                        <div>
+                        <div className="min-w-0">
                             <label className="mb-2 block text-xs font-medium text-gray-500">
                                 HEX
                             </label>
 
-                            <div className="flex items-center gap-2">
+                            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_48px] items-center gap-2">
                                 <input
                                     value={draftHex}
                                     onChange={(event) => updateDraftFromHex(event.target.value)}
@@ -826,7 +791,7 @@ export default function ColorPaletteGenerator() {
                                             setDraftHex(fixed);
                                         }
                                     }}
-                                    className="min-w-0 flex-1 rounded-2xl border border-[#F1E5DF] px-4 py-3 text-sm font-semibold text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
+                                    className="w-full min-w-0 rounded-2xl border border-[#F1E5DF] px-4 py-3 text-sm font-semibold text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
                                     aria-label="HEX color"
                                 />
 
@@ -842,8 +807,8 @@ export default function ColorPaletteGenerator() {
                         </div>
                     </div>
 
-                    <div className="space-y-5">
-                        <div>
+                    <div className="min-w-0 space-y-5">
+                        <div className="min-w-0">
                             <label className="mb-2 block text-xs font-medium text-gray-500">
                                 Hue
                             </label>
@@ -856,14 +821,10 @@ export default function ColorPaletteGenerator() {
                                     updateDraftHsl({ h: Number(event.target.value) })
                                 }
                                 className="w-full accent-[#F28C6F]"
-                                style={{
-                                    background:
-                                        "linear-gradient(90deg, red, yellow, lime, cyan, blue, magenta, red)",
-                                }}
                             />
                         </div>
 
-                        <div>
+                        <div className="min-w-0">
                             <label className="mb-2 block text-xs font-medium text-gray-500">
                                 Saturation
                             </label>
@@ -879,7 +840,7 @@ export default function ColorPaletteGenerator() {
                             />
                         </div>
 
-                        <div>
+                        <div className="min-w-0">
                             <label className="mb-2 block text-xs font-medium text-gray-500">
                                 Lightness
                             </label>
@@ -895,17 +856,17 @@ export default function ColorPaletteGenerator() {
                             />
                         </div>
 
-                        <div>
+                        <div className="min-w-0">
                             <span className="mb-2 block text-xs font-medium text-gray-500">
                                 Current color
                             </span>
-                            <div className="flex items-center gap-3 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
+                            <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
                                 <div
-                                    className="h-14 w-14 rounded-2xl border border-[#F1E5DF] shadow-sm"
+                                    className="h-14 w-14 shrink-0 rounded-2xl border border-[#F1E5DF] shadow-sm"
                                     style={{ backgroundColor: draftColor }}
                                 />
-                                <div>
-                                    <p className="text-sm font-semibold text-[#2A1F1B]">
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-semibold text-[#2A1F1B]">
                                         {draftColor}
                                     </p>
                                     <p className="text-xs text-gray-500">Selected base color</p>
@@ -913,12 +874,12 @@ export default function ColorPaletteGenerator() {
                             </div>
                         </div>
 
-                        <div>
+                        <div className="min-w-0">
                             <span className="mb-3 block text-xs font-medium text-gray-500">
                                 Presets
                             </span>
 
-                            <div className="flex gap-2 overflow-x-auto pb-1">
+                            <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1">
                                 {PRESET_COLORS.map((color) => {
                                     const active = draftColor.toUpperCase() === color;
 
@@ -947,7 +908,7 @@ export default function ColorPaletteGenerator() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 pt-2">
+                        <div className="grid min-w-0 grid-cols-2 gap-3 pt-2">
                             <button
                                 type="button"
                                 onClick={isDesktop ? resetDesktopColor : closePicker}
@@ -1212,7 +1173,7 @@ export default function ColorPaletteGenerator() {
             </div>
 
             {isPickerOpen ? (
-                <div className="fixed inset-0 z-50 md:hidden">
+                <div className="fixed inset-0 z-50 overflow-hidden md:hidden">
                     <button
                         type="button"
                         aria-label="Close color picker"
@@ -1220,7 +1181,7 @@ export default function ColorPaletteGenerator() {
                         className="absolute inset-0 bg-[#2A1F1B]/35 backdrop-blur-[2px]"
                     />
 
-                    <div className="absolute inset-x-0 bottom-0 rounded-t-[32px] border border-[#F1E5DF] bg-white px-5 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-4 shadow-[0_-16px_45px_rgba(42,31,27,0.18)]">
+                    <div className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto overflow-x-hidden rounded-t-[32px] border border-[#F1E5DF] bg-white px-5 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-4 shadow-[0_-16px_45px_rgba(42,31,27,0.18)]">
                         <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-200" />
                         {renderColorPickerPanel("mobile", mobileWheelRef)}
                     </div>
