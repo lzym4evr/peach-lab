@@ -364,8 +364,8 @@ export default function ColorPaletteGenerator() {
 
             const rect = element.getBoundingClientRect();
 
-            // 动作条本体高度 + 少量安全距离
-            const space = Math.ceil(rect.height + 12);
+            // 动作条高度 + bottom-3 + 正常留白
+            const space = Math.ceil(rect.height + 28);
 
             document.documentElement.style.setProperty(
                 "--mobile-action-bar-space",
@@ -426,7 +426,6 @@ export default function ColorPaletteGenerator() {
     };
 
     const handleShuffle = () => {
-        // 保留当前 base color 和 color count，只随机 palette type
         setPaletteType(getRandomPaletteType());
     };
 
@@ -568,7 +567,6 @@ export default function ColorPaletteGenerator() {
 
     return (
         <div className="space-y-5">
-            {/* Controls */}
             <section className="rounded-[28px] border border-[#F1E5DF] bg-white p-5 shadow-sm">
                 <div>
                     <h2 className="text-xl font-semibold text-[#2A1F1B]">Controls</h2>
@@ -578,7 +576,6 @@ export default function ColorPaletteGenerator() {
                 </div>
 
                 <div className="mt-5 space-y-5">
-                    {/* Base Color */}
                     <div>
                         <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
                             Base Color
@@ -625,7 +622,6 @@ export default function ColorPaletteGenerator() {
                         </div>
                     </div>
 
-                    {/* Palette Type */}
                     <div>
                         <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
                             Palette Type
@@ -647,7 +643,6 @@ export default function ColorPaletteGenerator() {
                         </select>
                     </div>
 
-                    {/* Color Count */}
                     <div>
                         <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
                             Color Count
@@ -675,7 +670,6 @@ export default function ColorPaletteGenerator() {
                         </div>
                     </div>
 
-                    {/* Palette Preview */}
                     <div className="border-t border-[#F1E5DF] pt-5">
                         <div className="mb-3 flex items-center justify-between gap-3">
                             <h3 className="text-base font-semibold text-[#2A1F1B]">
@@ -687,35 +681,30 @@ export default function ColorPaletteGenerator() {
                             </span>
                         </div>
 
-                        <div className="relative">
-                            <div className="-mx-1 overflow-x-auto px-1 pb-1">
-                                <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-5">
-                                    {palette.map((color, index) => (
-                                        <button
-                                            key={`${color}-${index}`}
-                                            type="button"
-                                            onClick={() => copyWithStatus(color, `color-${index}`)}
-                                            className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
-                                            style={{ backgroundColor: color }}
-                                            aria-label={`Copy ${color}`}
-                                        >
-                                            <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
-                                                {copiedTarget === `color-${index}`
-                                                    ? "COPIED"
-                                                    : color.toUpperCase()}
-                                            </span>
-                                        </button>
-                                    ))}
-                                </div>
+                        <div className="-mx-1 overflow-x-auto px-1 pb-1">
+                            <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-8">
+                                {palette.map((color, index) => (
+                                    <button
+                                        key={`${color}-${index}`}
+                                        type="button"
+                                        onClick={() => copyWithStatus(color, `color-${index}`)}
+                                        className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
+                                        style={{ backgroundColor: color }}
+                                        aria-label={`Copy ${color}`}
+                                    >
+                                        <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
+                                            {copiedTarget === `color-${index}`
+                                                ? "COPIED"
+                                                : color.toUpperCase()}
+                                        </span>
+                                    </button>
+                                ))}
                             </div>
-
-                            <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-white/0" />
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* CSS Output */}
             <section className="rounded-[28px] border border-[#F1E5DF] bg-white p-5 shadow-sm">
                 <h2 className="text-xl font-semibold text-[#2A1F1B]">CSS Output</h2>
 
@@ -733,7 +722,6 @@ export default function ColorPaletteGenerator() {
                 </button>
             </section>
 
-            {/* Desktop Actions */}
             <div className="hidden grid-cols-4 gap-3 md:grid">
                 <button
                     type="button"
@@ -772,7 +760,6 @@ export default function ColorPaletteGenerator() {
                 </button>
             </div>
 
-            {/* Mobile Action Bar */}
             <div className="pointer-events-none fixed inset-x-0 bottom-3 z-40 px-3 md:hidden">
                 <div
                     ref={mobileActionBarRef}

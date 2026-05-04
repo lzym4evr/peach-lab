@@ -3,10 +3,10 @@ import { t } from "@/data/messages";
 export default function Footer() {
   return (
     <footer
-      className="mt-12 border-t border-[#F1E5DF] bg-white"
+      className="mt-6 border-t border-[#F1E5DF] bg-white md:mt-12"
       style={{
         marginBottom:
-          "max(calc(var(--mobile-action-bar-space, 0px) - 1.25rem), 0px)",
+          "max(calc(var(--mobile-action-bar-space, 0px) - 0.75rem), 0px)",
       }}
     >
       <div className="mx-auto grid max-w-7xl gap-8 px-6 py-10 md:grid-cols-4">
