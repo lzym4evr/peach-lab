@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type RefObject,
+} from "react";
 import { Copy, Download, Dices, Pencil, Shuffle, X } from "lucide-react";
 
 type PaletteType =
@@ -715,18 +721,18 @@ export default function ColorPaletteGenerator() {
 
     const renderColorPickerPanel = (
         mode: "desktop" | "mobile",
-        wheelRef: React.RefObject<HTMLDivElement | null>
+        wheelRef: RefObject<HTMLDivElement | null>
     ) => {
         const isDesktop = mode === "desktop";
 
         return (
             <div>
-                <div className="mb-5 flex items-center justify-between gap-4">
+                <div className="mb-4 flex items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-xl font-semibold text-[#2A1F1B] md:text-2xl">
+                        <h2 className="text-lg font-semibold text-[#2A1F1B] md:text-2xl">
                             Choose base color
                         </h2>
-                        <p className="mt-1 text-sm text-gray-500">
+                        <p className="mt-1 text-xs text-gray-500 md:text-sm">
                             Pick a color, adjust it, then apply it to your palette.
                         </p>
                     </div>
@@ -735,7 +741,7 @@ export default function ColorPaletteGenerator() {
                         <button
                             type="button"
                             onClick={closePicker}
-                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-[#2A1F1B] transition hover:bg-[#FFEDE6]"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-[#2A1F1B]"
                             aria-label="Close"
                         >
                             <X className="h-5 w-5" />
@@ -743,8 +749,8 @@ export default function ColorPaletteGenerator() {
                     ) : null}
                 </div>
 
-                <div className="grid gap-5 md:grid-cols-[1.05fr_0.95fr] md:items-start md:gap-8">
-                    <div className="space-y-5">
+                <div className="grid gap-4 md:grid-cols-[1.05fr_0.95fr] md:items-start md:gap-8">
+                    <div className="space-y-4">
                         <div
                             ref={wheelRef}
                             onPointerDown={(event) => {
@@ -763,14 +769,14 @@ export default function ColorPaletteGenerator() {
                                     event.clientY
                                 );
                             }}
-                            className="relative mx-auto aspect-square w-full max-w-[280px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)] md:max-w-[360px]"
+                            className="relative mx-auto aspect-square w-full max-w-[180px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)] sm:max-w-[220px] md:max-w-[360px]"
                             style={{
                                 background:
                                     "radial-gradient(circle, white 0%, rgba(255,255,255,0.2) 35%, rgba(255,255,255,0) 62%), conic-gradient(red, yellow, lime, cyan, blue, magenta, red)",
                             }}
                         >
                             <span
-                                className="absolute h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md md:h-8 md:w-8"
+                                className="absolute h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md md:h-8 md:w-8"
                                 style={{
                                     left: `${50 +
                                         Math.cos((draftHsl.h * Math.PI) / 180) *
@@ -808,7 +814,7 @@ export default function ColorPaletteGenerator() {
                                 <button
                                     type="button"
                                     onClick={() => copyWithStatus(draftColor, "picker")}
-                                    className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white text-[#2A1F1B]"
                                     aria-label="Copy selected color"
                                 >
                                     <Copy className="h-4 w-4" />
@@ -817,7 +823,7 @@ export default function ColorPaletteGenerator() {
                         </div>
                     </div>
 
-                    <div className="space-y-5">
+                    <div className="space-y-4">
                         <div>
                             <label className="mb-2 block text-xs font-medium text-gray-500">
                                 Hue
@@ -831,10 +837,6 @@ export default function ColorPaletteGenerator() {
                                     updateDraftHsl({ h: Number(event.target.value) })
                                 }
                                 className="w-full accent-[#F28C6F]"
-                                style={{
-                                    background:
-                                        "linear-gradient(90deg, red, yellow, lime, cyan, blue, magenta, red)",
-                                }}
                             />
                         </div>
 
@@ -876,7 +878,7 @@ export default function ColorPaletteGenerator() {
                             </span>
                             <div className="flex items-center gap-3 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
                                 <div
-                                    className="h-14 w-14 rounded-2xl border border-[#F1E5DF] shadow-sm"
+                                    className="h-12 w-12 rounded-2xl border border-[#F1E5DF] shadow-sm md:h-14 md:w-14"
                                     style={{ backgroundColor: draftColor }}
                                 />
                                 <div>
@@ -907,8 +909,8 @@ export default function ColorPaletteGenerator() {
                                             }}
                                             className={
                                                 active
-                                                    ? "h-10 w-10 shrink-0 rounded-2xl border-2 border-[#F28C6F] bg-white p-1"
-                                                    : "h-10 w-10 shrink-0 rounded-2xl border border-[#F1E5DF] p-1"
+                                                    ? "h-9 w-9 shrink-0 rounded-2xl border-2 border-[#F28C6F] bg-white p-1 md:h-10 md:w-10"
+                                                    : "h-9 w-9 shrink-0 rounded-2xl border border-[#F1E5DF] p-1 md:h-10 md:w-10"
                                             }
                                             aria-label={`Use ${color}`}
                                         >
@@ -922,11 +924,11 @@ export default function ColorPaletteGenerator() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 pt-2">
+                        <div className="grid grid-cols-2 gap-3 pt-1">
                             <button
                                 type="button"
                                 onClick={isDesktop ? resetDesktopColor : closePicker}
-                                className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
+                                className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B]"
                             >
                                 {isDesktop ? "Reset" : "Cancel"}
                             </button>
@@ -934,7 +936,7 @@ export default function ColorPaletteGenerator() {
                             <button
                                 type="button"
                                 onClick={isDesktop ? applyDesktopColor : applyPickerColor}
-                                className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm"
                             >
                                 Apply
                             </button>
@@ -1063,6 +1065,44 @@ export default function ColorPaletteGenerator() {
                                 ))}
                             </div>
                         </div>
+
+                        <div className="mt-4 hidden grid-cols-4 gap-3 md:grid">
+                            <button
+                                type="button"
+                                onClick={handleShuffle}
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6]"
+                            >
+                                <Shuffle className="h-4 w-4" />
+                                Shuffle
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleRandomAll}
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                <Dices className="h-4 w-4" />
+                                Random
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleCopyPalette}
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                            >
+                                <Copy className="h-4 w-4" />
+                                {copiedTarget === "palette" ? "Copied" : "Copy Palette"}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleDownloadPng}
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                <Download className="h-4 w-4" />
+                                Download PNG
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1083,44 +1123,6 @@ export default function ColorPaletteGenerator() {
                     {copiedTarget === "css" ? "Copied" : "Copy CSS"}
                 </button>
             </section>
-
-            <div className="hidden grid-cols-4 gap-3 md:grid">
-                <button
-                    type="button"
-                    onClick={handleShuffle}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6]"
-                >
-                    <Shuffle className="h-4 w-4" />
-                    Shuffle
-                </button>
-
-                <button
-                    type="button"
-                    onClick={handleRandomAll}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                >
-                    <Dices className="h-4 w-4" />
-                    Random
-                </button>
-
-                <button
-                    type="button"
-                    onClick={handleCopyPalette}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
-                >
-                    <Copy className="h-4 w-4" />
-                    {copiedTarget === "palette" ? "Copied" : "Copy Palette"}
-                </button>
-
-                <button
-                    type="button"
-                    onClick={handleDownloadPng}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                >
-                    <Download className="h-4 w-4" />
-                    Download PNG
-                </button>
-            </div>
 
             <div className="pointer-events-none fixed inset-x-0 bottom-3 z-40 px-3 md:hidden">
                 <div
@@ -1191,12 +1193,13 @@ export default function ColorPaletteGenerator() {
                         type="button"
                         aria-label="Close color picker"
                         onClick={closePicker}
-                        className="absolute inset-0 bg-[#2A1F1B]/35 backdrop-blur-[2px]"
+                        className="absolute inset-0 bg-[#2A1F1B]/25 backdrop-blur-[2px]"
                     />
 
-                    <div className="absolute inset-x-0 bottom-0 rounded-t-[32px] border border-[#F1E5DF] bg-white px-5 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-4 shadow-[0_-16px_45px_rgba(42,31,27,0.18)]">
-                        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-200" />
-                        {renderColorPickerPanel("mobile", mobileWheelRef)}
+                    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--mobile-action-bar-space,132px)+12px)] z-50 px-3">
+                        <div className="pointer-events-auto mx-auto max-h-[calc(100dvh-180px)] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-[30px] border border-[#F1E5DF] bg-white/95 p-4 shadow-[0_10px_35px_rgba(42,31,27,0.16)] backdrop-blur">
+                            {renderColorPickerPanel("mobile", mobileWheelRef)}
+                        </div>
                     </div>
                 </div>
             ) : null}
