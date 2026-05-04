@@ -363,7 +363,6 @@ export default function ColorPaletteGenerator() {
             if (!element) return;
 
             const rect = element.getBoundingClientRect();
-
             const space = Math.ceil(rect.height + 28);
 
             document.documentElement.style.setProperty(
@@ -701,17 +700,18 @@ export default function ColorPaletteGenerator() {
                 </div>
             </section>
 
-            <section className="rounded-[28px] border border-[#F1E5DF] bg-white p-5 shadow-sm">
+            {/* CSS Output without outer card */}
+            <section className="space-y-4 pt-1">
                 <h2 className="text-xl font-semibold text-[#2A1F1B]">CSS Output</h2>
 
-                <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
+                <pre className="overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
                     <code>{cssOutput}</code>
                 </pre>
 
                 <button
                     type="button"
                     onClick={handleCopyCss}
-                    className="mt-4 inline-flex w-fit items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                    className="inline-flex w-fit items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                 >
                     <Copy className="h-4 w-4" />
                     {copiedTarget === "css" ? "Copied" : "Copy CSS"}
