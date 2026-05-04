@@ -33,7 +33,6 @@ const PALETTE_TYPES: { label: string; value: PaletteType }[] = [
 ];
 
 const COLOR_COUNTS = [3, 4, 5, 6, 7, 8];
-
 const DEFAULT_BASE_COLOR = "#FF6A5B";
 
 const PRESET_COLORS = [
@@ -416,7 +415,6 @@ export default function ColorPaletteGenerator() {
             if (!element) return;
 
             const rect = element.getBoundingClientRect();
-
             const space = isPickerOpen ? 132 : Math.ceil(rect.height + 28);
 
             document.documentElement.style.setProperty(
@@ -962,7 +960,7 @@ export default function ColorPaletteGenerator() {
 
     return (
         <div className="space-y-5">
-            <section className="rounded-[28px] border border-[#F1E5DF] bg-white p-5 shadow-sm">
+            <section className="p-0 md:rounded-[28px] md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                 <div>
                     <h2 className="text-xl font-semibold text-[#2A1F1B]">Controls</h2>
                     <p className="mt-1 text-sm leading-6 text-gray-500">
@@ -1120,7 +1118,7 @@ export default function ColorPaletteGenerator() {
                 </div>
             </section>
 
-            <section className="rounded-[28px] border border-[#F1E5DF] bg-white p-5 shadow-sm">
+            <section className="p-0 md:rounded-[28px] md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                 <h2 className="text-xl font-semibold text-[#2A1F1B]">CSS Output</h2>
 
                 <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
