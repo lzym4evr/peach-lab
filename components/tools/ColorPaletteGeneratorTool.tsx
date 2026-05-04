@@ -364,7 +364,6 @@ export default function ColorPaletteGenerator() {
 
             const rect = element.getBoundingClientRect();
 
-            // 动作条高度 + bottom-3 + 正常留白
             const space = Math.ceil(rect.height + 28);
 
             document.documentElement.style.setProperty(
@@ -738,7 +737,7 @@ export default function ColorPaletteGenerator() {
                     className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                 >
                     <Dices className="h-4 w-4" />
-                    Random All
+                    Random
                 </button>
 
                 <button
@@ -786,8 +785,8 @@ export default function ColorPaletteGenerator() {
                             className="flex flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
                         >
                             <Dices className="mb-1 h-5 w-5 text-white" />
-                            <span className="text-xs font-semibold text-white">
-                                Random All
+                            <span className="whitespace-nowrap text-xs font-semibold text-white">
+                                Random
                             </span>
                             <span className="mt-0.5 text-[10px] text-white/85">
                                 New palette
