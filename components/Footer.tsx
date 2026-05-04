@@ -2,7 +2,13 @@ import { t } from "@/data/messages";
 
 export default function Footer() {
   return (
-    <footer className="mt-12 border-t border-[#F1E5DF] bg-white">
+    <footer
+      className="mt-12 border-t border-[#F1E5DF] bg-white"
+      style={{
+        marginBottom:
+          "max(calc(var(--mobile-action-bar-space, 0px) - 1.25rem), 0px)",
+      }}
+    >
       <div className="mx-auto grid max-w-7xl gap-8 px-6 py-10 md:grid-cols-4">
         <div>
           <div className="mb-3 flex items-center gap-3">
@@ -63,13 +69,6 @@ export default function Footer() {
       <div className="border-t border-[#F1E5DF] px-6 py-5 text-center text-sm text-gray-500">
         {t.home.footerCopyright}
       </div>
-
-      <div className="h-[calc(var(--mobile-action-bar-space,0px)+env(safe-area-inset-bottom))] md:hidden" />
-
-      {/* Mobile Action Bar spacer. 
-          No action bar = 0px.
-          Action bar page = height is set automatically by the action bar component. */}
-      <div className="h-[var(--mobile-action-bar-space,0px)] md:hidden" />
     </footer>
   );
 }

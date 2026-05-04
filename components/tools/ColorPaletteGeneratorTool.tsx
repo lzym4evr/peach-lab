@@ -23,8 +23,9 @@ const PALETTE_TYPES: { label: string; value: PaletteType }[] = [
 const COLOR_COUNTS = [3, 4, 5, 6, 7, 8];
 const DEFAULT_BASE_COLOR = "#FF6A5B";
 
-const clamp = (value: number, min: number, max: number) =>
-    Math.min(Math.max(value, min), max);
+const clamp = (value: number, min: number, max: number) => {
+    return Math.min(Math.max(value, min), max);
+};
 
 const hexToRgb = (hex: string) => {
     const normalized = hex.replace("#", "");
@@ -288,6 +289,7 @@ const drawSimplePeachLogo = (
         centerX + 45,
         centerY + 55
     );
+
     gradient.addColorStop(0, "#FFB35F");
     gradient.addColorStop(1, "#FF5F45");
 
@@ -362,8 +364,8 @@ export default function ColorPaletteGenerator() {
 
             const rect = element.getBoundingClientRect();
 
-            // 动作条高度 + bottom 间距 + 额外安全距离
-            const space = Math.ceil(rect.height + 28);
+            // 动作条本体高度 + 少量安全距离
+            const space = Math.ceil(rect.height + 12);
 
             document.documentElement.style.setProperty(
                 "--mobile-action-bar-space",
@@ -398,11 +400,13 @@ export default function ColorPaletteGenerator() {
         const lines = palette.map(
             (color, index) => `  --color-${index + 1}: ${color};`
         );
+
         return `.palette {\n${lines.join("\n")}\n}`;
     }, [palette]);
 
     const setCopied = (target: string) => {
         setCopiedTarget(target);
+
         window.setTimeout(() => {
             setCopiedTarget((current) => (current === target ? null : current));
         }, 1500);
@@ -422,7 +426,7 @@ export default function ColorPaletteGenerator() {
     };
 
     const handleShuffle = () => {
-        // 保留用户颜色和数量，只随机其他参数
+        // 保留当前 base color 和 color count，只随机 palette type
         setPaletteType(getRandomPaletteType());
     };
 
@@ -474,6 +478,7 @@ export default function ColorPaletteGenerator() {
         ctx.fill();
 
         ctx.fillStyle = "rgba(242, 140, 111, 0.35)";
+
         for (let row = 0; row < 4; row += 1) {
             for (let col = 0; col < 4; col += 1) {
                 ctx.beginPath();
@@ -582,7 +587,11 @@ export default function ColorPaletteGenerator() {
                         <div className="flex items-center gap-3 rounded-2xl border border-[#F1E5DF] bg-white px-3 py-3">
                             <input
                                 type="color"
-                                value={/^#[0-9A-F]{6}$/i.test(baseColor) ? baseColor : "#FF6A5B"}
+                                value={
+                                    /^#[0-9A-F]{6}$/i.test(baseColor)
+                                        ? baseColor
+                                        : DEFAULT_BASE_COLOR
+                                }
                                 onChange={(event) =>
                                     setBaseColor(event.target.value.toUpperCase())
                                 }
@@ -594,9 +603,13 @@ export default function ColorPaletteGenerator() {
                                 type="text"
                                 value={baseColor}
                                 onChange={(event) => {
-                                    const value = event.target.value.toUpperCase();
-                                    if (/^#[0-9A-F]{0,7}$/.test(value)) {
-                                        setBaseColor(value.startsWith("#") ? value : `#${value.replace(/^#?/, "")}`);
+                                    const rawValue = event.target.value.toUpperCase();
+                                    const normalizedValue = rawValue.startsWith("#")
+                                        ? rawValue
+                                        : `#${rawValue}`;
+
+                                    if (/^#[0-9A-F]{0,6}$/.test(normalizedValue)) {
+                                        setBaseColor(normalizedValue);
                                     }
                                 }}
                                 onBlur={() => {
@@ -652,7 +665,7 @@ export default function ColorPaletteGenerator() {
                                         className={
                                             active
                                                 ? "rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-3 text-sm font-semibold text-[#E6765B]"
-                                                : "rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-sm font-semibold text-[#2A1F1B] hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                                                : "rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
                                         }
                                     >
                                         {count}
@@ -668,6 +681,7 @@ export default function ColorPaletteGenerator() {
                             <h3 className="text-base font-semibold text-[#2A1F1B]">
                                 Palette Preview
                             </h3>
+
                             <span className="text-xs text-gray-400">
                                 Swipe or tap a color
                             </span>
@@ -675,17 +689,17 @@ export default function ColorPaletteGenerator() {
 
                         <div className="relative">
                             <div className="-mx-1 overflow-x-auto px-1 pb-1">
-                                <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-4">
+                                <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-5">
                                     {palette.map((color, index) => (
                                         <button
                                             key={`${color}-${index}`}
                                             type="button"
                                             onClick={() => copyWithStatus(color, `color-${index}`)}
-                                            className="relative flex h-40 w-[40px] flex-none snap-start items-center justify-center rounded-[18px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
+                                            className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
                                             style={{ backgroundColor: color }}
                                             aria-label={`Copy ${color}`}
                                         >
-                                            <span className="-rotate-90 whitespace-nowrap text-[11px] font-bold tracking-wide text-white md:text-sm">
+                                            <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
                                                 {copiedTarget === `color-${index}`
                                                     ? "COPIED"
                                                     : color.toUpperCase()}
@@ -695,7 +709,6 @@ export default function ColorPaletteGenerator() {
                                 </div>
                             </div>
 
-                            {/* right fade hint */}
                             <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-white/0" />
                         </div>
                     </div>
@@ -720,7 +733,7 @@ export default function ColorPaletteGenerator() {
                 </button>
             </section>
 
-            {/* Desktop actions */}
+            {/* Desktop Actions */}
             <div className="hidden grid-cols-4 gap-3 md:grid">
                 <button
                     type="button"
