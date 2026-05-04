@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Copy, Download, Dices, Shuffle } from "lucide-react";
+import { Copy, Download, Dices, Pencil, Shuffle, X } from "lucide-react";
 
 type PaletteType =
     | "analogous"
@@ -10,6 +10,12 @@ type PaletteType =
     | "triadic"
     | "warm"
     | "cool";
+
+type HslColor = {
+    h: number;
+    s: number;
+    l: number;
+};
 
 const PALETTE_TYPES: { label: string; value: PaletteType }[] = [
     { label: "Analogous", value: "analogous" },
@@ -21,10 +27,35 @@ const PALETTE_TYPES: { label: string; value: PaletteType }[] = [
 ];
 
 const COLOR_COUNTS = [3, 4, 5, 6, 7, 8];
+
 const DEFAULT_BASE_COLOR = "#FF6A5B";
+
+const PRESET_COLORS = [
+    "#FF6A5B",
+    "#F28C6F",
+    "#F7CA91",
+    "#98DFA4",
+    "#5DD6C8",
+    "#8FC7F7",
+    "#B88AF2",
+    "#F27ACB",
+];
 
 const clamp = (value: number, min: number, max: number) => {
     return Math.min(Math.max(value, min), max);
+};
+
+const normalizeHue = (hue: number) => {
+    return ((hue % 360) + 360) % 360;
+};
+
+const isValidHex = (value: string) => {
+    return /^#[0-9A-F]{6}$/i.test(value);
+};
+
+const normalizeHexInput = (value: string) => {
+    const upper = value.trim().toUpperCase();
+    return upper.startsWith("#") ? upper : `#${upper}`;
 };
 
 const hexToRgb = (hex: string) => {
@@ -45,7 +76,7 @@ const rgbToHex = (r: number, g: number, b: number) => {
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
 };
 
-const rgbToHsl = (r: number, g: number, b: number) => {
+const rgbToHsl = (r: number, g: number, b: number): HslColor => {
     r /= 255;
     g /= 255;
     b /= 255;
@@ -58,6 +89,7 @@ const rgbToHsl = (r: number, g: number, b: number) => {
 
     if (max !== min) {
         const d = max - min;
+
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
 
         switch (max) {
@@ -83,7 +115,7 @@ const rgbToHsl = (r: number, g: number, b: number) => {
 };
 
 const hslToRgb = (h: number, s: number, l: number) => {
-    h = ((h % 360) + 360) % 360;
+    h = normalizeHue(h);
     s /= 100;
     l /= 100;
 
@@ -127,14 +159,17 @@ const hslToHex = (h: number, s: number, l: number) => {
     return rgbToHex(rgb.r, rgb.g, rgb.b);
 };
 
+const hexToHsl = (hex: string) => {
+    const rgb = hexToRgb(hex);
+    return rgbToHsl(rgb.r, rgb.g, rgb.b);
+};
+
 const generatePalette = (
     baseColor: string,
     type: PaletteType,
     count: number
 ) => {
-    const rgb = hexToRgb(baseColor);
-    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
-
+    const hsl = hexToHsl(baseColor);
     const colors: string[] = [];
 
     for (let index = 0; index < count; index += 1) {
@@ -355,7 +390,19 @@ export default function ColorPaletteGenerator() {
     const [colorCount, setColorCount] = useState(5);
     const [copiedTarget, setCopiedTarget] = useState<string | null>(null);
 
+    const [isPickerOpen, setIsPickerOpen] = useState(false);
+    const [draftHsl, setDraftHsl] = useState<HslColor>(() =>
+        hexToHsl(DEFAULT_BASE_COLOR)
+    );
+    const [draftHex, setDraftHex] = useState(DEFAULT_BASE_COLOR);
+
     const mobileActionBarRef = useRef<HTMLDivElement | null>(null);
+    const mobileWheelRef = useRef<HTMLDivElement | null>(null);
+    const desktopWheelRef = useRef<HTMLDivElement | null>(null);
+
+    const draftColor = useMemo(() => {
+        return hslToHex(draftHsl.h, draftHsl.s, draftHsl.l);
+    }, [draftHsl]);
 
     useEffect(() => {
         const updateActionBarSpace = () => {
@@ -390,6 +437,24 @@ export default function ColorPaletteGenerator() {
         };
     }, []);
 
+    useEffect(() => {
+        if (!isPickerOpen) return;
+
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, [isPickerOpen]);
+
+    useEffect(() => {
+        if (isPickerOpen) return;
+
+        const currentHsl = hexToHsl(baseColor);
+        setDraftHsl(currentHsl);
+        setDraftHex(baseColor);
+    }, [baseColor, isPickerOpen]);
+
     const palette = useMemo(() => {
         return generatePalette(baseColor, paletteType, colorCount);
     }, [baseColor, paletteType, colorCount]);
@@ -415,6 +480,90 @@ export default function ColorPaletteGenerator() {
         setCopied(target);
     };
 
+    const openPicker = () => {
+        const currentHsl = hexToHsl(baseColor);
+        setDraftHsl(currentHsl);
+        setDraftHex(baseColor);
+        setIsPickerOpen(true);
+    };
+
+    const closePicker = () => {
+        const currentHsl = hexToHsl(baseColor);
+        setDraftHsl(currentHsl);
+        setDraftHex(baseColor);
+        setIsPickerOpen(false);
+    };
+
+    const applyPickerColor = () => {
+        const nextColor = isValidHex(draftHex) ? draftHex : draftColor;
+        setBaseColor(nextColor.toUpperCase());
+        setIsPickerOpen(false);
+    };
+
+    const applyDesktopColor = () => {
+        const nextColor = isValidHex(draftHex) ? draftHex : draftColor;
+        setBaseColor(nextColor.toUpperCase());
+    };
+
+    const resetDesktopColor = () => {
+        const currentHsl = hexToHsl(baseColor);
+        setDraftHsl(currentHsl);
+        setDraftHex(baseColor);
+    };
+
+    const updateDraftFromHex = (value: string) => {
+        const normalized = normalizeHexInput(value);
+
+        if (/^#[0-9A-F]{0,6}$/i.test(normalized)) {
+            setDraftHex(normalized.toUpperCase());
+
+            if (isValidHex(normalized)) {
+                setDraftHsl(hexToHsl(normalized));
+            }
+        }
+    };
+
+    const updateDraftHsl = (next: Partial<HslColor>) => {
+        setDraftHsl((current) => {
+            const updated = {
+                h: normalizeHue(next.h ?? current.h),
+                s: clamp(next.s ?? current.s, 0, 100),
+                l: clamp(next.l ?? current.l, 0, 100),
+            };
+
+            setDraftHex(hslToHex(updated.h, updated.s, updated.l));
+
+            return updated;
+        });
+    };
+
+    const handleWheelPointer = (
+        element: HTMLDivElement | null,
+        clientX: number,
+        clientY: number
+    ) => {
+        if (!element) return;
+
+        const rect = element.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const dx = clientX - centerX;
+        const dy = clientY - centerY;
+
+        const angle = Math.atan2(dy, dx);
+        const hue = normalizeHue((angle * 180) / Math.PI + 360);
+
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const radius = rect.width / 2;
+        const saturation = clamp((distance / radius) * 100, 0, 100);
+
+        updateDraftHsl({
+            h: hue,
+            s: saturation,
+        });
+    };
+
     const handleCopyPalette = async () => {
         await copyWithStatus(palette.join(", "), "palette");
     };
@@ -428,7 +577,8 @@ export default function ColorPaletteGenerator() {
     };
 
     const handleRandomAll = () => {
-        setBaseColor(getRandomHex());
+        const nextColor = getRandomHex();
+        setBaseColor(nextColor);
         setPaletteType(getRandomPaletteType());
         setColorCount(getRandomColorCount());
     };
@@ -563,10 +713,241 @@ export default function ColorPaletteGenerator() {
         link.click();
     };
 
+    const renderColorPickerPanel = (
+        mode: "desktop" | "mobile",
+        wheelRef: React.RefObject<HTMLDivElement | null>
+    ) => {
+        const isDesktop = mode === "desktop";
+
+        return (
+            <div>
+                <div className="mb-5 flex items-center justify-between gap-4">
+                    <div>
+                        <h2 className="text-xl font-semibold text-[#2A1F1B] md:text-2xl">
+                            Choose base color
+                        </h2>
+                        <p className="mt-1 text-sm text-gray-500">
+                            Pick a color, adjust it, then apply it to your palette.
+                        </p>
+                    </div>
+
+                    {!isDesktop ? (
+                        <button
+                            type="button"
+                            onClick={closePicker}
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-[#2A1F1B] transition hover:bg-[#FFEDE6]"
+                            aria-label="Close"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                    ) : null}
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-[1.05fr_0.95fr] md:items-start md:gap-8">
+                    <div className="space-y-5">
+                        <div
+                            ref={wheelRef}
+                            onPointerDown={(event) => {
+                                event.currentTarget.setPointerCapture(event.pointerId);
+                                handleWheelPointer(
+                                    wheelRef.current,
+                                    event.clientX,
+                                    event.clientY
+                                );
+                            }}
+                            onPointerMove={(event) => {
+                                if (event.buttons !== 1) return;
+                                handleWheelPointer(
+                                    wheelRef.current,
+                                    event.clientX,
+                                    event.clientY
+                                );
+                            }}
+                            className="relative mx-auto aspect-square w-full max-w-[280px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)] md:max-w-[360px]"
+                            style={{
+                                background:
+                                    "radial-gradient(circle, white 0%, rgba(255,255,255,0.2) 35%, rgba(255,255,255,0) 62%), conic-gradient(red, yellow, lime, cyan, blue, magenta, red)",
+                            }}
+                        >
+                            <span
+                                className="absolute h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md md:h-8 md:w-8"
+                                style={{
+                                    left: `${50 +
+                                        Math.cos((draftHsl.h * Math.PI) / 180) *
+                                        (draftHsl.s / 100) *
+                                        42
+                                        }%`,
+                                    top: `${50 +
+                                        Math.sin((draftHsl.h * Math.PI) / 180) *
+                                        (draftHsl.s / 100) *
+                                        42
+                                        }%`,
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-xs font-medium text-gray-500">
+                                HEX
+                            </label>
+
+                            <div className="flex items-center gap-2">
+                                <input
+                                    value={draftHex}
+                                    onChange={(event) => updateDraftFromHex(event.target.value)}
+                                    onBlur={() => {
+                                        if (!isValidHex(draftHex)) {
+                                            const fixed = draftColor;
+                                            setDraftHex(fixed);
+                                        }
+                                    }}
+                                    className="min-w-0 flex-1 rounded-2xl border border-[#F1E5DF] px-4 py-3 text-sm font-semibold text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
+                                    aria-label="HEX color"
+                                />
+
+                                <button
+                                    type="button"
+                                    onClick={() => copyWithStatus(draftColor, "picker")}
+                                    className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                                    aria-label="Copy selected color"
+                                >
+                                    <Copy className="h-4 w-4" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-5">
+                        <div>
+                            <label className="mb-2 block text-xs font-medium text-gray-500">
+                                Hue
+                            </label>
+                            <input
+                                type="range"
+                                min="0"
+                                max="360"
+                                value={Math.round(draftHsl.h)}
+                                onChange={(event) =>
+                                    updateDraftHsl({ h: Number(event.target.value) })
+                                }
+                                className="w-full accent-[#F28C6F]"
+                                style={{
+                                    background:
+                                        "linear-gradient(90deg, red, yellow, lime, cyan, blue, magenta, red)",
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-xs font-medium text-gray-500">
+                                Saturation
+                            </label>
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                value={Math.round(draftHsl.s)}
+                                onChange={(event) =>
+                                    updateDraftHsl({ s: Number(event.target.value) })
+                                }
+                                className="w-full accent-[#F28C6F]"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-xs font-medium text-gray-500">
+                                Lightness
+                            </label>
+                            <input
+                                type="range"
+                                min="10"
+                                max="90"
+                                value={Math.round(draftHsl.l)}
+                                onChange={(event) =>
+                                    updateDraftHsl({ l: Number(event.target.value) })
+                                }
+                                className="w-full accent-[#F28C6F]"
+                            />
+                        </div>
+
+                        <div>
+                            <span className="mb-2 block text-xs font-medium text-gray-500">
+                                Current color
+                            </span>
+                            <div className="flex items-center gap-3 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
+                                <div
+                                    className="h-14 w-14 rounded-2xl border border-[#F1E5DF] shadow-sm"
+                                    style={{ backgroundColor: draftColor }}
+                                />
+                                <div>
+                                    <p className="text-sm font-semibold text-[#2A1F1B]">
+                                        {draftColor}
+                                    </p>
+                                    <p className="text-xs text-gray-500">Selected base color</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span className="mb-3 block text-xs font-medium text-gray-500">
+                                Presets
+                            </span>
+
+                            <div className="flex gap-2 overflow-x-auto pb-1">
+                                {PRESET_COLORS.map((color) => {
+                                    const active = draftColor.toUpperCase() === color;
+
+                                    return (
+                                        <button
+                                            key={color}
+                                            type="button"
+                                            onClick={() => {
+                                                setDraftHex(color);
+                                                setDraftHsl(hexToHsl(color));
+                                            }}
+                                            className={
+                                                active
+                                                    ? "h-10 w-10 shrink-0 rounded-2xl border-2 border-[#F28C6F] bg-white p-1"
+                                                    : "h-10 w-10 shrink-0 rounded-2xl border border-[#F1E5DF] p-1"
+                                            }
+                                            aria-label={`Use ${color}`}
+                                        >
+                                            <span
+                                                className="block h-full w-full rounded-xl"
+                                                style={{ backgroundColor: color }}
+                                            />
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 pt-2">
+                            <button
+                                type="button"
+                                onClick={isDesktop ? resetDesktopColor : closePicker}
+                                className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
+                            >
+                                {isDesktop ? "Reset" : "Cancel"}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={isDesktop ? applyDesktopColor : applyPickerColor}
+                                className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                Apply
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="space-y-5">
-            {/* Controls without outer card */}
-            <section className="space-y-5">
+            <section className="rounded-[28px] border border-[#F1E5DF] bg-white p-5 shadow-sm">
                 <div>
                     <h2 className="text-xl font-semibold text-[#2A1F1B]">Controls</h2>
                     <p className="mt-1 text-sm leading-6 text-gray-500">
@@ -574,144 +955,129 @@ export default function ColorPaletteGenerator() {
                     </p>
                 </div>
 
-                <div>
-                    <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
-                        Base Color
-                    </label>
+                <div className="mt-5 space-y-5">
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
+                            Base Color
+                        </label>
 
-                    <div className="flex items-center gap-3 rounded-2xl border border-[#F1E5DF] bg-white px-3 py-3">
-                        <input
-                            type="color"
-                            value={
-                                /^#[0-9A-F]{6}$/i.test(baseColor)
-                                    ? baseColor
-                                    : DEFAULT_BASE_COLOR
-                            }
+                        <button
+                            type="button"
+                            onClick={openPicker}
+                            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-[#F1E5DF] bg-white px-3 py-3 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] md:hidden"
+                        >
+                            <div className="flex min-w-0 items-center gap-3">
+                                <span
+                                    className="h-10 w-12 shrink-0 rounded-xl shadow-sm"
+                                    style={{ backgroundColor: baseColor }}
+                                />
+                                <span className="truncate text-sm font-semibold text-[#2A1F1B]">
+                                    {baseColor}
+                                </span>
+                            </div>
+
+                            <Pencil className="h-4 w-4 shrink-0 text-gray-400" />
+                        </button>
+
+                        <div className="hidden rounded-[28px] border border-[#F1E5DF] bg-[#FFFDFC] p-6 md:block">
+                            {renderColorPickerPanel("desktop", desktopWheelRef)}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
+                            Palette Type
+                        </label>
+
+                        <select
+                            value={paletteType}
                             onChange={(event) =>
-                                setBaseColor(event.target.value.toUpperCase())
+                                setPaletteType(event.target.value as PaletteType)
                             }
-                            className="h-10 w-12 cursor-pointer rounded-xl border-0 bg-transparent p-0"
-                            aria-label="Base color"
-                        />
-
-                        <input
-                            type="text"
-                            value={baseColor}
-                            onChange={(event) => {
-                                const rawValue = event.target.value.toUpperCase();
-                                const normalizedValue = rawValue.startsWith("#")
-                                    ? rawValue
-                                    : `#${rawValue}`;
-
-                                if (/^#[0-9A-F]{0,6}$/.test(normalizedValue)) {
-                                    setBaseColor(normalizedValue);
-                                }
-                            }}
-                            onBlur={() => {
-                                if (!/^#[0-9A-F]{6}$/i.test(baseColor)) {
-                                    setBaseColor(DEFAULT_BASE_COLOR);
-                                } else {
-                                    setBaseColor(baseColor.toUpperCase());
-                                }
-                            }}
-                            className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-[#2A1F1B] outline-none"
-                            aria-label="Base color hex value"
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
-                        Palette Type
-                    </label>
-
-                    <select
-                        value={paletteType}
-                        onChange={(event) =>
-                            setPaletteType(event.target.value as PaletteType)
-                        }
-                        className="w-full rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-medium text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
-                        aria-label="Palette type"
-                    >
-                        {PALETTE_TYPES.map((type) => (
-                            <option key={type.value} value={type.value}>
-                                {type.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div>
-                    <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
-                        Color Count
-                    </label>
-
-                    <div className="grid grid-cols-6 gap-2">
-                        {COLOR_COUNTS.map((count) => {
-                            const active = colorCount === count;
-
-                            return (
-                                <button
-                                    key={count}
-                                    type="button"
-                                    onClick={() => setColorCount(count)}
-                                    className={
-                                        active
-                                            ? "rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-3 text-sm font-semibold text-[#E6765B]"
-                                            : "rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
-                                    }
-                                >
-                                    {count}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                <div className="border-t border-[#F1E5DF] pt-5">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                        <h3 className="text-base font-semibold text-[#2A1F1B]">
-                            Palette Preview
-                        </h3>
-
-                        <span className="text-xs text-gray-400">Swipe or tap a color</span>
-                    </div>
-
-                    <div className="-mx-1 overflow-x-auto px-1 pb-1">
-                        <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-8">
-                            {palette.map((color, index) => (
-                                <button
-                                    key={`${color}-${index}`}
-                                    type="button"
-                                    onClick={() => copyWithStatus(color, `color-${index}`)}
-                                    className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
-                                    style={{ backgroundColor: color }}
-                                    aria-label={`Copy ${color}`}
-                                >
-                                    <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
-                                        {copiedTarget === `color-${index}`
-                                            ? "COPIED"
-                                            : color.toUpperCase()}
-                                    </span>
-                                </button>
+                            className="w-full rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-medium text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
+                            aria-label="Palette type"
+                        >
+                            {PALETTE_TYPES.map((type) => (
+                                <option key={type.value} value={type.value}>
+                                    {type.label}
+                                </option>
                             ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
+                            Color Count
+                        </label>
+
+                        <div className="grid grid-cols-6 gap-2">
+                            {COLOR_COUNTS.map((count) => {
+                                const active = colorCount === count;
+
+                                return (
+                                    <button
+                                        key={count}
+                                        type="button"
+                                        onClick={() => setColorCount(count)}
+                                        className={
+                                            active
+                                                ? "rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-3 text-sm font-semibold text-[#E6765B]"
+                                                : "rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                                        }
+                                    >
+                                        {count}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div className="border-t border-[#F1E5DF] pt-5">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                            <h3 className="text-base font-semibold text-[#2A1F1B]">
+                                Palette Preview
+                            </h3>
+
+                            <span className="text-xs text-gray-400">
+                                Swipe or tap a color
+                            </span>
+                        </div>
+
+                        <div className="-mx-1 overflow-x-auto px-1 pb-1">
+                            <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-8">
+                                {palette.map((color, index) => (
+                                    <button
+                                        key={`${color}-${index}`}
+                                        type="button"
+                                        onClick={() => copyWithStatus(color, `color-${index}`)}
+                                        className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
+                                        style={{ backgroundColor: color }}
+                                        aria-label={`Copy ${color}`}
+                                    >
+                                        <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
+                                            {copiedTarget === `color-${index}`
+                                                ? "COPIED"
+                                                : color.toUpperCase()}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* CSS Output without outer card */}
-            <section className="space-y-4 pt-1">
+            <section className="rounded-[28px] border border-[#F1E5DF] bg-white p-5 shadow-sm">
                 <h2 className="text-xl font-semibold text-[#2A1F1B]">CSS Output</h2>
 
-                <pre className="overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
+                <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
                     <code>{cssOutput}</code>
                 </pre>
 
                 <button
                     type="button"
                     onClick={handleCopyCss}
-                    className="inline-flex w-fit items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                    className="mt-4 inline-flex w-fit items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                 >
                     <Copy className="h-4 w-4" />
                     {copiedTarget === "css" ? "Copied" : "Copy CSS"}
@@ -818,6 +1184,22 @@ export default function ColorPaletteGenerator() {
                     </div>
                 </div>
             </div>
+
+            {isPickerOpen ? (
+                <div className="fixed inset-0 z-50 md:hidden">
+                    <button
+                        type="button"
+                        aria-label="Close color picker"
+                        onClick={closePicker}
+                        className="absolute inset-0 bg-[#2A1F1B]/35 backdrop-blur-[2px]"
+                    />
+
+                    <div className="absolute inset-x-0 bottom-0 rounded-t-[32px] border border-[#F1E5DF] bg-white px-5 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-4 shadow-[0_-16px_45px_rgba(42,31,27,0.18)]">
+                        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-200" />
+                        {renderColorPickerPanel("mobile", mobileWheelRef)}
+                    </div>
+                </div>
+            ) : null}
         </div>
     );
 }
