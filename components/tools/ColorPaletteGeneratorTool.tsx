@@ -416,7 +416,9 @@ export default function ColorPaletteGenerator() {
             if (!element) return;
 
             const rect = element.getBoundingClientRect();
-            const space = Math.ceil(rect.height + 28);
+
+            // 展开调色板时，footer 仍按普通 Action Bar 高度留白，避免页面底部出现巨大空白
+            const space = isPickerOpen ? 132 : Math.ceil(rect.height + 28);
 
             document.documentElement.style.setProperty(
                 "--mobile-action-bar-space",
@@ -440,16 +442,6 @@ export default function ColorPaletteGenerator() {
             observer.disconnect();
             window.removeEventListener("resize", updateActionBarSpace);
             document.documentElement.style.removeProperty("--mobile-action-bar-space");
-        };
-    }, []);
-
-    useEffect(() => {
-        if (!isPickerOpen) return;
-
-        document.body.style.overflow = "hidden";
-
-        return () => {
-            document.body.style.overflow = "";
         };
     }, [isPickerOpen]);
 
@@ -742,7 +734,7 @@ export default function ColorPaletteGenerator() {
                             type="button"
                             onClick={closePicker}
                             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-[#2A1F1B]"
-                            aria-label="Close"
+                            aria-label="Close color picker"
                         >
                             <X className="h-5 w-5" />
                         </button>
@@ -769,7 +761,7 @@ export default function ColorPaletteGenerator() {
                                     event.clientY
                                 );
                             }}
-                            className="relative mx-auto aspect-square w-full max-w-[180px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)] sm:max-w-[220px] md:max-w-[360px]"
+                            className="relative mx-auto aspect-square w-full max-w-[168px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)] sm:max-w-[220px] md:max-w-[360px]"
                             style={{
                                 background:
                                     "radial-gradient(circle, white 0%, rgba(255,255,255,0.2) 35%, rgba(255,255,255,0) 62%), conic-gradient(red, yellow, lime, cyan, blue, magenta, red)",
@@ -803,8 +795,7 @@ export default function ColorPaletteGenerator() {
                                     onChange={(event) => updateDraftFromHex(event.target.value)}
                                     onBlur={() => {
                                         if (!isValidHex(draftHex)) {
-                                            const fixed = draftColor;
-                                            setDraftHex(fixed);
+                                            setDraftHex(draftColor);
                                         }
                                     }}
                                     className="min-w-0 flex-1 rounded-2xl border border-[#F1E5DF] px-4 py-3 text-sm font-semibold text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
@@ -945,6 +936,10 @@ export default function ColorPaletteGenerator() {
                 </div>
             </div>
         );
+    };
+
+    const renderMobilePickerActionBar = () => {
+        return renderColorPickerPanel("mobile", mobileWheelRef);
     };
 
     return (
@@ -1127,82 +1122,90 @@ export default function ColorPaletteGenerator() {
             <div className="pointer-events-none fixed inset-x-0 bottom-3 z-40 px-3 md:hidden">
                 <div
                     ref={mobileActionBarRef}
-                    className="pointer-events-auto mx-auto max-w-md rounded-[30px] border border-[#F1E5DF] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+                    className={[
+                        "pointer-events-auto mx-auto max-w-md overflow-hidden rounded-[30px] border border-[#F1E5DF] bg-white/95 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur transition-all duration-300 ease-out",
+                        isPickerOpen
+                            ? "max-h-[calc(100dvh-128px)] p-4"
+                            : "max-h-[132px] p-3",
+                    ].join(" ")}
                 >
-                    <div className="grid grid-cols-4 gap-2">
-                        <button
-                            type="button"
-                            onClick={handleShuffle}
-                            className="flex flex-col items-center justify-center rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-3 text-center"
-                        >
-                            <Shuffle className="mb-1 h-5 w-5 text-[#E6765B]" />
-                            <span className="text-xs font-semibold text-[#E6765B]">
-                                Shuffle
-                            </span>
-                            <span className="mt-0.5 text-[10px] text-[#9C6B5B]">
-                                Keep color
-                            </span>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={handleRandomAll}
-                            className="flex flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
-                        >
-                            <Dices className="mb-1 h-5 w-5 text-white" />
-                            <span className="whitespace-nowrap text-xs font-semibold text-white">
-                                Random
-                            </span>
-                            <span className="mt-0.5 text-[10px] text-white/85">
-                                New palette
-                            </span>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={handleCopyPalette}
-                            className="flex flex-col items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center"
-                        >
-                            <Copy className="mb-1 h-5 w-5 text-[#2A1F1B]" />
-                            <span className="text-xs font-semibold text-[#2A1F1B]">
-                                {copiedTarget === "palette" ? "Copied" : "Copy"}
-                            </span>
-                            <span className="mt-0.5 text-[10px] text-gray-500">
-                                Palette
-                            </span>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={handleDownloadPng}
-                            className="flex flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
-                        >
-                            <Download className="mb-1 h-5 w-5 text-white" />
-                            <span className="text-xs font-semibold text-white">
-                                Download
-                            </span>
-                            <span className="mt-0.5 text-[10px] text-white/85">PNG</span>
-                        </button>
+                    <div
+                        className={[
+                            "transition-all duration-300 ease-out",
+                            isPickerOpen
+                                ? "translate-y-0 opacity-100"
+                                : "pointer-events-none max-h-0 translate-y-6 overflow-hidden opacity-0",
+                        ].join(" ")}
+                    >
+                        {renderMobilePickerActionBar()}
                     </div>
-                </div>
-            </div>
 
-            {isPickerOpen ? (
-                <div className="fixed inset-0 z-50 md:hidden">
-                    <button
-                        type="button"
-                        aria-label="Close color picker"
-                        onClick={closePicker}
-                        className="absolute inset-0 bg-[#2A1F1B]/25 backdrop-blur-[2px]"
-                    />
+                    <div
+                        className={[
+                            "transition-all duration-300 ease-out",
+                            isPickerOpen
+                                ? "pointer-events-none max-h-0 -translate-y-4 overflow-hidden opacity-0"
+                                : "translate-y-0 opacity-100",
+                        ].join(" ")}
+                    >
+                        <div className="grid grid-cols-4 gap-2">
+                            <button
+                                type="button"
+                                onClick={handleShuffle}
+                                className="flex flex-col items-center justify-center rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-3 text-center"
+                            >
+                                <Shuffle className="mb-1 h-5 w-5 text-[#E6765B]" />
+                                <span className="text-xs font-semibold text-[#E6765B]">
+                                    Shuffle
+                                </span>
+                                <span className="mt-0.5 text-[10px] text-[#9C6B5B]">
+                                    Keep color
+                                </span>
+                            </button>
 
-                    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--mobile-action-bar-space,132px)+12px)] z-50 px-3">
-                        <div className="pointer-events-auto mx-auto max-h-[calc(100dvh-180px)] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-[30px] border border-[#F1E5DF] bg-white/95 p-4 shadow-[0_10px_35px_rgba(42,31,27,0.16)] backdrop-blur">
-                            {renderColorPickerPanel("mobile", mobileWheelRef)}
+                            <button
+                                type="button"
+                                onClick={handleRandomAll}
+                                className="flex flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
+                            >
+                                <Dices className="mb-1 h-5 w-5 text-white" />
+                                <span className="whitespace-nowrap text-xs font-semibold text-white">
+                                    Random
+                                </span>
+                                <span className="mt-0.5 text-[10px] text-white/85">
+                                    New palette
+                                </span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleCopyPalette}
+                                className="flex flex-col items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center"
+                            >
+                                <Copy className="mb-1 h-5 w-5 text-[#2A1F1B]" />
+                                <span className="text-xs font-semibold text-[#2A1F1B]">
+                                    {copiedTarget === "palette" ? "Copied" : "Copy"}
+                                </span>
+                                <span className="mt-0.5 text-[10px] text-gray-500">
+                                    Palette
+                                </span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleDownloadPng}
+                                className="flex flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
+                            >
+                                <Download className="mb-1 h-5 w-5 text-white" />
+                                <span className="text-xs font-semibold text-white">
+                                    Download
+                                </span>
+                                <span className="mt-0.5 text-[10px] text-white/85">PNG</span>
+                            </button>
                         </div>
                     </div>
                 </div>
-            ) : null}
+            </div>
         </div>
     );
 }
