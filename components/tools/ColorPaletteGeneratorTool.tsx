@@ -1044,6 +1044,44 @@ export default function ColorPaletteGenerator() {
                         <span className="text-xs text-gray-400">Swipe or tap a color</span>
                     </div>
 
+                    <div className="hidden grid-cols-4 gap-3 md:grid">
+                        <button
+                            type="button"
+                            onClick={handleShuffle}
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6]"
+                        >
+                            <Shuffle className="h-4 w-4" />
+                            Shuffle
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleRandomAll}
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                        >
+                            <Dices className="h-4 w-4" />
+                            Random
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleCopyPalette}
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                        >
+                            <Copy className="h-4 w-4" />
+                            {copiedTarget === "palette" ? "Copied" : "Copy Palette"}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleDownloadPng}
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                        >
+                            <Download className="h-4 w-4" />
+                            Download PNG
+                        </button>
+                    </div>
+
                     <div className="-mx-1 overflow-x-auto px-1 pb-1">
                         <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-8">
                             {palette.map((color, index) => (
@@ -1082,44 +1120,6 @@ export default function ColorPaletteGenerator() {
                         {copiedTarget === "css" ? "Copied" : "Copy CSS"}
                     </button>
                 </div>
-            </div>
-
-            <div className="hidden grid-cols-4 gap-3 md:grid">
-                <button
-                    type="button"
-                    onClick={handleShuffle}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6]"
-                >
-                    <Shuffle className="h-4 w-4" />
-                    Shuffle
-                </button>
-
-                <button
-                    type="button"
-                    onClick={handleRandomAll}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                >
-                    <Dices className="h-4 w-4" />
-                    Random
-                </button>
-
-                <button
-                    type="button"
-                    onClick={handleCopyPalette}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
-                >
-                    <Copy className="h-4 w-4" />
-                    {copiedTarget === "palette" ? "Copied" : "Copy Palette"}
-                </button>
-
-                <button
-                    type="button"
-                    onClick={handleDownloadPng}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                >
-                    <Download className="h-4 w-4" />
-                    Download PNG
-                </button>
             </div>
 
             {isPickerOpen ? (
