@@ -389,7 +389,6 @@ export default function ColorPaletteGenerator() {
     );
     const [draftHex, setDraftHex] = useState(DEFAULT_BASE_COLOR);
 
-    const mobileActionButtonsRef = useRef<HTMLDivElement | null>(null);
     const mobilePickerPanelRef = useRef<HTMLDivElement | null>(null);
     const mobileWheelRef = useRef<HTMLDivElement | null>(null);
     const desktopWheelRef = useRef<HTMLDivElement | null>(null);
@@ -397,36 +396,6 @@ export default function ColorPaletteGenerator() {
     const draftColor = useMemo(() => {
         return hslToHex(draftHsl.h, draftHsl.s, draftHsl.l);
     }, [draftHsl]);
-
-    useEffect(() => {
-        const updateActionBarSpace = () => {
-            const element = mobileActionButtonsRef.current;
-            if (!element) return;
-
-            const space = Math.ceil(element.scrollHeight + 4);
-
-            document.documentElement.style.setProperty(
-                "--mobile-action-bar-space",
-                `${space}px`
-            );
-        };
-
-        const raf = window.requestAnimationFrame(updateActionBarSpace);
-        const observer = new ResizeObserver(updateActionBarSpace);
-
-        if (mobileActionButtonsRef.current) {
-            observer.observe(mobileActionButtonsRef.current);
-        }
-
-        window.addEventListener("resize", updateActionBarSpace);
-
-        return () => {
-            window.cancelAnimationFrame(raf);
-            observer.disconnect();
-            window.removeEventListener("resize", updateActionBarSpace);
-            document.documentElement.style.removeProperty("--mobile-action-bar-space");
-        };
-    }, []);
 
     useEffect(() => {
         if (!isPickerOpen) return;
@@ -989,7 +958,7 @@ export default function ColorPaletteGenerator() {
     };
 
     return (
-        <div className="space-y-6 pb-2 md:pb-0">
+        <div className="space-y-6 pb-1 md:pb-0">
             <div>
                 <h2 className="text-xl font-semibold text-[#2A1F1B]">Controls</h2>
                 <p className="mt-1 text-sm leading-6 text-gray-500">
@@ -1161,20 +1130,17 @@ export default function ColorPaletteGenerator() {
             </div>
 
             {isPickerOpen ? (
-                <button
-                    type="button"
-                    aria-label="Close color picker"
-                    onClick={closePicker}
-                    className="fixed inset-0 z-[55] bg-[#2A1F1B]/35 backdrop-blur-[2px] md:hidden"
-                />
+                <div className="fixed inset-0 z-[55] bg-[#2A1F1B]/40 backdrop-blur-[2px] md:hidden" />
             ) : null}
 
             <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 md:hidden">
                 <div
                     className={[
-                        "pointer-events-auto mx-auto max-w-md overflow-hidden rounded-[30px] border border-[#F1E5DF] shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur",
+                        "pointer-events-auto mx-auto max-w-md overflow-hidden rounded-[30px] border border-[#F1E5DF] shadow-[0_10px_30px_rgba(42,31,27,0.12)]",
                         "transition-all duration-300 ease-out",
-                        isPickerOpen ? "bg-white origin-bottom animate-[paletteExpand_260ms_ease-out]" : "bg-white/95",
+                        isPickerOpen
+                            ? "bg-white origin-bottom animate-[paletteExpand_260ms_ease-out]"
+                            : "bg-white/95 backdrop-blur",
                     ].join(" ")}
                 >
                     <div
@@ -1186,13 +1152,12 @@ export default function ColorPaletteGenerator() {
                                 : "max-h-0 translate-y-4 opacity-0",
                         ].join(" ")}
                     >
-                        <div className="max-h-[58vh] overflow-y-auto overflow-x-hidden overscroll-contain px-4 pb-4 pt-4">
+                        <div className="max-h-[58vh] overflow-y-auto overflow-x-hidden overscroll-contain bg-white px-4 pb-4 pt-4">
                             {renderColorPickerPanel("mobile", mobileWheelRef)}
                         </div>
                     </div>
 
                     <div
-                        ref={mobileActionButtonsRef}
                         className={[
                             "transition-[max-height,opacity,transform] duration-300 ease-out",
                             isPickerOpen
