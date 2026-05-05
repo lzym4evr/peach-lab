@@ -406,7 +406,12 @@ export default function ColorPickerTool() {
         magnifierCanvas.height = sampleSize * zoom;
 
         magnifierContext.imageSmoothingEnabled = false;
-        magnifierContext.clearRect(0, 0, magnifierCanvas.width, magnifierCanvas.height);
+        magnifierContext.clearRect(
+            0,
+            0,
+            magnifierCanvas.width,
+            magnifierCanvas.height
+        );
 
         const sourceX = Math.max(0, x - half);
         const sourceY = Math.max(0, y - half);
@@ -542,8 +547,8 @@ export default function ColorPickerTool() {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 className={`rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                        ? "border-[#F28C6F] bg-[#FFF0EA]"
-                        : "border-[#F4C8BA] bg-[#FFF7F3]"
+                    ? "border-[#F28C6F] bg-[#FFF0EA]"
+                    : "border-[#F4C8BA] bg-[#FFF7F3]"
                     }`}
             >
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm md:mb-4 md:h-16 md:w-16 md:text-3xl">
@@ -773,7 +778,7 @@ export default function ColorPickerTool() {
                 </div>
             </div>
 
-            <div className="fixed inset-x-3 bottom-3 z-50 lg:hidden">
+            <div className="peachlab-mobile-action-bar fixed inset-x-3 bottom-3 z-50 lg:hidden">
                 <div className="rounded-3xl border border-[#F1E5DF] bg-white/95 p-3 shadow-[0_12px_40px_rgba(42,31,27,0.16)] backdrop-blur">
                     {pickedColor ? (
                         <div className="flex items-center gap-3">
@@ -820,6 +825,14 @@ export default function ColorPickerTool() {
                     )}
                 </div>
             </div>
+
+            <style jsx global>{`
+                @media (max-width: 1023px) {
+                    footer {
+                        padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+                    }
+                }
+            `}</style>
         </div>
     );
 }
