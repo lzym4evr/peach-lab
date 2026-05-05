@@ -2,6 +2,7 @@
 
 import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { Copy, Download, Dices, Pencil, Shuffle, X } from "lucide-react";
+import { t } from "@/data/messages";
 
 type PaletteType =
     | "analogous"
@@ -18,12 +19,12 @@ type HslColor = {
 };
 
 const PALETTE_TYPES: { label: string; value: PaletteType }[] = [
-    { label: "Analogous", value: "analogous" },
-    { label: "Monochromatic", value: "monochromatic" },
-    { label: "Complementary", value: "complementary" },
-    { label: "Triadic", value: "triadic" },
-    { label: "Warm", value: "warm" },
-    { label: "Cool", value: "cool" },
+    { label: t.colorPaletteGenerator.analogous, value: "analogous" },
+    { label: t.colorPaletteGenerator.monochromatic, value: "monochromatic" },
+    { label: t.colorPaletteGenerator.complementary, value: "complementary" },
+    { label: t.colorPaletteGenerator.triadic, value: "triadic" },
+    { label: t.colorPaletteGenerator.warm, value: "warm" },
+    { label: t.colorPaletteGenerator.cool, value: "cool" },
 ];
 
 const COLOR_COUNTS = [3, 4, 5, 6, 7, 8];
@@ -729,10 +730,10 @@ export default function ColorPaletteGenerator() {
                 <div className={isDesktop ? "mb-5 flex min-w-0 items-center justify-between gap-4" : "mb-3 flex min-w-0 items-center justify-between gap-3"}>
                     <div className="min-w-0">
                         <h2 className={isDesktop ? "text-xl font-semibold text-[#2A1F1B] md:text-2xl" : "text-base font-semibold text-[#2A1F1B]"}>
-                            Choose base color
+                            {t.colorPaletteGenerator.chooseBaseColor}
                         </h2>
                         <p className={isDesktop ? "mt-1 text-sm text-gray-500" : "mt-0.5 text-xs text-gray-500"}>
-                            Pick a color, adjust it, then apply it.
+                            {t.colorPaletteGenerator.chooseBaseColorDescription}
                         </p>
                     </div>
 
@@ -741,7 +742,7 @@ export default function ColorPaletteGenerator() {
                             type="button"
                             onClick={closePicker}
                             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-[#2A1F1B] transition hover:bg-[#FFEDE6]"
-                            aria-label="Close"
+                            aria-label={t.colorPaletteGenerator.cancel}
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -797,7 +798,7 @@ export default function ColorPaletteGenerator() {
 
                         <div className="min-w-0">
                             <label className="mb-1.5 block text-xs font-medium text-gray-500">
-                                HEX
+                                {t.colorPaletteGenerator.hex}
                             </label>
 
                             <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_44px] items-center gap-2">
@@ -811,14 +812,14 @@ export default function ColorPaletteGenerator() {
                                         }
                                     }}
                                     className="w-full min-w-0 rounded-2xl border border-[#F1E5DF] px-3 py-2.5 text-sm font-semibold text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
-                                    aria-label="HEX color"
+                                    aria-label={t.colorPaletteGenerator.hexColor}
                                 />
 
                                 <button
                                     type="button"
                                     onClick={() => copyWithStatus(draftColor, "picker")}
                                     className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
-                                    aria-label="Copy selected color"
+                                    aria-label={t.colorPaletteGenerator.copySelectedColor}
                                 >
                                     <Copy className="h-4 w-4" />
                                 </button>
@@ -829,7 +830,7 @@ export default function ColorPaletteGenerator() {
                     <div className={isDesktop ? "min-w-0 space-y-5 overflow-x-hidden" : "min-w-0 space-y-3 overflow-x-hidden"}>
                         <div className="min-w-0 overflow-x-hidden">
                             <label className="mb-1.5 block text-xs font-medium text-gray-500">
-                                Hue
+                                {t.colorPaletteGenerator.hue}
                             </label>
                             <input
                                 type="range"
@@ -845,7 +846,7 @@ export default function ColorPaletteGenerator() {
 
                         <div className="min-w-0 overflow-x-hidden">
                             <label className="mb-1.5 block text-xs font-medium text-gray-500">
-                                Saturation
+                                {t.colorPaletteGenerator.saturation}
                             </label>
                             <input
                                 type="range"
@@ -861,7 +862,7 @@ export default function ColorPaletteGenerator() {
 
                         <div className="min-w-0 overflow-x-hidden">
                             <label className="mb-1.5 block text-xs font-medium text-gray-500">
-                                Lightness
+                                {t.colorPaletteGenerator.lightness}
                             </label>
                             <input
                                 type="range"
@@ -877,7 +878,7 @@ export default function ColorPaletteGenerator() {
 
                         <div className="min-w-0">
                             <span className="mb-1.5 block text-xs font-medium text-gray-500">
-                                Current color
+                                {t.colorPaletteGenerator.currentColor}
                             </span>
                             <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-2.5">
                                 <div
@@ -888,14 +889,14 @@ export default function ColorPaletteGenerator() {
                                     <p className="truncate text-sm font-semibold text-[#2A1F1B]">
                                         {draftColor}
                                     </p>
-                                    <p className="text-xs text-gray-500">Selected base color</p>
+                                    <p className="text-xs text-gray-500">{t.colorPaletteGenerator.selectedBaseColor}</p>
                                 </div>
                             </div>
                         </div>
 
                         <div className="min-w-0">
                             <span className="mb-2 block text-xs font-medium text-gray-500">
-                                Presets
+                                {t.colorPaletteGenerator.presets}
                             </span>
 
                             <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1">
@@ -933,7 +934,7 @@ export default function ColorPaletteGenerator() {
                                 onClick={isDesktop ? resetDesktopColor : closePicker}
                                 className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-2.5 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
                             >
-                                {isDesktop ? "Reset" : "Cancel"}
+                                {isDesktop ? t.colorPaletteGenerator.reset : t.colorPaletteGenerator.cancel}
                             </button>
 
                             <button
@@ -941,7 +942,7 @@ export default function ColorPaletteGenerator() {
                                 onClick={isDesktop ? applyDesktopColor : applyPickerColor}
                                 className="rounded-2xl bg-[#F28C6F] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                             >
-                                Apply
+                                {t.colorPaletteGenerator.apply}
                             </button>
                         </div>
                     </div>
@@ -953,16 +954,16 @@ export default function ColorPaletteGenerator() {
     return (
         <div className="space-y-6 pb-1 md:pb-0">
             <div>
-                <h2 className="text-xl font-semibold text-[#2A1F1B]">Controls</h2>
+                <h2 className="text-xl font-semibold text-[#2A1F1B]">{t.colorPaletteGenerator.controlsTitle}</h2>
                 <p className="mt-1 text-sm leading-6 text-gray-500">
-                    Adjust the base color, palette style, and color count.
+                    {t.colorPaletteGenerator.controlsDescription}
                 </p>
             </div>
 
             <div className="space-y-5">
                 <div>
                     <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
-                        Base Color
+                        {t.colorPaletteGenerator.baseColorLabel}
                     </label>
 
                     <button
@@ -990,7 +991,7 @@ export default function ColorPaletteGenerator() {
 
                 <div>
                     <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
-                        Palette Type
+                        {t.colorPaletteGenerator.paletteTypeLabel}
                     </label>
 
                     <select
@@ -999,7 +1000,7 @@ export default function ColorPaletteGenerator() {
                             setPaletteType(event.target.value as PaletteType)
                         }
                         className="w-full rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-medium text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
-                        aria-label="Palette type"
+                        aria-label={t.colorPaletteGenerator.paletteTypeLabel}
                     >
                         {PALETTE_TYPES.map((type) => (
                             <option key={type.value} value={type.value}>
@@ -1011,7 +1012,7 @@ export default function ColorPaletteGenerator() {
 
                 <div>
                     <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
-                        Color Count
+                        {t.colorPaletteGenerator.colorCountLabel}
                     </label>
 
                     <div className="grid grid-cols-6 gap-2">
@@ -1039,9 +1040,9 @@ export default function ColorPaletteGenerator() {
                 <div className="border-t border-[#F1E5DF] pt-5">
                     <div className="mb-3 flex items-center justify-between gap-3">
                         <h3 className="text-base font-semibold text-[#2A1F1B]">
-                            Palette Preview
+                            {t.colorPaletteGenerator.palettePreview}
                         </h3>
-                        <span className="text-xs text-gray-400">Swipe or tap a color</span>
+                        <span className="text-xs text-gray-400">{t.colorPaletteGenerator.palettePreviewHint}</span>
                     </div>
 
                     <div className="-mx-1 overflow-x-auto px-1 pb-1">
@@ -1053,11 +1054,11 @@ export default function ColorPaletteGenerator() {
                                     onClick={() => copyWithStatus(color, `color-${index}`)}
                                     className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
                                     style={{ backgroundColor: color }}
-                                    aria-label={`Copy ${color}`}
+                                    aria-label={`${t.common.copy} ${color}`}
                                 >
                                     <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
                                         {copiedTarget === `color-${index}`
-                                            ? "COPIED"
+                                            ? t.common.copied.toUpperCase()
                                             : color.toUpperCase()}
                                     </span>
                                 </button>
@@ -1073,7 +1074,7 @@ export default function ColorPaletteGenerator() {
                         className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6]"
                     >
                         <Shuffle className="h-4 w-4" />
-                        Shuffle
+                        {t.colorPaletteGenerator.shuffle}
                     </button>
 
                     <button
@@ -1082,7 +1083,7 @@ export default function ColorPaletteGenerator() {
                         className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                     >
                         <Dices className="h-4 w-4" />
-                        Random
+                        {t.colorPaletteGenerator.random}
                     </button>
 
                     <button
@@ -1091,7 +1092,7 @@ export default function ColorPaletteGenerator() {
                         className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
                     >
                         <Copy className="h-4 w-4" />
-                        {copiedTarget === "palette" ? "Copied" : "Copy Palette"}
+                        {copiedTarget === "palette" ? t.common.copied : t.colorPaletteGenerator.copyPalette}
                     </button>
 
                     <button
@@ -1100,12 +1101,12 @@ export default function ColorPaletteGenerator() {
                         className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                     >
                         <Download className="h-4 w-4" />
-                        Download PNG
+                        {t.colorPaletteGenerator.downloadPng}
                     </button>
                 </div>
 
                 <div className="border-t border-[#F1E5DF] pt-5">
-                    <h2 className="text-xl font-semibold text-[#2A1F1B]">CSS Output</h2>
+                    <h2 className="text-xl font-semibold text-[#2A1F1B]">{t.colorPaletteGenerator.cssOutput}</h2>
 
                     <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
                         <code>{cssOutput}</code>
@@ -1117,7 +1118,7 @@ export default function ColorPaletteGenerator() {
                         className="mt-4 inline-flex w-fit items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                     >
                         <Copy className="h-4 w-4" />
-                        {copiedTarget === "css" ? "Copied" : "Copy CSS"}
+                        {copiedTarget === "css" ? t.common.copied : t.colorPaletteGenerator.copyCss}
                     </button>
                 </div>
             </div>
@@ -1125,7 +1126,7 @@ export default function ColorPaletteGenerator() {
             {isPickerOpen ? (
                 <button
                     type="button"
-                    aria-label="Close color picker"
+                    aria-label={t.colorPaletteGenerator.cancel}
                     onClick={closePicker}
                     className="fixed inset-0 z-40 bg-[#2A1F1B]/35 backdrop-blur-[2px] md:hidden"
                 />
@@ -1170,10 +1171,10 @@ export default function ColorPaletteGenerator() {
                             >
                                 <Shuffle className="mb-1 h-5 w-5 text-[#E6765B]" />
                                 <span className="text-xs font-semibold text-[#E6765B]">
-                                    Shuffle
+                                    {t.colorPaletteGenerator.shuffle}
                                 </span>
                                 <span className="mt-0.5 text-[10px] text-[#9C6B5B]">
-                                    Keep color
+                                    {t.colorPaletteGenerator.keepColor}
                                 </span>
                             </button>
 
@@ -1184,10 +1185,10 @@ export default function ColorPaletteGenerator() {
                             >
                                 <Dices className="mb-1 h-5 w-5 text-white" />
                                 <span className="whitespace-nowrap text-xs font-semibold text-white">
-                                    Random
+                                    {t.colorPaletteGenerator.random}
                                 </span>
                                 <span className="mt-0.5 text-[10px] text-white/85">
-                                    New palette
+                                    {t.colorPaletteGenerator.newPalette}
                                 </span>
                             </button>
 
@@ -1198,7 +1199,7 @@ export default function ColorPaletteGenerator() {
                             >
                                 <Copy className="mb-1 h-5 w-5 text-[#2A1F1B]" />
                                 <span className="text-xs font-semibold text-[#2A1F1B]">
-                                    {copiedTarget === "palette" ? "Copied" : "Copy"}
+                                    {copiedTarget === "palette" ? t.common.copied : t.common.copy}
                                 </span>
                                 <span className="mt-0.5 text-[10px] text-gray-500">
                                     Palette
@@ -1212,9 +1213,9 @@ export default function ColorPaletteGenerator() {
                             >
                                 <Download className="mb-1 h-5 w-5 text-white" />
                                 <span className="text-xs font-semibold text-white">
-                                    Download
+                                    {t.colorPaletteGenerator.download}
                                 </span>
-                                <span className="mt-0.5 text-[10px] text-white/85">PNG</span>
+                                <span className="mt-0.5 text-[10px] text-white/85">{t.colorPaletteGenerator.png}</span>
                             </button>
                         </div>
                     </div>

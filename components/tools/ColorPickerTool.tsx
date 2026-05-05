@@ -142,7 +142,7 @@ export default function ColorPickerTool() {
 
         if (!isImageFile(file)) {
             setIsLoading(false);
-            setError("Please upload a JPG, PNG, or WebP image.");
+            setError(t.colorPicker.invalidFileType);
             return;
         }
 
@@ -217,9 +217,7 @@ export default function ColorPickerTool() {
 
             image.onerror = () => {
                 setIsLoading(false);
-                setError(
-                    "This image format may not be supported. Please try JPG, PNG, or WebP."
-                );
+                setError(t.colorPicker.unsupportedFormat);
             };
 
             image.src = result;
@@ -238,7 +236,7 @@ export default function ColorPickerTool() {
 
         if (!file) {
             setDebugMessage("Upload event fired, but no file was returned.");
-            setError("No image file was selected.");
+            setError(t.colorPicker.noFileSelectedError);
             return;
         }
 
@@ -573,7 +571,7 @@ export default function ColorPickerTool() {
                 </p>
 
                 <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
-                    Supports JPG, PNG, WebP, and common mobile image formats.
+                    {t.colorPicker.supportedFormats}
                 </p>
 
                 <div className="relative mx-auto mt-4 inline-flex md:mt-5">
@@ -581,7 +579,7 @@ export default function ColorPickerTool() {
                         type="button"
                         className="pointer-events-none rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                     >
-                        {isLoading ? "Loading..." : t.colorPicker.chooseImage}
+                        {isLoading ? t.colorPicker.loadingImage : t.colorPicker.chooseImage}
                     </button>
 
                     <input
@@ -597,7 +595,7 @@ export default function ColorPickerTool() {
                 </div>
 
                 <p className="mx-auto mt-3 max-w-xl break-all text-sm font-medium text-gray-500">
-                    {imageName || "No file selected"}
+                    {imageName || t.colorPicker.noFileSelected}
                 </p>
 
                 {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
@@ -648,7 +646,7 @@ export default function ColorPickerTool() {
                         {!imageName && !isLoading && (
                             <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
                                 <div className="max-w-[220px] rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm leading-6 text-gray-500 md:max-w-[240px] md:px-5 md:py-4">
-                                    Upload an image to preview it here.
+                                    {t.colorPicker.previewEmpty}
                                 </div>
                             </div>
                         )}
@@ -656,7 +654,7 @@ export default function ColorPickerTool() {
                         {isLoading && (
                             <div className="absolute inset-0 flex items-center justify-center px-8 text-center">
                                 <div className="rounded-2xl border border-[#F1E5DF] bg-white px-5 py-4 text-sm font-medium text-gray-500 shadow-sm">
-                                    Loading image...
+                                    {t.colorPicker.loadingImage}
                                 </div>
                             </div>
                         )}
@@ -765,7 +763,9 @@ export default function ColorPickerTool() {
 
                             <div className="min-w-0 flex-1">
                                 <p className="mb-2 px-1 text-[11px] font-medium text-gray-400">
-                                    {copied ? `${copied} copied` : "Tap a value to copy"}
+                                    {copied
+                                        ? t.colorPicker.valueCopied.replace("{label}", copied)
+                                        : t.colorPicker.tapValueToCopy}
                                 </p>
 
                                 <div className="space-y-2">
@@ -796,10 +796,10 @@ export default function ColorPickerTool() {
 
                             <div className="min-w-0 flex-1">
                                 <p className="text-sm font-semibold text-[#2A1F1B]">
-                                    Pick a color
+                                    {t.colorPicker.mobileActionTitle}
                                 </p>
                                 <p className="mt-0.5 text-xs text-gray-500">
-                                    Upload an image and tap any pixel.
+                                    {t.colorPicker.mobileActionDescription}
                                 </p>
                             </div>
                         </div>

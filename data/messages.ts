@@ -267,6 +267,19 @@ export const messages = {
                 "This image is read directly in your browser. It is not uploaded to a server.",
             invalidImage: "Please upload a valid image file.",
             readError: "Could not read this image. Please try another file.",
+
+            supportedFormats: "Supports JPG, PNG, WebP, and common mobile image formats.",
+            invalidFileType: "Please upload a JPG, PNG, or WebP image.",
+            unsupportedFormat:
+                "This image format may not be supported. Please try JPG, PNG, or WebP.",
+            noFileSelectedError: "No image file was selected.",
+            noFileSelected: "No file selected",
+            previewEmpty: "Upload an image to preview it here.",
+            loadingImage: "Loading image...",
+            mobileActionTitle: "Pick a color",
+            mobileActionDescription: "Upload an image and tap any pixel.",
+            tapValueToCopy: "Tap a value to copy",
+            valueCopied: "{label} copied",
         },
 
         hexRgbConverter: {
@@ -289,23 +302,53 @@ export const messages = {
             controlsTitle: "Controls",
             outputTitle: "Palette Output",
 
-            previewDescription: "Create beautiful color palettes from a base color with copy-ready HEX values.",
+            previewDescription:
+                "Create beautiful color palettes from a base color with copy-ready HEX values.",
+            controlsDescription: "Adjust the base color, palette style, and color count.",
 
             baseColorLabel: "Base Color",
             paletteTypeLabel: "Palette Type",
             colorCountLabel: "Color Count",
 
+            chooseBaseColor: "Choose base color",
+            chooseBaseColorDescription: "Pick a color, adjust it, then apply it.",
+            selectedBaseColor: "Selected base color",
+
             analogous: "Analogous",
             monochrome: "Monochrome",
+            monochromatic: "Monochromatic",
             complementary: "Complementary",
             triadic: "Triadic",
+            warm: "Warm",
+            cool: "Cool",
             random: "Random",
+
+            palettePreview: "Palette Preview",
+            palettePreviewHint: "Swipe or tap a color",
+            cssOutput: "CSS Output",
 
             shuffle: "Shuffle",
             randomAll: "Random All",
             copyPalette: "Copy Palette",
             copyCss: "Copy CSS",
             reset: "Reset",
+            cancel: "Cancel",
+            apply: "Apply",
+
+            keepColor: "Keep color",
+            newPalette: "New palette",
+            download: "Download",
+            downloadPng: "Download PNG",
+            png: "PNG",
+
+            hex: "HEX",
+            hexColor: "HEX color",
+            copySelectedColor: "Copy selected color",
+            hue: "Hue",
+            saturation: "Saturation",
+            lightness: "Lightness",
+            currentColor: "Current color",
+            presets: "Presets",
 
             copied: "Copied",
             copyError: "Copy failed. Please copy the palette manually.",
