@@ -406,12 +406,7 @@ export default function ColorPickerTool() {
         magnifierCanvas.height = sampleSize * zoom;
 
         magnifierContext.imageSmoothingEnabled = false;
-        magnifierContext.clearRect(
-            0,
-            0,
-            magnifierCanvas.width,
-            magnifierCanvas.height
-        );
+        magnifierContext.clearRect(0, 0, magnifierCanvas.width, magnifierCanvas.height);
 
         const sourceX = Math.max(0, x - half);
         const sourceY = Math.max(0, y - half);
@@ -541,7 +536,7 @@ export default function ColorPickerTool() {
     }
 
     return (
-        <div className="space-y-5 pb-28 md:space-y-6 lg:pb-0">
+        <div className="space-y-5 pb-1 md:space-y-6 lg:pb-0">
             <div
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -594,7 +589,7 @@ export default function ColorPickerTool() {
                 {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
             </div>
 
-            <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)] lg:gap-6">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)] lg:gap-6">
                 <div className="p-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-6 md:shadow-sm">
                     <div className="flex items-start justify-between gap-4">
                         <div>
@@ -617,7 +612,13 @@ export default function ColorPickerTool() {
                         )}
                     </div>
 
-                    <div className="relative mt-4 flex min-h-[220px] items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-3 md:min-h-[460px] md:p-4">
+                    <div
+                        className={
+                            imageName
+                                ? "relative mt-3 flex items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-0 md:mt-4 md:min-h-[460px] md:p-4"
+                                : "relative mt-3 flex min-h-[180px] items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-3 md:mt-4 md:min-h-[460px] md:p-4"
+                        }
+                    >
                         <canvas
                             ref={canvasRef}
                             onPointerDown={handleCanvasPointerDown}
@@ -648,7 +649,9 @@ export default function ColorPickerTool() {
                     </div>
 
                     {imageName && (
-                        <p className="mt-4 break-all text-sm text-gray-500">{imageName}</p>
+                        <p className="mt-2 break-all text-sm text-gray-500 md:mt-4">
+                            {imageName}
+                        </p>
                     )}
                 </div>
 
