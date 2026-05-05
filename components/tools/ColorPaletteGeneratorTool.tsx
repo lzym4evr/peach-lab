@@ -951,13 +951,7 @@ export default function ColorPaletteGenerator() {
     };
 
     return (
-        <div
-            className="space-y-6"
-            style={{
-                paddingBottom:
-                    "calc(var(--mobile-action-bar-space, 0px) + env(safe-area-inset-bottom, 0px))",
-            }}
-        >
+        <div className="space-y-6 pb-1 md:pb-0">
             <div>
                 <h2 className="text-xl font-semibold text-[#2A1F1B]">Controls</h2>
                 <p className="mt-1 text-sm leading-6 text-gray-500">
