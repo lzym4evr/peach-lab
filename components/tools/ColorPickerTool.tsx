@@ -550,7 +550,7 @@ export default function ColorPickerTool() {
     }
 
     return (
-        <div className="space-y-5 pb-32 md:space-y-6 lg:pb-0">
+        <div className="space-y-5 pb-1 md:space-y-6 lg:pb-0">
             <div
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -603,7 +603,7 @@ export default function ColorPickerTool() {
                 {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
             </div>
 
-            <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)] lg:gap-6">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)] lg:gap-6">
                 <div className="p-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-6 md:shadow-sm">
                     <div className="flex items-start justify-between gap-4">
                         <div>
@@ -626,7 +626,13 @@ export default function ColorPickerTool() {
                         )}
                     </div>
 
-                    <div className="relative mt-4 flex min-h-[220px] items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-3 md:min-h-[460px] md:p-4">
+                    <div
+                        className={
+                            imageName
+                                ? "relative mt-3 flex items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-0 md:mt-4 md:min-h-[460px] md:p-4"
+                                : "relative mt-3 flex min-h-[180px] items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-3 md:mt-4 md:min-h-[460px] md:p-4"
+                        }
+                    >
                         <canvas
                             ref={canvasRef}
                             onPointerDown={handleCanvasPointerDown}
@@ -657,7 +663,9 @@ export default function ColorPickerTool() {
                     </div>
 
                     {imageName && (
-                        <p className="mt-4 break-all text-sm text-gray-500">{imageName}</p>
+                        <p className="mt-2 break-all text-sm text-gray-500 md:mt-4">
+                            {imageName}
+                        </p>
                     )}
                 </div>
 
@@ -746,36 +754,33 @@ export default function ColorPickerTool() {
                 </div>
             </div>
 
-            <div className="fixed inset-x-3 bottom-3 z-50 lg:hidden">
-                <div className="rounded-[32px] border border-[#F1E5DF] bg-white/95 p-3 shadow-[0_12px_40px_rgba(42,31,27,0.16)] backdrop-blur">
+            <div className="peachlab-mobile-action-bar fixed inset-x-3 bottom-3 z-50 lg:hidden">
+                <div className="rounded-[30px] border border-[#F1E5DF] bg-white/95 p-3 shadow-[0_12px_40px_rgba(42,31,27,0.16)] backdrop-blur">
                     {pickedColor ? (
-                        <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3">
-                            <div className="flex items-center">
-                                <div className="flex h-full min-h-[144px] w-full items-center justify-center rounded-[24px] border border-[#F1E5DF] bg-[#FFFDFC] p-3">
-                                    <div
-                                        className="h-16 w-16 rounded-2xl border border-[#E8DDD7]"
-                                        style={{ backgroundColor: pickedColor.hex }}
-                                    />
-                                </div>
-                            </div>
+                        <div className="flex items-center gap-3">
+                            <div
+                                className="h-16 w-16 shrink-0 rounded-2xl border border-[#F1E5DF] shadow-sm"
+                                style={{ backgroundColor: pickedColor.hex }}
+                            />
 
-                            <div className="min-w-0">
+                            <div className="min-w-0 flex-1">
                                 <p className="mb-2 px-1 text-[11px] font-medium text-gray-400">
                                     {copied ? `${copied} copied` : "Tap a value to copy"}
                                 </p>
 
-                                <div className="grid gap-2">
+                                <div className="space-y-2">
                                     {colorItems.map((item) => (
                                         <button
                                             key={item.label}
                                             type="button"
                                             onClick={() => copyValue(item.label, item.value)}
-                                            className="flex min-w-0 items-center justify-between rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-3 text-left transition active:scale-[0.99]"
+                                            className="flex w-full min-w-0 items-center justify-between rounded-2xl border border-[#F1E5DF] bg-white px-3 py-2 text-left shadow-sm transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] active:scale-[0.99]"
                                         >
                                             <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
                                                 {item.label}
                                             </span>
-                                            <span className="ml-4 truncate text-sm font-medium text-gray-700">
+
+                                            <span className="ml-3 truncate text-sm font-medium text-[#2A1F1B]">
                                                 {copied === item.label ? t.common.copied : item.value}
                                             </span>
                                         </button>
@@ -784,18 +789,16 @@ export default function ColorPickerTool() {
                             </div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-3">
-                            <div className="flex items-center justify-center rounded-[24px] border border-[#F1E5DF] bg-[#FFFDFC] p-3">
-                                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFF7F3] text-2xl">
-                                    🎨
-                                </div>
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#FFF7F3] text-xl shadow-sm">
+                                🎨
                             </div>
 
-                            <div className="flex min-h-[96px] flex-col justify-center rounded-[24px] border border-[#F1E5DF] bg-[#FFFDFC] px-4 py-3">
-                                <p className="text-sm font-semibold text-gray-900">
+                            <div className="min-w-0 flex-1">
+                                <p className="text-sm font-semibold text-[#2A1F1B]">
                                     Pick a color
                                 </p>
-                                <p className="mt-1 text-xs leading-5 text-gray-500">
+                                <p className="mt-0.5 text-xs text-gray-500">
                                     Upload an image and tap any pixel.
                                 </p>
                             </div>
@@ -807,7 +810,7 @@ export default function ColorPickerTool() {
             <style jsx global>{`
         @media (max-width: 1023px) {
           footer {
-            padding-bottom: calc(170px + env(safe-area-inset-bottom, 0px));
+            padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
           }
         }
       `}</style>
