@@ -92,23 +92,6 @@ function isImageFile(file: File) {
     return hasImageType || hasSupportedExtension;
 }
 
-function getCompactRgb(color: PickedColor) {
-    return `${color.r} ${color.g} ${color.b}`;
-}
-
-function getCompactHsl(color: PickedColor) {
-    const match = color.hsl.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
-
-    if (!match) {
-        return color.hsl
-            .replace("hsl(", "")
-            .replace(")", "")
-            .replaceAll(",", "");
-    }
-
-    return `${match[1]} ${match[2]}% ${match[3]}%`;
-}
-
 export default function ColorPickerTool() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const magnifierCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -776,54 +759,52 @@ export default function ColorPickerTool() {
                                 style={{ backgroundColor: pickedColor.hex }}
                             />
 
-                            <div className="min-w-0 flex-1 space-y-1">
-                                <button
-                                    type="button"
-                                    onClick={() => copyValue("HEX", pickedColor.hex)}
-                                    className="grid w-full grid-cols-[36px_minmax(0,1fr)] items-center gap-2 text-left"
-                                >
-                                    <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                                        HEX
-                                    </span>
-                                    <span className="truncate text-sm font-bold text-gray-900">
-                                        {copied === "HEX" ? t.common.copied : pickedColor.hex}
-                                    </span>
-                                </button>
+                            <div className="min-w-0 flex-1">
+                                <p className="mb-2 text-[11px] font-medium text-gray-400">
+                                    {copied ? `${copied} copied` : "Tap a value to copy"}
+                                </p>
 
-                                <button
-                                    type="button"
-                                    onClick={() => copyValue("RGB", pickedColor.rgb)}
-                                    className="grid w-full grid-cols-[36px_minmax(0,1fr)] items-center gap-2 text-left"
-                                >
-                                    <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                                        RGB
-                                    </span>
-                                    <span className="truncate text-xs font-medium text-gray-500">
-                                        {copied === "RGB" ? t.common.copied : getCompactRgb(pickedColor)}
-                                    </span>
-                                </button>
+                                <div className="space-y-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => copyValue("HEX", pickedColor.hex)}
+                                        className="flex w-full items-center justify-between rounded-xl border border-[#F1E5DF] bg-[#FFF7F3] px-3 py-2 text-left transition active:scale-[0.99]"
+                                    >
+                                        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                                            HEX
+                                        </span>
+                                        <span className="ml-3 truncate text-sm font-medium text-gray-700">
+                                            {copied === "HEX" ? t.common.copied : pickedColor.hex}
+                                        </span>
+                                    </button>
 
-                                <button
-                                    type="button"
-                                    onClick={() => copyValue("HSL", pickedColor.hsl)}
-                                    className="grid w-full grid-cols-[36px_minmax(0,1fr)] items-center gap-2 text-left"
-                                >
-                                    <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                                        HSL
-                                    </span>
-                                    <span className="truncate text-xs font-medium text-gray-500">
-                                        {copied === "HSL" ? t.common.copied : getCompactHsl(pickedColor)}
-                                    </span>
-                                </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => copyValue("RGB", pickedColor.rgb)}
+                                        className="flex w-full items-center justify-between rounded-xl border border-[#F1E5DF] bg-[#FFF7F3] px-3 py-2 text-left transition active:scale-[0.99]"
+                                    >
+                                        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                                            RGB
+                                        </span>
+                                        <span className="ml-3 truncate text-sm font-medium text-gray-700">
+                                            {copied === "RGB" ? t.common.copied : pickedColor.rgb}
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => copyValue("HSL", pickedColor.hsl)}
+                                        className="flex w-full items-center justify-between rounded-xl border border-[#F1E5DF] bg-[#FFF7F3] px-3 py-2 text-left transition active:scale-[0.99]"
+                                    >
+                                        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                                            HSL
+                                        </span>
+                                        <span className="ml-3 truncate text-sm font-medium text-gray-700">
+                                            {copied === "HSL" ? t.common.copied : pickedColor.hsl}
+                                        </span>
+                                    </button>
+                                </div>
                             </div>
-
-                            <button
-                                type="button"
-                                onClick={() => copyValue("HEX", pickedColor.hex)}
-                                className="shrink-0 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                            >
-                                {copied === "HEX" ? t.common.copied : t.common.copy}
-                            </button>
                         </div>
                     ) : (
                         <div className="flex items-center gap-3">
