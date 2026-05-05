@@ -27,7 +27,6 @@ const PALETTE_TYPES: { label: string; value: PaletteType }[] = [
 ];
 
 const COLOR_COUNTS = [3, 4, 5, 6, 7, 8];
-
 const DEFAULT_BASE_COLOR = "#FF6A5B";
 
 const PRESET_COLORS = [
@@ -41,17 +40,12 @@ const PRESET_COLORS = [
     "#F27ACB",
 ];
 
-const clamp = (value: number, min: number, max: number) => {
-    return Math.min(Math.max(value, min), max);
-};
+const clamp = (value: number, min: number, max: number) =>
+    Math.min(Math.max(value, min), max);
 
-const normalizeHue = (hue: number) => {
-    return ((hue % 360) + 360) % 360;
-};
+const normalizeHue = (hue: number) => ((hue % 360) + 360) % 360;
 
-const isValidHex = (value: string) => {
-    return /^#[0-9A-F]{6}$/i.test(value);
-};
+const isValidHex = (value: string) => /^#[0-9A-F]{6}$/i.test(value);
 
 const normalizeHexInput = (value: string) => {
     const upper = value.trim().toUpperCase();
@@ -89,7 +83,6 @@ const rgbToHsl = (r: number, g: number, b: number): HslColor => {
 
     if (max !== min) {
         const d = max - min;
-
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
 
         switch (max) {
@@ -420,7 +413,6 @@ export default function ColorPaletteGenerator() {
         };
 
         const raf = window.requestAnimationFrame(updateActionBarSpace);
-
         const element = mobileActionBarRef.current;
         const observer = new ResizeObserver(updateActionBarSpace);
 
@@ -436,7 +428,7 @@ export default function ColorPaletteGenerator() {
             window.removeEventListener("resize", updateActionBarSpace);
             document.documentElement.style.removeProperty("--mobile-action-bar-space");
         };
-    }, []);
+    }, [isPickerOpen]);
 
     useEffect(() => {
         if (!isPickerOpen) return;
@@ -546,7 +538,6 @@ export default function ColorPaletteGenerator() {
             };
 
             setDraftHex(hslToHex(updated.h, updated.s, updated.l));
-
             return updated;
         });
     };
@@ -956,7 +947,13 @@ export default function ColorPaletteGenerator() {
     };
 
     return (
-        <div className="space-y-6">
+        <div
+            className="space-y-6"
+            style={{
+                paddingBottom:
+                    "calc(var(--mobile-action-bar-space, 0px) + env(safe-area-inset-bottom, 0px))",
+            }}
+        >
             <div>
                 <h2 className="text-xl font-semibold text-[#2A1F1B]">Controls</h2>
                 <p className="mt-1 text-sm leading-6 text-gray-500">
@@ -1046,7 +1043,6 @@ export default function ColorPaletteGenerator() {
                         <h3 className="text-base font-semibold text-[#2A1F1B]">
                             Palette Preview
                         </h3>
-
                         <span className="text-xs text-gray-400">Swipe or tap a color</span>
                     </div>
 
@@ -1145,79 +1141,70 @@ export default function ColorPaletteGenerator() {
                         "transition-all duration-300 ease-out",
                     ].join(" ")}
                 >
-                    <div
-                        ref={mobilePickerPanelRef}
-                        className={[
-                            "overflow-y-auto overflow-x-hidden overscroll-contain transition-all duration-300 ease-out",
-                            isPickerOpen
-                                ? "max-h-[62vh] translate-y-0 opacity-100"
-                                : "pointer-events-none max-h-0 translate-y-4 opacity-0",
-                        ].join(" ")}
-                    >
-                        <div className="px-5 pb-4 pt-4">
-                            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-200" />
+                    {isPickerOpen ? (
+                        <div
+                            ref={mobilePickerPanelRef}
+                            className="max-h-[62vh] overflow-y-auto overflow-x-hidden overscroll-contain px-5 pb-5 pt-5"
+                        >
                             {renderColorPickerPanel("mobile", mobileWheelRef)}
                         </div>
-                    </div>
+                    ) : (
+                        <div className="grid grid-cols-4 gap-2 p-3">
+                            <button
+                                type="button"
+                                onClick={handleShuffle}
+                                className="flex flex-col items-center justify-center rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-3 text-center"
+                            >
+                                <Shuffle className="mb-1 h-5 w-5 text-[#E6765B]" />
+                                <span className="text-xs font-semibold text-[#E6765B]">
+                                    Shuffle
+                                </span>
+                                <span className="mt-0.5 text-[10px] text-[#9C6B5B]">
+                                    Keep color
+                                </span>
+                            </button>
 
-                    <div
-                        className={[
-                            "grid grid-cols-4 gap-2 p-3 transition-all duration-300 ease-out",
-                            isPickerOpen ? "border-t border-[#F1E5DF]" : "",
-                        ].join(" ")}
-                    >
-                        <button
-                            type="button"
-                            onClick={handleShuffle}
-                            className="flex flex-col items-center justify-center rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-3 text-center"
-                        >
-                            <Shuffle className="mb-1 h-5 w-5 text-[#E6765B]" />
-                            <span className="text-xs font-semibold text-[#E6765B]">
-                                Shuffle
-                            </span>
-                            <span className="mt-0.5 text-[10px] text-[#9C6B5B]">
-                                Keep color
-                            </span>
-                        </button>
+                            <button
+                                type="button"
+                                onClick={handleRandomAll}
+                                className="flex flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
+                            >
+                                <Dices className="mb-1 h-5 w-5 text-white" />
+                                <span className="whitespace-nowrap text-xs font-semibold text-white">
+                                    Random
+                                </span>
+                                <span className="mt-0.5 text-[10px] text-white/85">
+                                    New palette
+                                </span>
+                            </button>
 
-                        <button
-                            type="button"
-                            onClick={handleRandomAll}
-                            className="flex flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
-                        >
-                            <Dices className="mb-1 h-5 w-5 text-white" />
-                            <span className="whitespace-nowrap text-xs font-semibold text-white">
-                                Random
-                            </span>
-                            <span className="mt-0.5 text-[10px] text-white/85">
-                                New palette
-                            </span>
-                        </button>
+                            <button
+                                type="button"
+                                onClick={handleCopyPalette}
+                                className="flex flex-col items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center"
+                            >
+                                <Copy className="mb-1 h-5 w-5 text-[#2A1F1B]" />
+                                <span className="text-xs font-semibold text-[#2A1F1B]">
+                                    {copiedTarget === "palette" ? "Copied" : "Copy"}
+                                </span>
+                                <span className="mt-0.5 text-[10px] text-gray-500">
+                                    Palette
+                                </span>
+                            </button>
 
-                        <button
-                            type="button"
-                            onClick={handleCopyPalette}
-                            className="flex flex-col items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center"
-                        >
-                            <Copy className="mb-1 h-5 w-5 text-[#2A1F1B]" />
-                            <span className="text-xs font-semibold text-[#2A1F1B]">
-                                {copiedTarget === "palette" ? "Copied" : "Copy"}
-                            </span>
-                            <span className="mt-0.5 text-[10px] text-gray-500">Palette</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={handleDownloadPng}
-                            className="flex flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
-                        >
-                            <Download className="mb-1 h-5 w-5 text-white" />
-                            <span className="text-xs font-semibold text-white">
-                                Download
-                            </span>
-                            <span className="mt-0.5 text-[10px] text-white/85">PNG</span>
-                        </button>
-                    </div>
+                            <button
+                                type="button"
+                                onClick={handleDownloadPng}
+                                className="flex flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
+                            >
+                                <Download className="mb-1 h-5 w-5 text-white" />
+                                <span className="text-xs font-semibold text-white">
+                                    Download
+                                </span>
+                                <span className="mt-0.5 text-[10px] text-white/85">PNG</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
