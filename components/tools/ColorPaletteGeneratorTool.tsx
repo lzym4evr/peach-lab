@@ -956,143 +956,139 @@ export default function ColorPaletteGenerator() {
     };
 
     return (
-        <div className="space-y-5">
-            <section className="rounded-[28px] border border-[#F1E5DF] bg-white p-5 shadow-sm">
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-xl font-semibold text-[#2A1F1B]">Controls</h2>
+                <p className="mt-1 text-sm leading-6 text-gray-500">
+                    Adjust the base color, palette style, and color count.
+                </p>
+            </div>
+
+            <div className="space-y-5">
                 <div>
-                    <h2 className="text-xl font-semibold text-[#2A1F1B]">Controls</h2>
-                    <p className="mt-1 text-sm leading-6 text-gray-500">
-                        Adjust the base color, palette style, and color count.
-                    </p>
-                </div>
+                    <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
+                        Base Color
+                    </label>
 
-                <div className="mt-5 space-y-5">
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
-                            Base Color
-                        </label>
-
-                        <button
-                            type="button"
-                            onClick={openPicker}
-                            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-[#F1E5DF] bg-white px-3 py-3 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] md:hidden"
-                        >
-                            <div className="flex min-w-0 items-center gap-3">
-                                <span
-                                    className="h-10 w-12 shrink-0 rounded-xl shadow-sm"
-                                    style={{ backgroundColor: baseColor }}
-                                />
-                                <span className="truncate text-sm font-semibold text-[#2A1F1B]">
-                                    {baseColor}
-                                </span>
-                            </div>
-
-                            <Pencil className="h-4 w-4 shrink-0 text-gray-400" />
-                        </button>
-
-                        <div className="hidden md:block">
-                            {renderColorPickerPanel("desktop", desktopWheelRef)}
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
-                            Palette Type
-                        </label>
-
-                        <select
-                            value={paletteType}
-                            onChange={(event) =>
-                                setPaletteType(event.target.value as PaletteType)
-                            }
-                            className="w-full rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-medium text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
-                            aria-label="Palette type"
-                        >
-                            {PALETTE_TYPES.map((type) => (
-                                <option key={type.value} value={type.value}>
-                                    {type.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
-                            Color Count
-                        </label>
-
-                        <div className="grid grid-cols-6 gap-2">
-                            {COLOR_COUNTS.map((count) => {
-                                const active = colorCount === count;
-
-                                return (
-                                    <button
-                                        key={count}
-                                        type="button"
-                                        onClick={() => setColorCount(count)}
-                                        className={
-                                            active
-                                                ? "rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-3 text-sm font-semibold text-[#E6765B]"
-                                                : "rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
-                                        }
-                                    >
-                                        {count}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    <div className="border-t border-[#F1E5DF] pt-5">
-                        <div className="mb-3 flex items-center justify-between gap-3">
-                            <h3 className="text-base font-semibold text-[#2A1F1B]">
-                                Palette Preview
-                            </h3>
-
-                            <span className="text-xs text-gray-400">
-                                Swipe or tap a color
+                    <button
+                        type="button"
+                        onClick={openPicker}
+                        className="flex w-full items-center justify-between gap-3 rounded-2xl border border-[#F1E5DF] bg-white px-3 py-3 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] md:hidden"
+                    >
+                        <div className="flex min-w-0 items-center gap-3">
+                            <span
+                                className="h-10 w-12 shrink-0 rounded-xl shadow-sm"
+                                style={{ backgroundColor: baseColor }}
+                            />
+                            <span className="truncate text-sm font-semibold text-[#2A1F1B]">
+                                {baseColor}
                             </span>
                         </div>
 
-                        <div className="-mx-1 overflow-x-auto px-1 pb-1">
-                            <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-8">
-                                {palette.map((color, index) => (
-                                    <button
-                                        key={`${color}-${index}`}
-                                        type="button"
-                                        onClick={() => copyWithStatus(color, `color-${index}`)}
-                                        className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
-                                        style={{ backgroundColor: color }}
-                                        aria-label={`Copy ${color}`}
-                                    >
-                                        <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
-                                            {copiedTarget === `color-${index}`
-                                                ? "COPIED"
-                                                : color.toUpperCase()}
-                                        </span>
-                                    </button>
-                                ))}
-                            </div>
+                        <Pencil className="h-4 w-4 shrink-0 text-gray-400" />
+                    </button>
+
+                    <div className="hidden md:block">
+                        {renderColorPickerPanel("desktop", desktopWheelRef)}
+                    </div>
+                </div>
+
+                <div>
+                    <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
+                        Palette Type
+                    </label>
+
+                    <select
+                        value={paletteType}
+                        onChange={(event) =>
+                            setPaletteType(event.target.value as PaletteType)
+                        }
+                        className="w-full rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-medium text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
+                        aria-label="Palette type"
+                    >
+                        {PALETTE_TYPES.map((type) => (
+                            <option key={type.value} value={type.value}>
+                                {type.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
+                        Color Count
+                    </label>
+
+                    <div className="grid grid-cols-6 gap-2">
+                        {COLOR_COUNTS.map((count) => {
+                            const active = colorCount === count;
+
+                            return (
+                                <button
+                                    key={count}
+                                    type="button"
+                                    onClick={() => setColorCount(count)}
+                                    className={
+                                        active
+                                            ? "rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-3 text-sm font-semibold text-[#E6765B]"
+                                            : "rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                                    }
+                                >
+                                    {count}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div className="border-t border-[#F1E5DF] pt-5">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                        <h3 className="text-base font-semibold text-[#2A1F1B]">
+                            Palette Preview
+                        </h3>
+
+                        <span className="text-xs text-gray-400">Swipe or tap a color</span>
+                    </div>
+
+                    <div className="-mx-1 overflow-x-auto px-1 pb-1">
+                        <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-8">
+                            {palette.map((color, index) => (
+                                <button
+                                    key={`${color}-${index}`}
+                                    type="button"
+                                    onClick={() => copyWithStatus(color, `color-${index}`)}
+                                    className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
+                                    style={{ backgroundColor: color }}
+                                    aria-label={`Copy ${color}`}
+                                >
+                                    <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
+                                        {copiedTarget === `color-${index}`
+                                            ? "COPIED"
+                                            : color.toUpperCase()}
+                                    </span>
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
-            </section>
 
-            <section className="rounded-[28px] border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                <h2 className="text-xl font-semibold text-[#2A1F1B]">CSS Output</h2>
+                <div className="border-t border-[#F1E5DF] pt-5">
+                    <h2 className="text-xl font-semibold text-[#2A1F1B]">CSS Output</h2>
 
-                <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
-                    <code>{cssOutput}</code>
-                </pre>
+                    <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
+                        <code>{cssOutput}</code>
+                    </pre>
 
-                <button
-                    type="button"
-                    onClick={handleCopyCss}
-                    className="mt-4 inline-flex w-fit items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                >
-                    <Copy className="h-4 w-4" />
-                    {copiedTarget === "css" ? "Copied" : "Copy CSS"}
-                </button>
-            </section>
+                    <button
+                        type="button"
+                        onClick={handleCopyCss}
+                        className="mt-4 inline-flex w-fit items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                    >
+                        <Copy className="h-4 w-4" />
+                        {copiedTarget === "css" ? "Copied" : "Copy CSS"}
+                    </button>
+                </div>
+            </div>
 
             <div className="hidden grid-cols-4 gap-3 md:grid">
                 <button
@@ -1207,9 +1203,7 @@ export default function ColorPaletteGenerator() {
                             <span className="text-xs font-semibold text-[#2A1F1B]">
                                 {copiedTarget === "palette" ? "Copied" : "Copy"}
                             </span>
-                            <span className="mt-0.5 text-[10px] text-gray-500">
-                                Palette
-                            </span>
+                            <span className="mt-0.5 text-[10px] text-gray-500">Palette</span>
                         </button>
 
                         <button
