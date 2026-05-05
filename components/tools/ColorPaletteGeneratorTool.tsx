@@ -389,7 +389,7 @@ export default function ColorPaletteGenerator() {
     );
     const [draftHex, setDraftHex] = useState(DEFAULT_BASE_COLOR);
 
-    const mobileActionBarRef = useRef<HTMLDivElement | null>(null);
+    const mobileActionButtonsRef = useRef<HTMLDivElement | null>(null);
     const mobilePickerPanelRef = useRef<HTMLDivElement | null>(null);
     const mobileWheelRef = useRef<HTMLDivElement | null>(null);
     const desktopWheelRef = useRef<HTMLDivElement | null>(null);
@@ -400,11 +400,10 @@ export default function ColorPaletteGenerator() {
 
     useEffect(() => {
         const updateActionBarSpace = () => {
-            const element = mobileActionBarRef.current;
+            const element = mobileActionButtonsRef.current;
             if (!element) return;
 
-            const rect = element.getBoundingClientRect();
-            const space = Math.ceil(rect.height + 28);
+            const space = Math.ceil(element.scrollHeight + 10);
 
             document.documentElement.style.setProperty(
                 "--mobile-action-bar-space",
@@ -413,11 +412,10 @@ export default function ColorPaletteGenerator() {
         };
 
         const raf = window.requestAnimationFrame(updateActionBarSpace);
-        const element = mobileActionBarRef.current;
         const observer = new ResizeObserver(updateActionBarSpace);
 
-        if (element) {
-            observer.observe(element);
+        if (mobileActionButtonsRef.current) {
+            observer.observe(mobileActionButtonsRef.current);
         }
 
         window.addEventListener("resize", updateActionBarSpace);
@@ -428,7 +426,7 @@ export default function ColorPaletteGenerator() {
             window.removeEventListener("resize", updateActionBarSpace);
             document.documentElement.style.removeProperty("--mobile-action-bar-space");
         };
-    }, [isPickerOpen]);
+    }, []);
 
     useEffect(() => {
         if (!isPickerOpen) return;
@@ -726,12 +724,30 @@ export default function ColorPaletteGenerator() {
 
         return (
             <div className="min-w-0 overflow-x-hidden">
-                <div className={isDesktop ? "mb-5 flex min-w-0 items-center justify-between gap-4" : "mb-3 flex min-w-0 items-center justify-between gap-3"}>
+                <div
+                    className={
+                        isDesktop
+                            ? "mb-5 flex min-w-0 items-center justify-between gap-4"
+                            : "mb-3 flex min-w-0 items-center justify-between gap-3"
+                    }
+                >
                     <div className="min-w-0">
-                        <h2 className={isDesktop ? "text-xl font-semibold text-[#2A1F1B] md:text-2xl" : "text-base font-semibold text-[#2A1F1B]"}>
+                        <h2
+                            className={
+                                isDesktop
+                                    ? "text-xl font-semibold text-[#2A1F1B] md:text-2xl"
+                                    : "text-base font-semibold text-[#2A1F1B]"
+                            }
+                        >
                             Choose base color
                         </h2>
-                        <p className={isDesktop ? "mt-1 text-sm text-gray-500" : "mt-0.5 text-xs text-gray-500"}>
+                        <p
+                            className={
+                                isDesktop
+                                    ? "mt-1 text-sm text-gray-500"
+                                    : "mt-0.5 text-xs text-gray-500"
+                            }
+                        >
                             Pick a color, adjust it, then apply it.
                         </p>
                     </div>
@@ -748,8 +764,20 @@ export default function ColorPaletteGenerator() {
                     ) : null}
                 </div>
 
-                <div className={isDesktop ? "grid min-w-0 gap-5 overflow-x-hidden md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] md:items-start md:gap-8" : "grid min-w-0 gap-3 overflow-x-hidden"}>
-                    <div className={isDesktop ? "min-w-0 space-y-5 overflow-x-hidden" : "min-w-0 space-y-3 overflow-x-hidden"}>
+                <div
+                    className={
+                        isDesktop
+                            ? "grid min-w-0 gap-5 overflow-x-hidden md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] md:items-start md:gap-8"
+                            : "grid min-w-0 gap-3 overflow-x-hidden"
+                    }
+                >
+                    <div
+                        className={
+                            isDesktop
+                                ? "min-w-0 space-y-5 overflow-x-hidden"
+                                : "min-w-0 space-y-3 overflow-x-hidden"
+                        }
+                    >
                         <div
                             ref={wheelRef}
                             onPointerDown={(event) => {
@@ -779,7 +807,11 @@ export default function ColorPaletteGenerator() {
                             }}
                         >
                             <span
-                                className={isDesktop ? "absolute h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md md:h-8 md:w-8" : "absolute h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md"}
+                                className={
+                                    isDesktop
+                                        ? "absolute h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md md:h-8 md:w-8"
+                                        : "absolute h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md"
+                                }
                                 style={{
                                     left: `${50 +
                                         Math.cos((draftHsl.h * Math.PI) / 180) *
@@ -826,7 +858,13 @@ export default function ColorPaletteGenerator() {
                         </div>
                     </div>
 
-                    <div className={isDesktop ? "min-w-0 space-y-5 overflow-x-hidden" : "min-w-0 space-y-3 overflow-x-hidden"}>
+                    <div
+                        className={
+                            isDesktop
+                                ? "min-w-0 space-y-5 overflow-x-hidden"
+                                : "min-w-0 space-y-3 overflow-x-hidden"
+                        }
+                    >
                         <div className="min-w-0 overflow-x-hidden">
                             <label className="mb-1.5 block text-xs font-medium text-gray-500">
                                 Hue
@@ -1139,7 +1177,6 @@ export default function ColorPaletteGenerator() {
 
             <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 md:hidden">
                 <div
-                    ref={mobileActionBarRef}
                     className={[
                         "pointer-events-auto mx-auto max-w-md overflow-hidden rounded-[30px] border border-[#F1E5DF] bg-white/95 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur",
                         "transition-all duration-300 ease-out",
@@ -1161,6 +1198,7 @@ export default function ColorPaletteGenerator() {
                     </div>
 
                     <div
+                        ref={mobileActionButtonsRef}
                         className={[
                             "transition-[max-height,opacity,transform] duration-300 ease-out",
                             isPickerOpen
