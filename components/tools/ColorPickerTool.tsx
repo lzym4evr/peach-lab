@@ -556,8 +556,8 @@ export default function ColorPickerTool() {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 className={`rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                        ? "border-[#F28C6F] bg-[#FFF0EA]"
-                        : "border-[#F4C8BA] bg-[#FFF7F3]"
+                    ? "border-[#F28C6F] bg-[#FFF0EA]"
+                    : "border-[#F4C8BA] bg-[#FFF7F3]"
                     }`}
             >
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm md:mb-4 md:h-16 md:w-16 md:text-3xl">
@@ -808,12 +808,12 @@ export default function ColorPickerTool() {
             </div>
 
             <style jsx global>{`
-        @media (max-width: 1023px) {
-          footer {
-            padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
-          }
-        }
-      `}</style>
+  @media (max-width: 1023px) {
+    footer {
+      padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+    }
+  }
+`}</style>
         </div>
     );
 }
