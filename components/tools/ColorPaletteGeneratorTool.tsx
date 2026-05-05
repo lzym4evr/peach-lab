@@ -845,10 +845,6 @@ export default function ColorPaletteGenerator() {
                                     updateDraftHsl({ h: Number(event.target.value) })
                                 }
                                 className="block w-full min-w-0 accent-[#F28C6F]"
-                                style={{
-                                    background:
-                                        "linear-gradient(90deg, red, yellow, lime, cyan, blue, magenta, red)",
-                                }}
                             />
                         </div>
 
@@ -1136,7 +1132,12 @@ export default function ColorPaletteGenerator() {
                 </button>
             </div>
 
-            <div className="pointer-events-none fixed inset-x-0 bottom-3 z-40 px-3 md:hidden">
+            <div
+                className={[
+                    "pointer-events-none fixed inset-x-0 bottom-3 px-3 md:hidden",
+                    isPickerOpen ? "z-[60]" : "z-40",
+                ].join(" ")}
+            >
                 <div
                     ref={mobileActionBarRef}
                     className="pointer-events-auto mx-auto max-w-md rounded-[30px] border border-[#F1E5DF] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
@@ -1210,7 +1211,7 @@ export default function ColorPaletteGenerator() {
 
                     <div
                         ref={mobilePickerPanelRef}
-                        className="absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto overflow-x-hidden overscroll-contain rounded-t-[32px] border border-[#F1E5DF] bg-white px-5 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-4 shadow-[0_-16px_45px_rgba(42,31,27,0.18)]"
+                        className="absolute inset-x-3 bottom-[calc(var(--mobile-action-bar-space,0px)+10px)] mx-auto max-h-[68vh] max-w-md overflow-y-auto overflow-x-hidden overscroll-contain rounded-[30px] border border-[#F1E5DF] bg-white px-5 pb-5 pt-4 shadow-[0_18px_45px_rgba(42,31,27,0.18)]"
                     >
                         <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-200" />
                         {renderColorPickerPanel("mobile", mobileWheelRef)}
