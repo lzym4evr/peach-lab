@@ -114,7 +114,7 @@ border-color: ${normalizedHex};`,
     return (
         <div className="space-y-5 md:space-y-6">
             <div
-                className="min-h-56 rounded-3xl border border-[#F1E5DF] p-5 shadow-sm md:min-h-64 md:p-6"
+                className="min-h-28 rounded-3xl border border-[#F1E5DF] p-4 shadow-sm md:min-h-36 md:p-5"
                 style={{
                     background: colorData?.hex ?? "#FFF7F3",
                 }}
@@ -259,20 +259,6 @@ border-color: ${normalizedHex};`,
                     >
                         {copied === "CSS" ? t.common.copied : "Copy CSS"}
                     </button>
-                </div>
-            )}
-
-            {colorData && (
-                <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
-                    <h3 className="mb-3 text-sm font-semibold text-gray-800">
-                        {t.hexRgbConverter.colorValues}
-                    </h3>
-
-                    <pre className="overflow-x-auto rounded-xl bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-700">
-                        {`${t.hexRgbConverter.hex}: ${colorData.hex}
-${t.hexRgbConverter.rgb}: ${colorData.rgbText}
-${t.hexRgbConverter.hsl}: ${colorData.hslText}`}
-                    </pre>
                 </div>
             )}
         </div>
