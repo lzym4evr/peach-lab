@@ -202,7 +202,8 @@ export default function ColorPickerTool() {
                 setIsLoading(false);
 
                 setDebugMessage(
-                    `Loaded: ${file.name || "Unnamed file"} | Canvas: ${width} x ${height}`
+                    `Loaded: ${file.name || "Unnamed file"
+                    } | Canvas: ${width} x ${height}`
                 );
             };
 
@@ -547,8 +548,8 @@ export default function ColorPickerTool() {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 className={`rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                    : "border-[#F4C8BA] bg-[#FFF7F3]"
+                        ? "border-[#F28C6F] bg-[#FFF0EA]"
+                        : "border-[#F4C8BA] bg-[#FFF7F3]"
                     }`}
             >
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm md:mb-4 md:h-16 md:w-16 md:text-3xl">
@@ -709,65 +710,34 @@ export default function ColorPickerTool() {
                             />
 
                             <div className="grid gap-3">
-                                <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                        HEX
-                                    </p>
-
-                                    <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                        <p className="break-all text-xl font-bold text-gray-900">
-                                            {pickedColor.hex}
+                                {[
+                                    { label: "HEX", value: pickedColor.hex },
+                                    { label: "RGB", value: pickedColor.rgb },
+                                    { label: "HSL", value: pickedColor.hsl },
+                                ].map((item) => (
+                                    <div
+                                        key={item.label}
+                                        className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4"
+                                    >
+                                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                            {item.label}
                                         </p>
 
-                                        <button
-                                            type="button"
-                                            onClick={() => copyValue("HEX", pickedColor.hex)}
-                                            className="w-fit rounded-2xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                                        >
-                                            {copied === "HEX" ? t.common.copied : t.common.copy}
-                                        </button>
+                                        <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                            <p className="break-all text-xl font-bold text-gray-900">
+                                                {item.value}
+                                            </p>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => copyValue(item.label, item.value)}
+                                                className="w-fit rounded-2xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                            >
+                                                {copied === item.label ? t.common.copied : t.common.copy}
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-
-                                <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                        RGB
-                                    </p>
-
-                                    <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                        <p className="break-all text-xl font-bold text-gray-900">
-                                            {pickedColor.rgb}
-                                        </p>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => copyValue("RGB", pickedColor.rgb)}
-                                            className="w-fit rounded-2xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                                        >
-                                            {copied === "RGB" ? t.common.copied : t.common.copy}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                        HSL
-                                    </p>
-
-                                    <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                        <p className="break-all text-xl font-bold text-gray-900">
-                                            {pickedColor.hsl}
-                                        </p>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => copyValue("HSL", pickedColor.hsl)}
-                                            className="w-fit rounded-2xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                                        >
-                                            {copied === "HSL" ? t.common.copied : t.common.copy}
-                                        </button>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
                         </div>
                     ) : (
@@ -827,12 +797,12 @@ export default function ColorPickerTool() {
             </div>
 
             <style jsx global>{`
-                @media (max-width: 1023px) {
-                    footer {
-                        padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
-                    }
-                }
-            `}</style>
+        @media (max-width: 1023px) {
+          footer {
+            padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+          }
+        }
+      `}</style>
         </div>
     );
 }
