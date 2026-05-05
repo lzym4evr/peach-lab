@@ -403,7 +403,7 @@ export default function ColorPaletteGenerator() {
             const element = mobileActionButtonsRef.current;
             if (!element) return;
 
-            const space = Math.ceil(element.scrollHeight + 10);
+            const space = Math.ceil(element.scrollHeight + 4);
 
             document.documentElement.style.setProperty(
                 "--mobile-action-bar-space",
@@ -989,13 +989,7 @@ export default function ColorPaletteGenerator() {
     };
 
     return (
-        <div
-            className="space-y-6"
-            style={{
-                paddingBottom:
-                    "calc(var(--mobile-action-bar-space, 0px) + env(safe-area-inset-bottom, 0px))",
-            }}
-        >
+        <div className="space-y-6 pb-2 md:pb-0">
             <div>
                 <h2 className="text-xl font-semibold text-[#2A1F1B]">Controls</h2>
                 <p className="mt-1 text-sm leading-6 text-gray-500">
@@ -1171,16 +1165,16 @@ export default function ColorPaletteGenerator() {
                     type="button"
                     aria-label="Close color picker"
                     onClick={closePicker}
-                    className="fixed inset-0 z-40 bg-[#2A1F1B]/35 backdrop-blur-[2px] md:hidden"
+                    className="fixed inset-0 z-[55] bg-[#2A1F1B]/35 backdrop-blur-[2px] md:hidden"
                 />
             ) : null}
 
             <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 md:hidden">
                 <div
                     className={[
-                        "pointer-events-auto mx-auto max-w-md overflow-hidden rounded-[30px] border border-[#F1E5DF] bg-white/95 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur",
+                        "pointer-events-auto mx-auto max-w-md overflow-hidden rounded-[30px] border border-[#F1E5DF] shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur",
                         "transition-all duration-300 ease-out",
-                        isPickerOpen ? "origin-bottom animate-[paletteExpand_260ms_ease-out]" : "",
+                        isPickerOpen ? "bg-white origin-bottom animate-[paletteExpand_260ms_ease-out]" : "bg-white/95",
                     ].join(" ")}
                 >
                     <div
