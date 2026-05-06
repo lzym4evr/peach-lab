@@ -22,7 +22,7 @@ export default function GradientGeneratorTool() {
         }, 1500);
     }
 
-    function randomGradient() {
+    function getRandomColor() {
         const colors = [
             "#F28C6F",
             "#FFD6C8",
@@ -36,19 +36,27 @@ export default function GradientGeneratorTool() {
             "#FDBA74",
         ];
 
-        const first = colors[Math.floor(Math.random() * colors.length)];
-        const second = colors[Math.floor(Math.random() * colors.length)];
-        const randomAngle = Math.floor(Math.random() * 361);
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
 
-        setColor1(first);
-        setColor2(second);
-        setAngle(randomAngle);
+    function getRandomAngle() {
+        return Math.floor(Math.random() * 361);
+    }
+
+    function shuffleGradient() {
+        setAngle(getRandomAngle());
+    }
+
+    function randomGradient() {
+        setColor1(getRandomColor());
+        setColor2(getRandomColor());
+        setAngle(getRandomAngle());
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
             <div
-                className="flex min-h-72 items-end justify-between rounded-3xl border border-[#F1E5DF] p-5 shadow-sm"
+                className="flex min-h-48 items-end rounded-3xl border border-[#F1E5DF] p-5 shadow-sm md:min-h-72 md:justify-between"
                 style={{ background: cssValue }}
             >
                 <div className="rounded-2xl bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
@@ -62,14 +70,32 @@ export default function GradientGeneratorTool() {
 
                 <button
                     onClick={randomGradient}
-                    className="rounded-2xl bg-white/85 px-4 py-3 text-sm font-semibold text-gray-800 shadow-sm backdrop-blur transition hover:bg-white"
+                    className="hidden rounded-2xl bg-white/85 px-4 py-3 text-sm font-semibold text-gray-800 shadow-sm backdrop-blur transition hover:bg-white md:block"
                 >
                     {t.gradientGenerator.random}
                 </button>
             </div>
 
+            <div className="grid grid-cols-2 gap-3 md:hidden">
+                <button
+                    type="button"
+                    onClick={shuffleGradient}
+                    className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3]"
+                >
+                    Shuffle
+                </button>
+
+                <button
+                    type="button"
+                    onClick={randomGradient}
+                    className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                >
+                    Random
+                </button>
+            </div>
+
             <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4">
+                <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
                     <label className="mb-3 block text-sm font-semibold text-gray-800">
                         {t.gradientGenerator.color1}
                     </label>
@@ -85,12 +111,12 @@ export default function GradientGeneratorTool() {
                         <input
                             value={color1}
                             onChange={(event) => setColor1(event.target.value)}
-                            className="min-w-0 flex-1 rounded-xl border border-[#F1E5DF] px-3 py-3 text-sm outline-none focus:border-[#F28C6F]"
+                            className="min-w-0 flex-1 rounded-xl border border-[#F1E5DF] bg-white px-3 py-3 text-sm outline-none focus:border-[#F28C6F]"
                         />
                     </div>
                 </div>
 
-                <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4">
+                <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
                     <label className="mb-3 block text-sm font-semibold text-gray-800">
                         {t.gradientGenerator.color2}
                     </label>
@@ -106,12 +132,12 @@ export default function GradientGeneratorTool() {
                         <input
                             value={color2}
                             onChange={(event) => setColor2(event.target.value)}
-                            className="min-w-0 flex-1 rounded-xl border border-[#F1E5DF] px-3 py-3 text-sm outline-none focus:border-[#F28C6F]"
+                            className="min-w-0 flex-1 rounded-xl border border-[#F1E5DF] bg-white px-3 py-3 text-sm outline-none focus:border-[#F28C6F]"
                         />
                     </div>
                 </div>
 
-                <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4">
+                <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
                     <label className="mb-3 block text-sm font-semibold text-gray-800">
                         {t.gradientGenerator.angle}: {angle}°
                     </label>
@@ -127,7 +153,7 @@ export default function GradientGeneratorTool() {
                 </div>
             </div>
 
-            <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4">
+            <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
                 <div className="mb-3 flex items-center justify-between gap-3">
                     <h3 className="text-sm font-semibold text-gray-800">
                         {t.gradientGenerator.cssOutput}
@@ -135,7 +161,7 @@ export default function GradientGeneratorTool() {
 
                     <button
                         onClick={copyCss}
-                        className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
+                        className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                     >
                         {copied ? t.common.copied : t.gradientGenerator.copyCss}
                     </button>
