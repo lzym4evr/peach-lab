@@ -961,53 +961,55 @@ export default function ColorPaletteGenerator() {
             </div>
 
             <div className="space-y-5">
-                <div>
-                    <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
-                        {t.colorPaletteGenerator.baseColorLabel}
-                    </label>
+                <div className="grid grid-cols-2 gap-3 md:block md:space-y-5">
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
+                            {t.colorPaletteGenerator.baseColorLabel}
+                        </label>
 
-                    <button
-                        type="button"
-                        onClick={openPicker}
-                        className="flex w-full items-center justify-between gap-3 rounded-2xl border border-[#F1E5DF] bg-white px-3 py-3 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] md:hidden"
-                    >
-                        <div className="flex min-w-0 items-center gap-3">
-                            <span
-                                className="h-10 w-12 shrink-0 rounded-xl shadow-sm"
-                                style={{ backgroundColor: baseColor }}
-                            />
-                            <span className="truncate text-sm font-semibold text-[#2A1F1B]">
-                                {baseColor}
-                            </span>
+                        <button
+                            type="button"
+                            onClick={openPicker}
+                            className="flex h-12 w-full items-center justify-between gap-2 rounded-2xl border border-[#F1E5DF] bg-white px-3 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] md:hidden"
+                        >
+                            <div className="flex min-w-0 items-center gap-2">
+                                <span
+                                    className="h-8 w-8 shrink-0 rounded-xl shadow-sm"
+                                    style={{ backgroundColor: baseColor }}
+                                />
+                                <span className="truncate text-sm font-semibold text-[#2A1F1B]">
+                                    {baseColor}
+                                </span>
+                            </div>
+
+                            <Pencil className="h-4 w-4 shrink-0 text-gray-400" />
+                        </button>
+
+                        <div className="hidden md:block">
+                            {renderColorPickerPanel("desktop", desktopWheelRef)}
                         </div>
-
-                        <Pencil className="h-4 w-4 shrink-0 text-gray-400" />
-                    </button>
-
-                    <div className="hidden md:block">
-                        {renderColorPickerPanel("desktop", desktopWheelRef)}
                     </div>
-                </div>
 
-                <div>
-                    <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
-                        {t.colorPaletteGenerator.paletteTypeLabel}
-                    </label>
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
+                            {t.colorPaletteGenerator.paletteTypeLabel}
+                        </label>
 
-                    <select
-                        value={paletteType}
-                        onChange={(event) =>
-                            setPaletteType(event.target.value as PaletteType)
-                        }
-                        className="w-full rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-medium text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
-                        aria-label={t.colorPaletteGenerator.paletteTypeLabel}
-                    >
-                        {PALETTE_TYPES.map((type) => (
-                            <option key={type.value} value={type.value}>
-                                {type.label}
-                            </option>
-                        ))}
-                    </select>
+                        <select
+                            value={paletteType}
+                            onChange={(event) =>
+                                setPaletteType(event.target.value as PaletteType)
+                            }
+                            className="h-12 w-full rounded-2xl border border-[#F1E5DF] bg-white px-3 text-sm font-medium text-[#2A1F1B] outline-none focus:border-[#F28C6F] md:h-auto md:px-4 md:py-3"
+                            aria-label={t.colorPaletteGenerator.paletteTypeLabel}
+                        >
+                            {PALETTE_TYPES.map((type) => (
+                                <option key={type.value} value={type.value}>
+                                    {type.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
                 <div>
