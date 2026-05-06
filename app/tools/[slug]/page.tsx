@@ -69,8 +69,8 @@ export default async function ToolPage({ params }: ToolPageProps) {
 
         <div className="mt-6 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm md:mt-8 md:p-10">
           <div className="md:block">
-            <div className="flex items-start gap-4 md:block">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#FFF0EA] text-2xl md:mb-5 md:h-16 md:w-16 md:text-4xl">
+            <div className="flex items-center gap-4 md:block">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#FFF0EA] text-3xl md:mb-5 md:h-16 md:w-16 md:text-4xl">
                 {tool.icon}
               </div>
 
