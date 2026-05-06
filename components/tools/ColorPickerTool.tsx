@@ -550,13 +550,13 @@ export default function ColorPickerTool() {
 
     return (
         <div className="space-y-5 pb-1 md:space-y-6 lg:pb-0">
-            <div
+            <label
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                    : "border-[#F4C8BA] bg-[#FFF7F3]"
+                className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
+                        ? "border-[#F28C6F] bg-[#FFF0EA]"
+                        : "border-[#F4C8BA] bg-[#FFF7F3]"
                     }`}
             >
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm md:mb-4 md:h-16 md:w-16 md:text-3xl">
@@ -575,32 +575,27 @@ export default function ColorPickerTool() {
                     {t.colorPicker.supportedFormats}
                 </p>
 
-                <div className="relative mx-auto mt-4 inline-flex md:mt-5">
-                    <button
-                        type="button"
-                        className="pointer-events-none rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                    >
-                        {isLoading ? t.colorPicker.loadingImage : t.colorPicker.chooseImage}
-                    </button>
-
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onClick={handleFileInputClick}
-                        onChange={handleFileChange}
-                        onInput={handleFileInput}
-                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                        aria-label="Upload image"
-                    />
+                <div className="mx-auto mt-4 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:mt-5">
+                    {isLoading ? t.colorPicker.loadingImage : t.colorPicker.chooseImage}
                 </div>
+
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onClick={handleFileInputClick}
+                    onChange={handleFileChange}
+                    onInput={handleFileInput}
+                    className="hidden"
+                    aria-label="Upload image"
+                />
 
                 <p className="mx-auto mt-3 max-w-xl break-all text-sm font-medium text-gray-500">
                     {imageName || t.colorPicker.noFileSelected}
                 </p>
 
                 {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
-            </div>
+            </label>
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)] lg:gap-6">
                 <div className="p-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-6 md:shadow-sm">
@@ -699,7 +694,9 @@ export default function ColorPickerTool() {
                                 <p className="text-base font-bold text-gray-900">
                                     {magnifier.color}
                                 </p>
-                                <p className="mt-1 text-sm text-gray-500">{magnifier.rgb}</p>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    {magnifier.rgb}
+                                </p>
                                 <p className="mt-1 text-xs text-gray-400">
                                     x {magnifier.x}, y {magnifier.y}
                                 </p>
