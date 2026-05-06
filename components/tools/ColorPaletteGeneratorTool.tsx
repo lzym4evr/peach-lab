@@ -2,6 +2,7 @@
 
 import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { Copy, Download, Dices, Shuffle, X } from "lucide-react";
+import SectionTitle from "@/components/ui/SectionTitle";
 import { t } from "@/data/messages";
 
 type PaletteType =
@@ -954,8 +955,8 @@ export default function ColorPaletteGenerator() {
     return (
         <div className="space-y-6 pb-1 md:pb-0">
             <div>
-                <h2 className="text-xl font-semibold text-[#2A1F1B]">{t.colorPaletteGenerator.controlsTitle}</h2>
-                <p className="mt-1 text-sm leading-6 text-gray-500">
+                <SectionTitle title={t.colorPaletteGenerator.controlsTitle} />
+                <p className="mt-2 text-sm leading-6 text-gray-500">
                     {t.colorPaletteGenerator.controlsDescription}
                 </p>
             </div>
@@ -1038,14 +1039,16 @@ export default function ColorPaletteGenerator() {
                 </div>
 
                 <div className="border-t border-[#F1E5DF] pt-5">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                        <h3 className="text-base font-semibold text-[#2A1F1B]">
-                            {t.colorPaletteGenerator.palettePreview}
-                        </h3>
-                        <span className="text-xs text-gray-400">{t.colorPaletteGenerator.palettePreviewHint}</span>
-                    </div>
+                    <SectionTitle
+                        title={t.colorPaletteGenerator.palettePreview}
+                        right={
+                            <span className="text-xs text-gray-400">
+                                {t.colorPaletteGenerator.palettePreviewHint}
+                            </span>
+                        }
+                    />
 
-                    <div className="-mx-1 overflow-x-auto px-1 pb-1">
+                    <div className="-mx-1 mt-3 overflow-x-auto px-1 pb-1">
                         <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-8">
                             {palette.map((color, index) => (
                                 <button
@@ -1106,7 +1109,7 @@ export default function ColorPaletteGenerator() {
                 </div>
 
                 <div className="border-t border-[#F1E5DF] pt-5">
-                    <h2 className="text-xl font-semibold text-[#2A1F1B]">{t.colorPaletteGenerator.cssOutput}</h2>
+                    <SectionTitle title={t.colorPaletteGenerator.cssOutput} />
 
                     <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
                         <code>{cssOutput}</code>
@@ -1223,17 +1226,17 @@ export default function ColorPaletteGenerator() {
             </div>
 
             <style jsx global>{`
-        @keyframes paletteExpand {
-          0% {
-            transform: translateY(18px) scale(0.98);
-            opacity: 0.88;
-          }
-          100% {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-          }
-        }
-      `}</style>
+                @keyframes paletteExpand {
+                    0% {
+                        transform: translateY(18px) scale(0.98);
+                        opacity: 0.88;
+                    }
+                    100% {
+                        transform: translateY(0) scale(1);
+                        opacity: 1;
+                    }
+                }
+            `}</style>
         </div>
     );
 }
