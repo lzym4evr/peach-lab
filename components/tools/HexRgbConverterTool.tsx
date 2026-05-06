@@ -789,8 +789,8 @@ border-color: ${normalizedHex};`,
                         <div
                             onClick={(event) => event.stopPropagation()}
                             className={`w-full max-w-3xl rounded-[2rem] border border-[#F1E5DF] bg-white p-6 shadow-2xl transition-all duration-300 ${isPickerVisible
-                                    ? "translate-y-0 opacity-100"
-                                    : "translate-y-6 opacity-0"
+                                ? "translate-y-0 opacity-100"
+                                : "translate-y-6 opacity-0"
                                 }`}
                         >
                             {renderColorPickerPanel("desktop", wheelRef)}
@@ -804,7 +804,6 @@ border-color: ${normalizedHex};`,
                             className={`fixed inset-x-0 bottom-0 h-[66dvh] rounded-t-[2rem] border-t border-[#F1E5DF] bg-white px-4 pb-5 pt-4 shadow-2xl transition-transform duration-300 ease-out ${isPickerVisible ? "translate-y-0" : "translate-y-full"
                                 }`}
                         >
-                            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-[#E9DDD6]" />
                             <div className="h-full overflow-y-auto pb-2">
                                 {renderColorPickerPanel("mobile", wheelRef)}
                             </div>
