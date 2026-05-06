@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import SectionTitle from "@/components/ui/SectionTitle";
 import { t } from "@/data/messages";
 
 type ImageInfo = {
@@ -233,18 +234,17 @@ export default function ImageResizerTool() {
             {imageInfo && (
                 <div className="grid gap-6 lg:grid-cols-2">
                     <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between gap-4">
-                            <h3 className="font-semibold text-gray-900">
-                                {t.imageResizer.originalImage}
-                            </h3>
-
-                            <button
-                                onClick={clearImage}
-                                className="rounded-xl border border-[#F1E5DF] px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F]"
-                            >
-                                {t.common.clear}
-                            </button>
-                        </div>
+                        <SectionTitle
+                            title={t.imageResizer.originalImage}
+                            right={
+                                <button
+                                    onClick={clearImage}
+                                    className="rounded-xl border border-[#F1E5DF] px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F]"
+                                >
+                                    {t.common.clear}
+                                </button>
+                            }
+                        />
 
                         <div className="mt-4 flex min-h-80 items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-4">
                             <img
@@ -264,9 +264,7 @@ export default function ImageResizerTool() {
                     </div>
 
                     <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                        <h3 className="font-semibold text-gray-900">
-                            {t.imageResizer.resizedOutput}
-                        </h3>
+                        <SectionTitle title={t.imageResizer.resizedOutput} />
 
                         <div className="mt-5 grid gap-4 sm:grid-cols-2">
                             <div>
@@ -375,9 +373,7 @@ export default function ImageResizerTool() {
 
             {outputInfo && (
                 <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                    <h3 className="font-semibold text-gray-900">
-                        {t.imageResizer.resizedOutput}
-                    </h3>
+                    <SectionTitle title={t.imageResizer.resizedOutput} />
 
                     <div className="mt-4 flex min-h-80 items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-4">
                         <img
