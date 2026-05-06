@@ -612,7 +612,7 @@ border-color: ${normalizedHex};`,
 
     return (
         <>
-            <div className="space-y-5 md:space-y-6">
+            <div className="space-y-4 md:space-y-6">
                 <div
                     className="min-h-28 rounded-3xl border border-[#F1E5DF] p-4 shadow-sm md:min-h-36 md:p-5"
                     style={{
@@ -677,8 +677,8 @@ border-color: ${normalizedHex};`,
                 </div>
 
                 {colorData && (
-                    <div className="grid gap-3 md:grid-cols-3 md:gap-4">
-                        <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
+                    <div className="grid gap-4 md:grid-cols-3 md:gap-4">
+                        <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-5">
                             <div className="flex items-center justify-between gap-3">
                                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                                     {t.hexRgbConverter.hex}
@@ -702,7 +702,7 @@ border-color: ${normalizedHex};`,
                             </button>
                         </div>
 
-                        <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
+                        <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-5">
                             <div className="flex items-center justify-between gap-3">
                                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                                     {t.hexRgbConverter.rgb}
@@ -726,7 +726,7 @@ border-color: ${normalizedHex};`,
                             </button>
                         </div>
 
-                        <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
+                        <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-5">
                             <div className="flex items-center justify-between gap-3">
                                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                                     {t.hexRgbConverter.hsl}
@@ -753,7 +753,7 @@ border-color: ${normalizedHex};`,
                 )}
 
                 {colorData && (
-                    <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
+                    <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-5">
                         <h3 className="mb-3 text-sm font-semibold text-gray-800">
                             CSS Output
                         </h3>
