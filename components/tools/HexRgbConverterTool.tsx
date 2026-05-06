@@ -8,6 +8,7 @@ import {
     useState,
 } from "react";
 import { Copy, X } from "lucide-react";
+import SectionTitle from "@/components/ui/SectionTitle";
 import { t } from "@/data/messages";
 
 type HslColor = {
@@ -372,15 +373,15 @@ border-color: ${normalizedHex};`,
                     }
                 >
                     <div className="min-w-0">
-                        <h2
-                            className={
+                        <SectionTitle
+                            title={colorPickerText.title}
+                            titleClassName={
                                 isDesktop
-                                    ? "text-xl font-semibold text-[#2A1F1B] md:text-2xl"
-                                    : "text-lg font-semibold text-[#2A1F1B]"
+                                    ? "text-xl md:text-2xl"
+                                    : "text-lg md:text-lg"
                             }
-                        >
-                            {colorPickerText.title}
-                        </h2>
+                        />
+
                         <p className="mt-1 text-sm text-gray-500">
                             {colorPickerText.description}
                         </p>
@@ -622,9 +623,11 @@ border-color: ${normalizedHex};`,
                 >
                     <div className="inline-flex rounded-2xl bg-white/90 px-4 py-3 shadow-sm backdrop-blur">
                         <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                {t.hexRgbConverter.previewColor}
-                            </p>
+                            <SectionTitle
+                                title={t.hexRgbConverter.previewColor}
+                                titleClassName="text-xs uppercase tracking-wide text-gray-500 md:text-xs"
+                            />
+
                             <p className="mt-1 text-sm font-medium text-gray-900">
                                 {colorData?.hex ?? t.hexRgbConverter.invalidHex}
                             </p>
@@ -755,11 +758,9 @@ border-color: ${normalizedHex};`,
 
                 {colorData && (
                     <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-5">
-                        <h3 className="mb-3 text-sm font-semibold text-gray-800">
-                            {t.hexRgbConverter.cssOutput}
-                        </h3>
+                        <SectionTitle title={t.hexRgbConverter.cssOutput} />
 
-                        <pre className="overflow-x-auto rounded-xl bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-700">
+                        <pre className="mt-3 overflow-x-auto rounded-xl bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-700">
                             {colorData.cssText}
                         </pre>
 
@@ -785,8 +786,8 @@ border-color: ${normalizedHex};`,
                         <div
                             onClick={(event) => event.stopPropagation()}
                             className={`w-full max-w-3xl rounded-[2rem] border border-[#F1E5DF] bg-white p-6 shadow-2xl transition-all duration-300 ${isPickerVisible
-                                    ? "translate-y-0 opacity-100"
-                                    : "translate-y-6 opacity-0"
+                                ? "translate-y-0 opacity-100"
+                                : "translate-y-6 opacity-0"
                                 }`}
                         >
                             {renderColorPickerPanel("desktop", wheelRef)}

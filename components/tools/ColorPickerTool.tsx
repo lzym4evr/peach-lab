@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import SectionTitle from "@/components/ui/SectionTitle";
 import { t } from "@/data/messages";
 
 type PickedColor = {
@@ -603,26 +604,24 @@ export default function ColorPickerTool() {
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)] lg:gap-6">
                 <div className="p-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-6 md:shadow-sm">
-                    <div className="flex items-start justify-between gap-4">
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900">
-                                {t.colorPicker.imagePreview}
-                            </h3>
-                            <p className="mt-1 text-sm leading-6 text-gray-500">
-                                {t.colorPicker.previewHint}
-                            </p>
-                        </div>
+                    <SectionTitle
+                        title={t.colorPicker.imagePreview}
+                        right={
+                            imageName ? (
+                                <button
+                                    type="button"
+                                    onClick={clearImage}
+                                    className="shrink-0 rounded-2xl border border-[#F1E5DF] px-4 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F] hover:text-[#F28C6F]"
+                                >
+                                    {t.common.clear}
+                                </button>
+                            ) : null
+                        }
+                    />
 
-                        {imageName && (
-                            <button
-                                type="button"
-                                onClick={clearImage}
-                                className="shrink-0 rounded-2xl border border-[#F1E5DF] px-4 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F] hover:text-[#F28C6F]"
-                            >
-                                {t.common.clear}
-                            </button>
-                        )}
-                    </div>
+                    <p className="mt-2 text-sm leading-6 text-gray-500">
+                        {t.colorPicker.previewHint}
+                    </p>
 
                     <div
                         className={
@@ -668,17 +667,17 @@ export default function ColorPickerTool() {
                 </div>
 
                 <div className="hidden lg:block lg:rounded-3xl lg:border lg:border-[#F1E5DF] lg:bg-white lg:p-6 lg:shadow-sm">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                        {t.colorPicker.pickedColor}
-                    </h3>
+                    <SectionTitle title={t.colorPicker.pickedColor} />
 
                     <div className="mt-5 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
                         <div className="mb-4 flex items-center justify-between gap-3">
-                            <div>
-                                <p className="text-sm font-semibold text-gray-900">
-                                    {t.colorPicker.pixelMagnifier}
-                                </p>
-                                <p className="mt-1 text-xs leading-5 text-gray-500">
+                            <div className="min-w-0">
+                                <SectionTitle
+                                    title={t.colorPicker.pixelMagnifier}
+                                    titleClassName="text-sm md:text-sm"
+                                />
+
+                                <p className="mt-2 text-xs leading-5 text-gray-500">
                                     {t.colorPicker.magnifierHint}
                                 </p>
                             </div>
@@ -808,12 +807,12 @@ export default function ColorPickerTool() {
             </div>
 
             <style jsx global>{`
-  @media (max-width: 1023px) {
-    footer {
-      padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px));
-    }
-  }
-`}</style>
+                @media (max-width: 1023px) {
+                    footer {
+                        padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+                    }
+                }
+            `}</style>
         </div>
     );
 }

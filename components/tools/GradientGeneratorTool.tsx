@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import SectionTitle from "@/components/ui/SectionTitle";
 import { t } from "@/data/messages";
 
 type GradientType = "linear" | "radial";
@@ -349,9 +350,11 @@ export default function GradientGeneratorTool() {
                     style={{ background: cssValue }}
                 >
                     <div className="rounded-2xl bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
-                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                            {t.gradientGenerator.preview}
-                        </p>
+                        <SectionTitle
+                            title={t.gradientGenerator.preview}
+                            titleClassName="text-xs uppercase tracking-wide text-gray-500 md:text-xs"
+                        />
+
                         <p className="mt-1 text-sm font-semibold text-gray-900">
                             {gradientType === "linear"
                                 ? `${angle}° ${t.gradientGenerator.gradient}`
@@ -380,9 +383,11 @@ export default function GradientGeneratorTool() {
 
                 <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#F1E5DF] bg-white p-4 md:hidden">
                     <div className="min-w-0">
-                        <p className="text-sm font-semibold text-[#2A1F1B]">
-                            {t.gradientGenerator.gradientSettings}
-                        </p>
+                        <SectionTitle
+                            title={t.gradientGenerator.gradientSettings}
+                            titleClassName="text-sm md:text-sm"
+                        />
+
                         <p className="mt-1 truncate text-sm text-gray-500">
                             {gradientSummary}
                         </p>
@@ -402,20 +407,19 @@ export default function GradientGeneratorTool() {
                 </div>
 
                 <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                        <h3 className="text-sm font-semibold text-gray-800">
-                            {t.gradientGenerator.cssOutput}
-                        </h3>
+                    <SectionTitle
+                        title={t.gradientGenerator.cssOutput}
+                        right={
+                            <button
+                                onClick={copyCss}
+                                className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                {copied ? t.common.copied : t.gradientGenerator.copyCss}
+                            </button>
+                        }
+                    />
 
-                        <button
-                            onClick={copyCss}
-                            className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                        >
-                            {copied ? t.common.copied : t.gradientGenerator.copyCss}
-                        </button>
-                    </div>
-
-                    <pre className="overflow-x-auto rounded-xl bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-700">
+                    <pre className="mt-3 overflow-x-auto rounded-xl bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-700">
                         {`background: ${cssValue};`}
                     </pre>
                 </div>
@@ -434,9 +438,11 @@ export default function GradientGeneratorTool() {
                     >
                         <div className="mb-4 flex items-center justify-between gap-3">
                             <div className="min-w-0">
-                                <h3 className="text-lg font-semibold text-[#2A1F1B]">
-                                    {t.gradientGenerator.gradientSettings}
-                                </h3>
+                                <SectionTitle
+                                    title={t.gradientGenerator.gradientSettings}
+                                    titleClassName="text-lg md:text-lg"
+                                />
+
                                 <p className="mt-1 truncate text-sm text-gray-500">
                                     {gradientSummary}
                                 </p>
