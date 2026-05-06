@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type ChangeEvent, type DragEvent, useState } from "react";
 import { t } from "@/data/messages";
 
 type ImageInfo = {
@@ -63,6 +63,14 @@ export default function ImageSizeCheckerTool() {
     const [isDragging, setIsDragging] = useState(false);
     const [copiedResult, setCopiedResult] = useState(false);
 
+    function getTransparencyText(info: ImageInfo) {
+        if (info.transparent === null) {
+            return t.imageSizeChecker.notChecked;
+        }
+
+        return info.transparent ? t.imageSizeChecker.yes : t.imageSizeChecker.no;
+    }
+
     function processFile(file: File) {
         setError("");
         setCopiedResult(false);
@@ -110,24 +118,24 @@ export default function ImageSizeCheckerTool() {
         image.src = previewUrl;
     }
 
-    function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
         if (!file) return;
 
         processFile(file);
     }
 
-    function handleDragOver(event: React.DragEvent<HTMLLabelElement>) {
+    function handleDragOver(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(true);
     }
 
-    function handleDragLeave(event: React.DragEvent<HTMLLabelElement>) {
+    function handleDragLeave(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
     }
 
-    function handleDrop(event: React.DragEvent<HTMLLabelElement>) {
+    function handleDrop(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
 
@@ -151,21 +159,14 @@ export default function ImageSizeCheckerTool() {
     async function copyImageResult() {
         if (!imageInfo) return;
 
-        const transparencyText =
-            imageInfo.transparent === null
-                ? "Not detected"
-                : imageInfo.transparent
-                    ? "Yes"
-                    : "No";
-
-        const resultText = `Image information
+        const resultText = `${t.imageSizeChecker.imageInformation}
 File name: ${imageInfo.name}
-Width: ${imageInfo.width}px
-Height: ${imageInfo.height}px
-Aspect ratio: ${imageInfo.ratio}
-File size: ${formatFileSize(imageInfo.size)}
-Format: ${imageInfo.type}
-Transparency: ${transparencyText}`;
+${t.imageSizeChecker.width}: ${imageInfo.width}px
+${t.imageSizeChecker.height}: ${imageInfo.height}px
+${t.imageSizeChecker.aspectRatio}: ${imageInfo.ratio}
+${t.imageSizeChecker.fileSize}: ${formatFileSize(imageInfo.size)}
+${t.imageSizeChecker.format}: ${imageInfo.type}
+${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
 
         await navigator.clipboard.writeText(resultText);
         setCopiedResult(true);
@@ -214,7 +215,7 @@ Transparency: ${transparencyText}`;
 
             {imageInfo && (
                 <div className="grid gap-6 lg:grid-cols-2">
-                    <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                    <div className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                         <div className="flex items-center justify-between gap-4">
                             <h3 className="font-semibold text-gray-900">
                                 {t.imageSizeChecker.preview}
@@ -222,17 +223,17 @@ Transparency: ${transparencyText}`;
 
                             <button
                                 onClick={resetImage}
-                                className="rounded-xl border border-[#F1E5DF] px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F]"
+                                className="rounded-xl border border-[#F1E5DF] bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F]"
                             >
                                 {t.common.clear}
                             </button>
                         </div>
 
-                        <div className="mt-4 flex min-h-80 items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-4">
+                        <div className="mt-4 flex min-h-64 items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-4 md:min-h-80">
                             <img
                                 src={imageInfo.previewUrl}
                                 alt={imageInfo.name}
-                                className="max-h-80 max-w-full rounded-xl object-contain"
+                                className="max-h-64 max-w-full rounded-xl object-contain md:max-h-80"
                             />
                         </div>
 
@@ -241,7 +242,7 @@ Transparency: ${transparencyText}`;
                         </p>
                     </div>
 
-                    <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                    <div className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                         <div className="flex items-center justify-between gap-4">
                             <h3 className="font-semibold text-gray-900">
                                 {t.imageSizeChecker.imageInformation}
@@ -296,7 +297,7 @@ Transparency: ${transparencyText}`;
                                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                                     {t.imageSizeChecker.format}
                                 </p>
-                                <p className="mt-2 text-lg font-bold">
+                                <p className="mt-2 break-all text-lg font-bold">
                                     {imageInfo.type}
                                 </p>
                             </div>
@@ -306,11 +307,7 @@ Transparency: ${transparencyText}`;
                                     {t.imageSizeChecker.transparency}
                                 </p>
                                 <p className="mt-2 text-lg font-bold">
-                                    {imageInfo.transparent === null
-                                        ? t.imageSizeChecker.notDetected
-                                        : imageInfo.transparent
-                                            ? t.common.yes
-                                            : t.common.no}
+                                    {getTransparencyText(imageInfo)}
                                 </p>
                             </div>
                         </div>
