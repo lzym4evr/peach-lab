@@ -22,13 +22,9 @@ const RANDOM_COLORS = [
 
 const ANGLE_PRESETS = [0, 45, 90, 135, 180];
 
-const RADIAL_POSITIONS = [
-    { label: "Center", value: "center" },
-    { label: "Top", value: "top" },
-    { label: "Bottom", value: "bottom" },
-    { label: "Left", value: "left" },
-    { label: "Right", value: "right" },
-];
+const RADIAL_POSITIONS = ["center", "top", "bottom", "left", "right"] as const;
+
+type RadialPosition = (typeof RADIAL_POSITIONS)[number];
 
 export default function GradientGeneratorTool() {
     const [gradientType, setGradientType] = useState<GradientType>("linear");
@@ -40,7 +36,8 @@ export default function GradientGeneratorTool() {
         "#C4B5FD",
     ]);
     const [angle, setAngle] = useState(135);
-    const [radialPosition, setRadialPosition] = useState("center");
+    const [radialPosition, setRadialPosition] =
+        useState<RadialPosition>("center");
     const [copied, setCopied] = useState(false);
 
     const [isSettingsRendered, setIsSettingsRendered] = useState(false);
@@ -50,6 +47,18 @@ export default function GradientGeneratorTool() {
     const visibleColors = useMemo(() => {
         return colors.slice(0, colorCount);
     }, [colors, colorCount]);
+
+    function getRadialPositionLabel(position: RadialPosition) {
+        const labels: Record<RadialPosition, string> = {
+            center: t.gradientGenerator.center,
+            top: t.gradientGenerator.top,
+            bottom: t.gradientGenerator.bottom,
+            left: t.gradientGenerator.left,
+            right: t.gradientGenerator.right,
+        };
+
+        return labels[position];
+    }
 
     const cssValue = useMemo(() => {
         const colorStops = visibleColors.join(", ");
@@ -63,10 +72,10 @@ export default function GradientGeneratorTool() {
 
     const gradientSummary = useMemo(() => {
         if (gradientType === "radial") {
-            return `Radial · ${colorCount} colors · ${radialPosition}`;
+            return `${t.gradientGenerator.radial} · ${colorCount} ${t.gradientGenerator.colors} · ${getRadialPositionLabel(radialPosition)}`;
         }
 
-        return `Linear · ${colorCount} colors · ${angle}°`;
+        return `${t.gradientGenerator.linear} · ${colorCount} ${t.gradientGenerator.colors} · ${angle}°`;
     }, [angle, colorCount, gradientType, radialPosition]);
 
     useEffect(() => {
@@ -115,9 +124,9 @@ export default function GradientGeneratorTool() {
     }
 
     function getRandomRadialPosition() {
-        const item =
-            RADIAL_POSITIONS[Math.floor(Math.random() * RADIAL_POSITIONS.length)];
-        return item.value;
+        return RADIAL_POSITIONS[
+            Math.floor(Math.random() * RADIAL_POSITIONS.length)
+        ];
     }
 
     function updateColor(index: number, value: string) {
@@ -168,7 +177,7 @@ export default function GradientGeneratorTool() {
         return (
             <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
                 <label className="mb-3 block text-sm font-semibold text-gray-800">
-                    Gradient Type
+                    {t.gradientGenerator.gradientType}
                 </label>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -180,7 +189,7 @@ export default function GradientGeneratorTool() {
                                 : "border border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
                             }`}
                     >
-                        Linear
+                        {t.gradientGenerator.linear}
                     </button>
 
                     <button
@@ -191,7 +200,7 @@ export default function GradientGeneratorTool() {
                                 : "border border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
                             }`}
                     >
-                        Radial
+                        {t.gradientGenerator.radial}
                     </button>
                 </div>
             </div>
@@ -202,7 +211,7 @@ export default function GradientGeneratorTool() {
         return (
             <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
                 <label className="mb-3 block text-sm font-semibold text-gray-800">
-                    Color Count
+                    {t.gradientGenerator.colorCount}
                 </label>
 
                 <div className="grid grid-cols-3 gap-3">
@@ -233,7 +242,7 @@ export default function GradientGeneratorTool() {
                         className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4"
                     >
                         <label className="mb-3 block text-sm font-semibold text-gray-800">
-                            Color {index + 1}
+                            {t.gradientGenerator.color} {index + 1}
                         </label>
 
                         <div className="flex items-center gap-3">
@@ -295,21 +304,21 @@ export default function GradientGeneratorTool() {
         return (
             <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
                 <label className="mb-3 block text-sm font-semibold text-gray-800">
-                    Position
+                    {t.gradientGenerator.position}
                 </label>
 
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-                    {RADIAL_POSITIONS.map((item) => (
+                    {RADIAL_POSITIONS.map((position) => (
                         <button
-                            key={item.value}
+                            key={position}
                             type="button"
-                            onClick={() => setRadialPosition(item.value)}
-                            className={`rounded-2xl px-3 py-3 text-sm font-semibold transition ${radialPosition === item.value
+                            onClick={() => setRadialPosition(position)}
+                            className={`rounded-2xl px-3 py-3 text-sm font-semibold transition ${radialPosition === position
                                     ? "bg-[#F28C6F] text-white shadow-sm"
                                     : "border border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
                                 }`}
                         >
-                            {item.label}
+                            {getRadialPositionLabel(position)}
                         </button>
                     ))}
                 </div>
@@ -345,8 +354,8 @@ export default function GradientGeneratorTool() {
                         </p>
                         <p className="mt-1 text-sm font-semibold text-gray-900">
                             {gradientType === "linear"
-                                ? `${angle}° Gradient`
-                                : `Radial ${radialPosition}`}
+                                ? `${angle}° ${t.gradientGenerator.gradient}`
+                                : `${t.gradientGenerator.radial} ${getRadialPositionLabel(radialPosition)}`}
                         </p>
                     </div>
                 </div>
@@ -357,7 +366,7 @@ export default function GradientGeneratorTool() {
                         onClick={shuffleGradient}
                         className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] md:min-w-[128px]"
                     >
-                        Shuffle
+                        {t.gradientGenerator.shuffle}
                     </button>
 
                     <button
@@ -365,14 +374,14 @@ export default function GradientGeneratorTool() {
                         onClick={randomGradient}
                         className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:min-w-[128px]"
                     >
-                        Random
+                        {t.gradientGenerator.random}
                     </button>
                 </div>
 
                 <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#F1E5DF] bg-white p-4 md:hidden">
                     <div className="min-w-0">
                         <p className="text-sm font-semibold text-[#2A1F1B]">
-                            Gradient settings
+                            {t.gradientGenerator.gradientSettings}
                         </p>
                         <p className="mt-1 truncate text-sm text-gray-500">
                             {gradientSummary}
@@ -384,7 +393,7 @@ export default function GradientGeneratorTool() {
                         onClick={openSettings}
                         className="shrink-0 rounded-2xl bg-[#F28C6F] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                     >
-                        Edit
+                        {t.gradientGenerator.edit}
                     </button>
                 </div>
 
@@ -426,7 +435,7 @@ export default function GradientGeneratorTool() {
                         <div className="mb-4 flex items-center justify-between gap-3">
                             <div className="min-w-0">
                                 <h3 className="text-lg font-semibold text-[#2A1F1B]">
-                                    Gradient settings
+                                    {t.gradientGenerator.gradientSettings}
                                 </h3>
                                 <p className="mt-1 truncate text-sm text-gray-500">
                                     {gradientSummary}
@@ -437,7 +446,7 @@ export default function GradientGeneratorTool() {
                                 type="button"
                                 onClick={closeSettings}
                                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl leading-none text-[#2A1F1B] transition hover:bg-[#FFEDE6]"
-                                aria-label="Close settings"
+                                aria-label={t.gradientGenerator.cancel}
                             >
                                 ×
                             </button>
@@ -455,7 +464,7 @@ export default function GradientGeneratorTool() {
                                 onClick={closeSettings}
                                 className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
                             >
-                                Cancel
+                                {t.gradientGenerator.cancel}
                             </button>
 
                             <button
@@ -463,7 +472,7 @@ export default function GradientGeneratorTool() {
                                 onClick={closeSettings}
                                 className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                             >
-                                Apply
+                                {t.gradientGenerator.apply}
                             </button>
                         </div>
                     </div>

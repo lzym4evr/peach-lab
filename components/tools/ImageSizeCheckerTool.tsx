@@ -61,9 +61,11 @@ export default function ImageSizeCheckerTool() {
     const [imageInfo, setImageInfo] = useState<ImageInfo | null>(null);
     const [error, setError] = useState("");
     const [isDragging, setIsDragging] = useState(false);
+    const [copiedResult, setCopiedResult] = useState(false);
 
     function processFile(file: File) {
         setError("");
+        setCopiedResult(false);
 
         if (!file.type.startsWith("image/")) {
             setError(t.imageSizeChecker.invalidImage);
@@ -143,6 +145,34 @@ export default function ImageSizeCheckerTool() {
         setImageInfo(null);
         setError("");
         setIsDragging(false);
+        setCopiedResult(false);
+    }
+
+    async function copyImageResult() {
+        if (!imageInfo) return;
+
+        const transparencyText =
+            imageInfo.transparent === null
+                ? "Not detected"
+                : imageInfo.transparent
+                    ? "Yes"
+                    : "No";
+
+        const resultText = `Image information
+File name: ${imageInfo.name}
+Width: ${imageInfo.width}px
+Height: ${imageInfo.height}px
+Aspect ratio: ${imageInfo.ratio}
+File size: ${formatFileSize(imageInfo.size)}
+Format: ${imageInfo.type}
+Transparency: ${transparencyText}`;
+
+        await navigator.clipboard.writeText(resultText);
+        setCopiedResult(true);
+
+        setTimeout(() => {
+            setCopiedResult(false);
+        }, 1500);
     }
 
     return (
@@ -212,30 +242,45 @@ export default function ImageSizeCheckerTool() {
                     </div>
 
                     <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                        <h3 className="font-semibold text-gray-900">
-                            {t.imageSizeChecker.imageInformation}
-                        </h3>
+                        <div className="flex items-center justify-between gap-4">
+                            <h3 className="font-semibold text-gray-900">
+                                {t.imageSizeChecker.imageInformation}
+                            </h3>
+
+                            <button
+                                onClick={copyImageResult}
+                                className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                {copiedResult ? t.common.copied : "Copy result"}
+                            </button>
+                        </div>
 
                         <div className="mt-5 grid gap-3 sm:grid-cols-2">
                             <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
                                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                                     {t.imageSizeChecker.width}
                                 </p>
-                                <p className="mt-2 text-2xl font-bold">{imageInfo.width}px</p>
+                                <p className="mt-2 text-2xl font-bold">
+                                    {imageInfo.width}px
+                                </p>
                             </div>
 
                             <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
                                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                                     {t.imageSizeChecker.height}
                                 </p>
-                                <p className="mt-2 text-2xl font-bold">{imageInfo.height}px</p>
+                                <p className="mt-2 text-2xl font-bold">
+                                    {imageInfo.height}px
+                                </p>
                             </div>
 
                             <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
                                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                                     {t.imageSizeChecker.aspectRatio}
                                 </p>
-                                <p className="mt-2 text-2xl font-bold">{imageInfo.ratio}</p>
+                                <p className="mt-2 text-2xl font-bold">
+                                    {imageInfo.ratio}
+                                </p>
                             </div>
 
                             <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
@@ -251,7 +296,9 @@ export default function ImageSizeCheckerTool() {
                                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                                     {t.imageSizeChecker.format}
                                 </p>
-                                <p className="mt-2 text-lg font-bold">{imageInfo.type}</p>
+                                <p className="mt-2 text-lg font-bold">
+                                    {imageInfo.type}
+                                </p>
                             </div>
 
                             <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
@@ -260,19 +307,19 @@ export default function ImageSizeCheckerTool() {
                                 </p>
                                 <p className="mt-2 text-lg font-bold">
                                     {imageInfo.transparent === null
-                                        ? t.imageSizeChecker.notChecked
+                                        ? t.imageSizeChecker.notDetected
                                         : imageInfo.transparent
-                                            ? t.imageSizeChecker.yes
-                                            : t.imageSizeChecker.no}
+                                            ? t.common.yes
+                                            : t.common.no}
                                 </p>
                             </div>
                         </div>
 
                         <div className="mt-5 rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
-                            <p className="text-sm font-semibold text-gray-800">
+                            <p className="font-semibold text-gray-900">
                                 {t.common.localProcessing}
                             </p>
-                            <p className="mt-2 text-sm leading-6 text-gray-500">
+                            <p className="mt-2 text-sm leading-6 text-gray-600">
                                 {t.imageSizeChecker.localProcessingDescription}
                             </p>
                         </div>

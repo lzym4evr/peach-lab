@@ -379,11 +379,33 @@ export const messages = {
         gradientGenerator: {
             preview: "Preview",
             random: "Random",
+            shuffle: "Shuffle",
             color1: "Color 1",
             color2: "Color 2",
+            color: "Color",
             angle: "Angle",
             cssOutput: "CSS Output",
             copyCss: "Copy CSS",
+
+            gradient: "Gradient",
+            gradientSettings: "Gradient settings",
+            edit: "Edit",
+            cancel: "Cancel",
+            apply: "Apply",
+
+            gradientType: "Gradient Type",
+            linear: "Linear",
+            radial: "Radial",
+
+            colorCount: "Color Count",
+            colors: "colors",
+
+            position: "Position",
+            center: "Center",
+            top: "Top",
+            bottom: "Bottom",
+            left: "Left",
+            right: "Right",
         },
 
         // =========================
