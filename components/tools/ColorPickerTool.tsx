@@ -308,17 +308,17 @@ export default function ColorPickerTool() {
         handleSelectedFile(event.currentTarget);
     }
 
-    function handleDragOver(event: React.DragEvent<HTMLDivElement>) {
+    function handleDragOver(event: React.DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(true);
     }
 
-    function handleDragLeave(event: React.DragEvent<HTMLDivElement>) {
+    function handleDragLeave(event: React.DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
     }
 
-    function handleDrop(event: React.DragEvent<HTMLDivElement>) {
+    function handleDrop(event: React.DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
 

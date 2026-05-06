@@ -1,6 +1,12 @@
 "use client";
 
-import { type ChangeEvent, type DragEvent, useState } from "react";
+import {
+    type ChangeEvent,
+    type DragEvent,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import SectionTitle from "@/components/ui/SectionTitle";
 import { t } from "@/data/messages";
 
@@ -58,11 +64,37 @@ function checkTransparentPixels(image: HTMLImageElement) {
     return false;
 }
 
+async function copyToClipboard(text: string) {
+    try {
+        await navigator.clipboard.writeText(text);
+    } catch {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+    }
+}
+
 export default function ImageSizeCheckerTool() {
     const [imageInfo, setImageInfo] = useState<ImageInfo | null>(null);
     const [error, setError] = useState("");
     const [isDragging, setIsDragging] = useState(false);
     const [copiedResult, setCopiedResult] = useState(false);
+
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (imageInfo?.previewUrl) {
+                URL.revokeObjectURL(imageInfo.previewUrl);
+            }
+        };
+    }, [imageInfo]);
 
     function getTransparencyText(info: ImageInfo) {
         if (info.transparent === null) {
@@ -155,13 +187,17 @@ export default function ImageSizeCheckerTool() {
         setError("");
         setIsDragging(false);
         setCopiedResult(false);
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
     }
 
     async function copyImageResult() {
         if (!imageInfo) return;
 
         const resultText = `${t.imageSizeChecker.imageInformation}
-Name: ${imageInfo.name}
+${t.imageSizeChecker.fileName}: ${imageInfo.name}
 ${t.imageSizeChecker.width}: ${imageInfo.width}px
 ${t.imageSizeChecker.height}: ${imageInfo.height}px
 ${t.imageSizeChecker.aspectRatio}: ${imageInfo.ratio}
@@ -169,7 +205,7 @@ ${t.imageSizeChecker.fileSize}: ${formatFileSize(imageInfo.size)}
 ${t.imageSizeChecker.format}: ${imageInfo.type}
 ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
 
-        await navigator.clipboard.writeText(resultText);
+        await copyToClipboard(resultText);
         setCopiedResult(true);
 
         setTimeout(() => {
@@ -177,74 +213,63 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
         }, 1500);
     }
 
-    const infoCards = imageInfo
-        ? [
-            {
-                label: t.imageSizeChecker.width,
-                value: `${imageInfo.width}px`,
-            },
-            {
-                label: t.imageSizeChecker.height,
-                value: `${imageInfo.height}px`,
-            },
-            {
-                label: t.imageSizeChecker.aspectRatio,
-                value: imageInfo.ratio,
-            },
-            {
-                label: t.imageSizeChecker.fileSize,
-                value: formatFileSize(imageInfo.size),
-            },
-            {
-                label: t.imageSizeChecker.format,
-                value: imageInfo.type,
-            },
-            {
-                label: t.imageSizeChecker.transparency,
-                value: getTransparencyText(imageInfo),
-            },
-        ]
-        : [];
-
     return (
         <div className="space-y-6">
+            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
+                <p className="font-semibold text-[#2A1F1B]">
+                    {t.common.localProcessing}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-gray-600">
+                    {t.imageSizeChecker.localProcessingDescription}
+                </p>
+            </div>
+
             <label
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`block cursor-pointer rounded-3xl border-2 border-dashed p-6 text-center transition md:p-8 ${isDragging
-                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                    : "border-[#F4C8BA] bg-[#FFF7F3]"
+                className={`block cursor-pointer rounded-[32px] border-2 border-dashed px-6 py-8 text-center transition md:px-8 md:py-10 ${isDragging
+                        ? "border-[#F28C6F] bg-[#FFF0EA]"
+                        : "border-[#F4C8BA] bg-[#FFF7F3]"
                     }`}
             >
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-3xl shadow-sm md:h-16 md:w-16">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[28px] bg-white text-4xl shadow-sm">
                     🖼️
                 </div>
 
-                <h2 className="text-xl font-semibold">
+                <h2 className="mx-auto mt-6 max-w-xl text-2xl font-semibold leading-tight text-[#2A1F1B] md:text-3xl">
                     {t.imageSizeChecker.uploadTitle}
                 </h2>
 
-                <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-gray-500">
+                <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-gray-500 md:text-base">
                     {t.imageSizeChecker.uploadDescription}
                 </p>
 
-                <div className="mt-6 inline-flex rounded-xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]">
+                <p className="mx-auto mt-4 max-w-2xl text-xs font-medium leading-6 text-[#A17F74] md:text-sm">
+                    {t.imageSizeChecker.supportedFormats}
+                </p>
+
+                <div className="mt-7 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:px-8 md:py-3.5 md:text-base">
                     {t.imageSizeChecker.chooseImage}
                 </div>
 
+                <p className="mt-5 break-all text-sm text-gray-500">
+                    {imageInfo?.name || t.imageSizeChecker.noFileSelected}
+                </p>
+
                 <input
+                    ref={fileInputRef}
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
                     className="hidden"
                 />
 
-                {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
+                {error ? <p className="mt-4 text-sm text-red-500">{error}</p> : null}
             </label>
 
-            {imageInfo && (
-                <div className="grid gap-6 lg:grid-cols-2">
+            {imageInfo ? (
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
                     <div className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                         <SectionTitle
                             title={t.imageSizeChecker.preview}
@@ -252,24 +277,29 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
                                 <button
                                     type="button"
                                     onClick={resetImage}
-                                    className="rounded-xl border border-[#F1E5DF] bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F]"
+                                    className="rounded-xl border border-[#F1E5DF] bg-white px-3 py-2 text-xs font-semibold text-gray-600 transition hover:border-[#F28C6F] hover:bg-[#FFF7F3] md:text-sm"
                                 >
                                     {t.common.clear}
                                 </button>
                             }
                         />
 
-                        <div className="mt-4 flex min-h-56 items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-3 md:min-h-80 md:p-4">
+                        <div className="mt-4 flex min-h-64 items-center justify-center overflow-hidden rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4 md:min-h-80">
                             <img
                                 src={imageInfo.previewUrl}
                                 alt={imageInfo.name}
-                                className="max-h-56 max-w-full rounded-xl object-contain md:max-h-80"
+                                className="max-h-64 max-w-full rounded-2xl object-contain md:max-h-80"
                             />
                         </div>
 
-                        <p className="mt-3 break-all text-sm text-gray-500 md:mt-4">
-                            {imageInfo.name}
-                        </p>
+                        <div className="mt-4 rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
+                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                {t.imageSizeChecker.fileName}
+                            </p>
+                            <p className="mt-2 break-all text-sm font-medium text-[#2A1F1B]">
+                                {imageInfo.name}
+                            </p>
+                        </div>
                     </div>
 
                     <div className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
@@ -279,41 +309,82 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
                                 <button
                                     type="button"
                                     onClick={copyImageResult}
-                                    className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                    className="rounded-xl bg-[#F28C6F] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:text-sm"
                                 >
-                                    {copiedResult ? t.common.copied : t.imageSizeChecker.copyResult}
+                                    {copiedResult
+                                        ? t.common.copied
+                                        : t.imageSizeChecker.copyResult}
                                 </button>
                             }
                         />
 
-                        <div className="mt-5 grid grid-cols-2 gap-3">
-                            {infoCards.map((item) => (
-                                <div
-                                    key={item.label}
-                                    className="min-w-0 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-3 md:p-4"
-                                >
-                                    <p className="truncate text-[11px] font-medium uppercase tracking-wide text-gray-500 md:text-xs">
-                                        {item.label}
-                                    </p>
-
-                                    <p className="mt-2 break-words text-xl font-semibold text-[#111827] md:text-2xl">
-                                        {item.value}
-                                    </p>
-                                </div>
-                            ))}
+                        <div className="mt-4 rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
+                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                {t.imageSizeChecker.fileName}
+                            </p>
+                            <p className="mt-2 break-all text-sm font-medium text-[#2A1F1B]">
+                                {imageInfo.name}
+                            </p>
                         </div>
 
-                        <div className="mt-4 rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-3 md:mt-5 md:p-4">
-                            <p className="text-sm font-semibold text-gray-900">
-                                {t.common.localProcessing}
-                            </p>
-                            <p className="mt-1.5 text-sm leading-6 text-gray-600">
-                                {t.imageSizeChecker.localProcessingDescription}
-                            </p>
+                        <div className="mt-4 grid grid-cols-2 gap-3">
+                            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                    {t.imageSizeChecker.width}
+                                </p>
+                                <p className="mt-2 text-xl font-bold text-[#2A1F1B] md:text-2xl">
+                                    {imageInfo.width}px
+                                </p>
+                            </div>
+
+                            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                    {t.imageSizeChecker.height}
+                                </p>
+                                <p className="mt-2 text-xl font-bold text-[#2A1F1B] md:text-2xl">
+                                    {imageInfo.height}px
+                                </p>
+                            </div>
+
+                            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                    {t.imageSizeChecker.aspectRatio}
+                                </p>
+                                <p className="mt-2 text-xl font-bold text-[#2A1F1B] md:text-2xl">
+                                    {imageInfo.ratio}
+                                </p>
+                            </div>
+
+                            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                    {t.imageSizeChecker.fileSize}
+                                </p>
+                                <p className="mt-2 text-xl font-bold text-[#2A1F1B] md:text-2xl">
+                                    {formatFileSize(imageInfo.size)}
+                                </p>
+                            </div>
+
+                            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                    {t.imageSizeChecker.format}
+                                </p>
+                                <p className="mt-2 break-all text-sm font-bold text-[#2A1F1B] md:text-lg">
+                                    {imageInfo.type}
+                                </p>
+                            </div>
+
+                            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                    {t.imageSizeChecker.transparency}
+                                </p>
+                                <p className="mt-2 text-sm font-bold text-[#2A1F1B] md:text-lg">
+                                    {getTransparencyText(imageInfo)}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            )}
+            ) : null}
         </div>
     );
 }

@@ -415,10 +415,14 @@ export const messages = {
             uploadTitle: "Drag and drop an image here",
             uploadDescription:
                 "Or click to upload. Check image width, height, file size, format, aspect ratio, and transparency. Your image is processed locally in your browser.",
+            supportedFormats:
+                "Supports JPG, PNG, WebP, GIF, SVG, and other browser-supported image formats. Transparency check is available for PNG and WebP.",
             chooseImage: "Choose image",
+            noFileSelected: "No file selected",
 
-            preview: "Preview",
-            imageInformation: "Image information",
+            preview: "Image Preview",
+            imageInformation: "Image Information",
+            fileName: "File name",
 
             width: "Width",
             height: "Height",
@@ -434,7 +438,7 @@ export const messages = {
             copyResult: "Copy result",
 
             localProcessingDescription:
-                "This image is read directly in your browser. It is not uploaded to a server.",
+                "This image is processed locally in your browser. It is not uploaded to a server.",
 
             invalidImage: "Please upload a valid image file.",
             readError: "Could not read this image. Please try another file.",
