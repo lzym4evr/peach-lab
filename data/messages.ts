@@ -422,7 +422,6 @@ export const messages = {
 
             preview: "Image Preview",
             imageInformation: "Image Information",
-            fileName: "File name",
 
             width: "Width",
             height: "Height",
@@ -436,6 +435,7 @@ export const messages = {
             no: "No",
 
             copyResult: "Copy result",
+            tapValueToCopy: "Tap a value to copy.",
 
             localProcessingDescription:
                 "This image is processed locally in your browser. It is not uploaded to a server.",

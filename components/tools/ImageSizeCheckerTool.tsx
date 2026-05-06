@@ -1,13 +1,6 @@
 "use client";
 
-import {
-    type ChangeEvent,
-    type DragEvent,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
-import SectionTitle from "@/components/ui/SectionTitle";
+import { type ChangeEvent, type DragEvent, useEffect, useRef, useState } from "react";
 import { t } from "@/data/messages";
 
 type ImageInfo = {
@@ -19,6 +12,12 @@ type ImageInfo = {
     ratio: string;
     transparent: boolean | null;
     previewUrl: string;
+};
+
+type InfoCardItem = {
+    key: string;
+    label: string;
+    value: string;
 };
 
 function formatFileSize(bytes: number) {
@@ -85,6 +84,7 @@ export default function ImageSizeCheckerTool() {
     const [error, setError] = useState("");
     const [isDragging, setIsDragging] = useState(false);
     const [copiedResult, setCopiedResult] = useState(false);
+    const [copiedItem, setCopiedItem] = useState("");
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -107,6 +107,7 @@ export default function ImageSizeCheckerTool() {
     function processFile(file: File) {
         setError("");
         setCopiedResult(false);
+        setCopiedItem("");
 
         if (!file.type.startsWith("image/")) {
             setError(t.imageSizeChecker.invalidImage);
@@ -187,6 +188,7 @@ export default function ImageSizeCheckerTool() {
         setError("");
         setIsDragging(false);
         setCopiedResult(false);
+        setCopiedItem("");
 
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
@@ -197,7 +199,6 @@ export default function ImageSizeCheckerTool() {
         if (!imageInfo) return;
 
         const resultText = `${t.imageSizeChecker.imageInformation}
-${t.imageSizeChecker.fileName}: ${imageInfo.name}
 ${t.imageSizeChecker.width}: ${imageInfo.width}px
 ${t.imageSizeChecker.height}: ${imageInfo.height}px
 ${t.imageSizeChecker.aspectRatio}: ${imageInfo.ratio}
@@ -212,6 +213,50 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
             setCopiedResult(false);
         }, 1500);
     }
+
+    async function copySingleItem(key: string, value: string) {
+        await copyToClipboard(value);
+        setCopiedItem(key);
+
+        setTimeout(() => {
+            setCopiedItem((current) => (current === key ? "" : current));
+        }, 1500);
+    }
+
+    const infoCards: InfoCardItem[] = imageInfo
+        ? [
+            {
+                key: "width",
+                label: t.imageSizeChecker.width,
+                value: `${imageInfo.width}px`,
+            },
+            {
+                key: "height",
+                label: t.imageSizeChecker.height,
+                value: `${imageInfo.height}px`,
+            },
+            {
+                key: "ratio",
+                label: t.imageSizeChecker.aspectRatio,
+                value: imageInfo.ratio,
+            },
+            {
+                key: "size",
+                label: t.imageSizeChecker.fileSize,
+                value: formatFileSize(imageInfo.size),
+            },
+            {
+                key: "format",
+                label: t.imageSizeChecker.format,
+                value: imageInfo.type,
+            },
+            {
+                key: "transparency",
+                label: t.imageSizeChecker.transparency,
+                value: getTransparencyText(imageInfo),
+            },
+        ]
+        : [];
 
     return (
         <div className="space-y-6">
@@ -268,123 +313,75 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
                 {error ? <p className="mt-4 text-sm text-red-500">{error}</p> : null}
             </label>
 
-            {imageInfo ? (
-                <div className="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+            {imageInfo && (
+                <div className="grid gap-6 lg:grid-cols-2">
                     <div className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                        <SectionTitle
-                            title={t.imageSizeChecker.preview}
-                            right={
-                                <button
-                                    type="button"
-                                    onClick={resetImage}
-                                    className="rounded-xl border border-[#F1E5DF] bg-white px-3 py-2 text-xs font-semibold text-gray-600 transition hover:border-[#F28C6F] hover:bg-[#FFF7F3] md:text-sm"
-                                >
-                                    {t.common.clear}
-                                </button>
-                            }
-                        />
+                        <div className="flex items-center justify-between gap-4">
+                            <h3 className="font-semibold text-gray-900">
+                                {t.imageSizeChecker.preview}
+                            </h3>
 
-                        <div className="mt-4 flex min-h-64 items-center justify-center overflow-hidden rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4 md:min-h-80">
+                            <button
+                                type="button"
+                                onClick={resetImage}
+                                className="rounded-xl border border-[#F1E5DF] bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F]"
+                            >
+                                {t.common.clear}
+                            </button>
+                        </div>
+
+                        <div className="mt-4 flex min-h-64 items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-4 md:min-h-80">
                             <img
                                 src={imageInfo.previewUrl}
                                 alt={imageInfo.name}
-                                className="max-h-64 max-w-full rounded-2xl object-contain md:max-h-80"
+                                className="max-h-64 max-w-full rounded-xl object-contain md:max-h-80"
                             />
-                        </div>
-
-                        <div className="mt-4 rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
-                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                {t.imageSizeChecker.fileName}
-                            </p>
-                            <p className="mt-2 break-all text-sm font-medium text-[#2A1F1B]">
-                                {imageInfo.name}
-                            </p>
                         </div>
                     </div>
 
                     <div className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                        <SectionTitle
-                            title={t.imageSizeChecker.imageInformation}
-                            right={
-                                <button
-                                    type="button"
-                                    onClick={copyImageResult}
-                                    className="rounded-xl bg-[#F28C6F] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:text-sm"
-                                >
-                                    {copiedResult
-                                        ? t.common.copied
-                                        : t.imageSizeChecker.copyResult}
-                                </button>
-                            }
-                        />
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="min-w-0">
+                                <h3 className="font-semibold text-gray-900">
+                                    {t.imageSizeChecker.imageInformation}
+                                </h3>
+                                <p className="mt-1 text-xs text-gray-500">
+                                    {t.imageSizeChecker.tapValueToCopy}
+                                </p>
+                            </div>
 
-                        <div className="mt-4 rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
-                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                {t.imageSizeChecker.fileName}
-                            </p>
-                            <p className="mt-2 break-all text-sm font-medium text-[#2A1F1B]">
-                                {imageInfo.name}
-                            </p>
+                            <button
+                                type="button"
+                                onClick={copyImageResult}
+                                className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                {copiedResult
+                                    ? t.common.copied
+                                    : t.imageSizeChecker.copyResult}
+                            </button>
                         </div>
 
-                        <div className="mt-4 grid grid-cols-2 gap-3">
-                            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                    {t.imageSizeChecker.width}
-                                </p>
-                                <p className="mt-2 text-xl font-bold text-[#2A1F1B] md:text-2xl">
-                                    {imageInfo.width}px
-                                </p>
-                            </div>
+                        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                            {infoCards.map((item) => (
+                                <button
+                                    key={item.key}
+                                    type="button"
+                                    onClick={() => copySingleItem(item.key, item.value)}
+                                    className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                                >
+                                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                        {item.label}
+                                    </p>
 
-                            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                    {t.imageSizeChecker.height}
-                                </p>
-                                <p className="mt-2 text-xl font-bold text-[#2A1F1B] md:text-2xl">
-                                    {imageInfo.height}px
-                                </p>
-                            </div>
-
-                            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                    {t.imageSizeChecker.aspectRatio}
-                                </p>
-                                <p className="mt-2 text-xl font-bold text-[#2A1F1B] md:text-2xl">
-                                    {imageInfo.ratio}
-                                </p>
-                            </div>
-
-                            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                    {t.imageSizeChecker.fileSize}
-                                </p>
-                                <p className="mt-2 text-xl font-bold text-[#2A1F1B] md:text-2xl">
-                                    {formatFileSize(imageInfo.size)}
-                                </p>
-                            </div>
-
-                            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                    {t.imageSizeChecker.format}
-                                </p>
-                                <p className="mt-2 break-all text-sm font-bold text-[#2A1F1B] md:text-lg">
-                                    {imageInfo.type}
-                                </p>
-                            </div>
-
-                            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                    {t.imageSizeChecker.transparency}
-                                </p>
-                                <p className="mt-2 text-sm font-bold text-[#2A1F1B] md:text-lg">
-                                    {getTransparencyText(imageInfo)}
-                                </p>
-                            </div>
+                                    <p className="mt-2 break-all text-lg font-bold text-[#2A1F1B] md:text-2xl">
+                                        {copiedItem === item.key ? t.common.copied : item.value}
+                                    </p>
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
-            ) : null}
+            )}
         </div>
     );
 }
