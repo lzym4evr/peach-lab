@@ -1,22 +1,32 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { Copy, X } from "lucide-react";
 import { t } from "@/data/messages";
 
-const presetColors = [
+type HslColor = {
+    h: number;
+    s: number;
+    l: number;
+};
+
+const DEFAULT_COLOR = "#F28C6F";
+
+const PRESET_COLORS = [
+    "#FF6A5B",
     "#F28C6F",
-    "#F7B267",
-    "#FFD166",
-    "#8FD694",
-    "#4ECDC4",
-    "#5DADEC",
-    "#7C6FF2",
-    "#B66DFF",
-    "#FF7AA2",
-    "#2A1F1B",
-    "#6B7280",
-    "#FFFFFF",
+    "#F7CA91",
+    "#98DFA4",
+    "#5DD6C8",
+    "#8FC7F7",
+    "#B88AF2",
+    "#F27ACB",
 ];
+
+const clamp = (value: number, min: number, max: number) =>
+    Math.min(Math.max(value, min), max);
+
+const normalizeHue = (hue: number) => ((hue % 360) + 360) % 360;
 
 function normalizeHex(value: string) {
     let hex = value.trim().replace("#", "");
@@ -35,6 +45,15 @@ function normalizeHex(value: string) {
     return `#${hex.toUpperCase()}`;
 }
 
+function normalizeHexInput(value: string) {
+    const upper = value.trim().toUpperCase();
+    return upper.startsWith("#") ? upper : `#${upper}`;
+}
+
+function isValidHex(value: string) {
+    return normalizeHex(value) !== null;
+}
+
 function hexToRgb(hex: string) {
     const cleanHex = hex.replace("#", "");
 
@@ -45,7 +64,14 @@ function hexToRgb(hex: string) {
     return { r, g, b };
 }
 
-function rgbToHsl(r: number, g: number, b: number) {
+function rgbToHex(r: number, g: number, b: number) {
+    const toHex = (value: number) =>
+        clamp(Math.round(value), 0, 255).toString(16).padStart(2, "0");
+
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+}
+
+function rgbToHsl(r: number, g: number, b: number): HslColor {
     const red = r / 255;
     const green = g / 255;
     const blue = b / 255;
@@ -87,9 +113,84 @@ function rgbToHsl(r: number, g: number, b: number) {
     };
 }
 
+function hslToRgb(h: number, s: number, l: number) {
+    h = normalizeHue(h);
+    s = clamp(s, 0, 100) / 100;
+    l = clamp(l, 0, 100) / 100;
+
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+    const m = l - c / 2;
+
+    let r = 0;
+    let g = 0;
+    let b = 0;
+
+    if (h < 60) {
+        r = c;
+        g = x;
+    } else if (h < 120) {
+        r = x;
+        g = c;
+    } else if (h < 180) {
+        g = c;
+        b = x;
+    } else if (h < 240) {
+        g = x;
+        b = c;
+    } else if (h < 300) {
+        r = x;
+        b = c;
+    } else {
+        r = c;
+        b = x;
+    }
+
+    return {
+        r: (r + m) * 255,
+        g: (g + m) * 255,
+        b: (b + m) * 255,
+    };
+}
+
+function hslToHex(h: number, s: number, l: number) {
+    const rgb = hslToRgb(h, s, l);
+    return rgbToHex(rgb.r, rgb.g, rgb.b);
+}
+
+function hexToHsl(hex: string) {
+    const rgb = hexToRgb(hex);
+    return rgbToHsl(rgb.r, rgb.g, rgb.b);
+}
+
+async function copyToClipboard(text: string) {
+    try {
+        await navigator.clipboard.writeText(text);
+    } catch {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+    }
+}
+
 export default function HexRgbConverterTool() {
-    const [hexInput, setHexInput] = useState("#F28C6F");
+    const [hexInput, setHexInput] = useState(DEFAULT_COLOR);
     const [copied, setCopied] = useState("");
+
+    const [isPickerOpen, setIsPickerOpen] = useState(false);
+    const [draftHsl, setDraftHsl] = useState<HslColor>(() =>
+        hexToHsl(DEFAULT_COLOR)
+    );
+    const [draftHex, setDraftHex] = useState(DEFAULT_COLOR);
+
+    const mobilePickerPanelRef = useRef<HTMLDivElement | null>(null);
+    const wheelRef = useRef<HTMLDivElement | null>(null);
 
     const colorData = useMemo(() => {
         const normalizedHex = normalizeHex(hexInput);
@@ -113,8 +214,43 @@ border-color: ${normalizedHex};`,
         };
     }, [hexInput]);
 
+    const draftColor = useMemo(() => {
+        return hslToHex(draftHsl.h, draftHsl.s, draftHsl.l);
+    }, [draftHsl]);
+
+    useEffect(() => {
+        if (!isPickerOpen) return;
+
+        const preventBackgroundTouchMove = (event: TouchEvent) => {
+            const panel = mobilePickerPanelRef.current;
+            const target = event.target;
+
+            if (panel && target instanceof Node && panel.contains(target)) {
+                return;
+            }
+
+            event.preventDefault();
+        };
+
+        window.addEventListener("touchmove", preventBackgroundTouchMove, {
+            passive: false,
+        });
+
+        return () => {
+            window.removeEventListener("touchmove", preventBackgroundTouchMove);
+        };
+    }, [isPickerOpen]);
+
+    useEffect(() => {
+        if (isPickerOpen) return;
+
+        const currentColor = colorData?.hex ?? DEFAULT_COLOR;
+        setDraftHsl(hexToHsl(currentColor));
+        setDraftHex(currentColor);
+    }, [colorData?.hex, isPickerOpen]);
+
     async function copyValue(label: string, value: string) {
-        await navigator.clipboard.writeText(value);
+        await copyToClipboard(value);
         setCopied(label);
 
         setTimeout(() => {
@@ -122,193 +258,537 @@ border-color: ${normalizedHex};`,
         }, 1500);
     }
 
-    function handleColorPickerChange(value: string) {
-        setHexInput(value.toUpperCase());
+    function openPicker() {
+        const currentColor = colorData?.hex ?? DEFAULT_COLOR;
+        setDraftHsl(hexToHsl(currentColor));
+        setDraftHex(currentColor);
+        setIsPickerOpen(true);
     }
 
-    function handlePresetColorClick(value: string) {
-        setHexInput(value.toUpperCase());
+    function closePicker() {
+        const currentColor = colorData?.hex ?? DEFAULT_COLOR;
+        setDraftHsl(hexToHsl(currentColor));
+        setDraftHex(currentColor);
+        setIsPickerOpen(false);
     }
 
-    return (
-        <div className="space-y-5 md:space-y-6">
-            <div
-                className="min-h-28 rounded-3xl border border-[#F1E5DF] p-4 shadow-sm md:min-h-36 md:p-5"
-                style={{
-                    background: colorData?.hex ?? "#FFF7F3",
-                }}
-            >
-                <div className="inline-flex rounded-2xl bg-white/90 px-4 py-3 shadow-sm backdrop-blur">
-                    <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                            {t.hexRgbConverter.previewColor}
+    function applyPickerColor() {
+        const nextColor = isValidHex(draftHex) ? normalizeHex(draftHex) : draftColor;
+
+        if (!nextColor) {
+            setHexInput(draftColor);
+        } else {
+            setHexInput(nextColor.toUpperCase());
+        }
+
+        setIsPickerOpen(false);
+    }
+
+    function updateDraftFromHex(value: string) {
+        const normalized = normalizeHexInput(value);
+
+        if (/^#[0-9A-F]{0,6}$/i.test(normalized)) {
+            setDraftHex(normalized.toUpperCase());
+
+            const validHex = normalizeHex(normalized);
+
+            if (validHex) {
+                setDraftHsl(hexToHsl(validHex));
+            }
+        }
+    }
+
+    function updateDraftHsl(next: Partial<HslColor>) {
+        setDraftHsl((current) => {
+            const updated = {
+                h: normalizeHue(next.h ?? current.h),
+                s: clamp(next.s ?? current.s, 0, 100),
+                l: clamp(next.l ?? current.l, 10, 90),
+            };
+
+            setDraftHex(hslToHex(updated.h, updated.s, updated.l));
+            return updated;
+        });
+    }
+
+    function handleWheelPointer(
+        element: HTMLDivElement | null,
+        clientX: number,
+        clientY: number
+    ) {
+        if (!element) return;
+
+        const rect = element.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const dx = clientX - centerX;
+        const dy = clientY - centerY;
+
+        const angle = Math.atan2(dy, dx);
+        const hue = normalizeHue((angle * 180) / Math.PI + 360);
+
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const radius = rect.width / 2;
+        const saturation = clamp((distance / radius) * 100, 0, 100);
+
+        updateDraftHsl({
+            h: hue,
+            s: saturation,
+        });
+    }
+
+    const renderColorPickerPanel = (
+        mode: "mobile" | "desktop",
+        currentWheelRef: RefObject<HTMLDivElement | null>
+    ) => {
+        const isDesktop = mode === "desktop";
+
+        return (
+            <div className="min-w-0 overflow-x-hidden">
+                <div
+                    className={
+                        isDesktop
+                            ? "mb-5 flex min-w-0 items-center justify-between gap-4"
+                            : "mb-3 flex min-w-0 items-center justify-between gap-3"
+                    }
+                >
+                    <div className="min-w-0">
+                        <h2
+                            className={
+                                isDesktop
+                                    ? "text-xl font-semibold text-[#2A1F1B] md:text-2xl"
+                                    : "text-base font-semibold text-[#2A1F1B]"
+                            }
+                        >
+                            {t.colorPaletteGenerator.chooseBaseColor}
+                        </h2>
+                        <p
+                            className={
+                                isDesktop
+                                    ? "mt-1 text-sm text-gray-500"
+                                    : "mt-0.5 text-xs text-gray-500"
+                            }
+                        >
+                            {t.colorPaletteGenerator.chooseBaseColorDescription}
                         </p>
-                        <p className="mt-1 text-sm font-semibold text-gray-900">
-                            {colorData?.hex ?? t.hexRgbConverter.invalidHex}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
-                <div className="grid grid-cols-[0.9fr_1.1fr] gap-3 md:grid-cols-2 md:gap-4">
-                    <div>
-                        <label className="mb-2 block text-sm font-semibold text-gray-800 md:mb-3">
-                            {t.hexRgbConverter.pickColor}
-                        </label>
-
-                        <input
-                            type="color"
-                            value={colorData?.hex ?? "#F28C6F"}
-                            onChange={(event) => handleColorPickerChange(event.target.value)}
-                            className="h-12 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 md:h-14"
-                        />
                     </div>
 
-                    <div>
-                        <label className="mb-2 block text-sm font-semibold text-gray-800 md:mb-3">
-                            {t.hexRgbConverter.hexValue}
-                        </label>
-
-                        <input
-                            value={hexInput}
-                            onChange={(event) => setHexInput(event.target.value)}
-                            placeholder="#F28C6F"
-                            className="h-12 w-full rounded-xl border border-[#F1E5DF] px-3 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] md:h-14 md:px-4"
-                        />
-                    </div>
+                    {!isDesktop ? (
+                        <button
+                            type="button"
+                            onClick={closePicker}
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-[#2A1F1B] transition hover:bg-[#FFEDE6]"
+                            aria-label={t.colorPaletteGenerator.cancel}
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    ) : null}
                 </div>
 
-                <div className="mt-4 rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-3">
-                    <div className="grid grid-cols-6 gap-2 sm:grid-cols-12">
-                        {presetColors.map((color) => {
-                            const isActive = colorData?.hex === color;
+                <div
+                    className={
+                        isDesktop
+                            ? "grid min-w-0 gap-5 overflow-x-hidden md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] md:items-start md:gap-8"
+                            : "grid min-w-0 gap-3 overflow-x-hidden"
+                    }
+                >
+                    <div
+                        className={
+                            isDesktop
+                                ? "min-w-0 space-y-5 overflow-x-hidden"
+                                : "min-w-0 space-y-3 overflow-x-hidden"
+                        }
+                    >
+                        <div
+                            ref={currentWheelRef}
+                            onPointerDown={(event) => {
+                                event.currentTarget.setPointerCapture(event.pointerId);
+                                handleWheelPointer(
+                                    currentWheelRef.current,
+                                    event.clientX,
+                                    event.clientY
+                                );
+                            }}
+                            onPointerMove={(event) => {
+                                if (event.buttons !== 1) return;
+                                handleWheelPointer(
+                                    currentWheelRef.current,
+                                    event.clientX,
+                                    event.clientY
+                                );
+                            }}
+                            className={
+                                isDesktop
+                                    ? "relative mx-auto aspect-square w-full max-w-[280px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)] md:max-w-[360px]"
+                                    : "relative mx-auto aspect-square w-full max-w-[210px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)]"
+                            }
+                            style={{
+                                background:
+                                    "radial-gradient(circle, white 0%, rgba(255,255,255,0.2) 35%, rgba(255,255,255,0) 62%), conic-gradient(red, yellow, lime, cyan, blue, magenta, red)",
+                            }}
+                        >
+                            <span
+                                className={
+                                    isDesktop
+                                        ? "absolute h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md md:h-8 md:w-8"
+                                        : "absolute h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md"
+                                }
+                                style={{
+                                    left: `${50 +
+                                        Math.cos((draftHsl.h * Math.PI) / 180) *
+                                        (draftHsl.s / 100) *
+                                        42
+                                        }%`,
+                                    top: `${50 +
+                                        Math.sin((draftHsl.h * Math.PI) / 180) *
+                                        (draftHsl.s / 100) *
+                                        42
+                                        }%`,
+                                }}
+                            />
+                        </div>
 
-                            return (
-                                <button
-                                    key={color}
-                                    type="button"
-                                    onClick={() => handlePresetColorClick(color)}
-                                    aria-label={color}
-                                    title={color}
-                                    className={`relative h-9 rounded-xl border transition ${isActive
-                                            ? "border-[#F28C6F] ring-2 ring-[#F28C6F]/25"
-                                            : "border-white/80 hover:border-[#F4C8BA]"
-                                        }`}
-                                    style={{
-                                        backgroundColor: color,
+                        <div className="min-w-0">
+                            <label className="mb-1.5 block text-xs font-medium text-gray-500">
+                                {t.colorPaletteGenerator.hex}
+                            </label>
+
+                            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_44px] items-center gap-2">
+                                <input
+                                    value={draftHex}
+                                    onChange={(event) =>
+                                        updateDraftFromHex(event.target.value)
+                                    }
+                                    onBlur={() => {
+                                        if (!isValidHex(draftHex)) {
+                                            setDraftHex(draftColor);
+                                        }
                                     }}
+                                    className="w-full min-w-0 rounded-2xl border border-[#F1E5DF] px-3 py-2.5 text-sm font-semibold text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
+                                    aria-label={t.colorPaletteGenerator.hexColor}
+                                />
+
+                                <button
+                                    type="button"
+                                    onClick={() => copyValue("PICKER", draftColor)}
+                                    className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                                    aria-label={t.colorPaletteGenerator.copySelectedColor}
                                 >
-                                    {isActive && (
-                                        <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#F28C6F] shadow-sm ring-2 ring-white" />
+                                    {copied === "PICKER" ? (
+                                        <span className="text-sm font-semibold">✓</span>
+                                    ) : (
+                                        <Copy className="h-4 w-4" />
                                     )}
                                 </button>
-                            );
-                        })}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        className={
+                            isDesktop
+                                ? "min-w-0 space-y-5 overflow-x-hidden"
+                                : "min-w-0 space-y-3 overflow-x-hidden"
+                        }
+                    >
+                        <div className="min-w-0 overflow-x-hidden">
+                            <label className="mb-1.5 block text-xs font-medium text-gray-500">
+                                {t.colorPaletteGenerator.hue}
+                            </label>
+                            <input
+                                type="range"
+                                min="0"
+                                max="360"
+                                value={Math.round(draftHsl.h)}
+                                onChange={(event) =>
+                                    updateDraftHsl({ h: Number(event.target.value) })
+                                }
+                                className="block w-full min-w-0 accent-[#F28C6F]"
+                            />
+                        </div>
+
+                        <div className="min-w-0 overflow-x-hidden">
+                            <label className="mb-1.5 block text-xs font-medium text-gray-500">
+                                {t.colorPaletteGenerator.saturation}
+                            </label>
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                value={Math.round(draftHsl.s)}
+                                onChange={(event) =>
+                                    updateDraftHsl({ s: Number(event.target.value) })
+                                }
+                                className="block w-full min-w-0 accent-[#F28C6F]"
+                            />
+                        </div>
+
+                        <div className="min-w-0 overflow-x-hidden">
+                            <label className="mb-1.5 block text-xs font-medium text-gray-500">
+                                {t.colorPaletteGenerator.lightness}
+                            </label>
+                            <input
+                                type="range"
+                                min="10"
+                                max="90"
+                                value={Math.round(draftHsl.l)}
+                                onChange={(event) =>
+                                    updateDraftHsl({ l: Number(event.target.value) })
+                                }
+                                className="block w-full min-w-0 accent-[#F28C6F]"
+                            />
+                        </div>
+
+                        <div className="min-w-0">
+                            <span className="mb-1.5 block text-xs font-medium text-gray-500">
+                                {t.colorPaletteGenerator.currentColor}
+                            </span>
+                            <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-2.5">
+                                <div
+                                    className="h-11 w-11 shrink-0 rounded-2xl border border-[#F1E5DF] shadow-sm md:h-14 md:w-14"
+                                    style={{ backgroundColor: draftColor }}
+                                />
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-semibold text-[#2A1F1B]">
+                                        {draftColor}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        {t.colorPaletteGenerator.selectedBaseColor}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="min-w-0">
+                            <span className="mb-2 block text-xs font-medium text-gray-500">
+                                {t.colorPaletteGenerator.presets}
+                            </span>
+
+                            <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1">
+                                {PRESET_COLORS.map((color) => {
+                                    const active = draftColor.toUpperCase() === color;
+
+                                    return (
+                                        <button
+                                            key={color}
+                                            type="button"
+                                            onClick={() => {
+                                                setDraftHex(color);
+                                                setDraftHsl(hexToHsl(color));
+                                            }}
+                                            className={
+                                                active
+                                                    ? "h-9 w-9 shrink-0 rounded-2xl border-2 border-[#F28C6F] bg-white p-1 md:h-10 md:w-10"
+                                                    : "h-9 w-9 shrink-0 rounded-2xl border border-[#F1E5DF] p-1 md:h-10 md:w-10"
+                                            }
+                                            aria-label={`Use ${color}`}
+                                        >
+                                            <span
+                                                className="block h-full w-full rounded-xl"
+                                                style={{ backgroundColor: color }}
+                                            />
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="grid min-w-0 grid-cols-2 gap-3 pt-1">
+                            <button
+                                type="button"
+                                onClick={closePicker}
+                                className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-2.5 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
+                            >
+                                {t.colorPaletteGenerator.cancel}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={applyPickerColor}
+                                className="rounded-2xl bg-[#F28C6F] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                {t.colorPaletteGenerator.apply}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <>
+            <div className="space-y-5 md:space-y-6">
+                <div
+                    className="min-h-28 rounded-3xl border border-[#F1E5DF] p-4 shadow-sm md:min-h-36 md:p-5"
+                    style={{
+                        background: colorData?.hex ?? "#FFF7F3",
+                    }}
+                >
+                    <div className="inline-flex rounded-2xl bg-white/90 px-4 py-3 shadow-sm backdrop-blur">
+                        <div>
+                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                {t.hexRgbConverter.previewColor}
+                            </p>
+                            <p className="mt-1 text-sm font-semibold text-gray-900">
+                                {colorData?.hex ?? t.hexRgbConverter.invalidHex}
+                            </p>
+                        </div>
                     </div>
                 </div>
 
-                {!colorData && (
-                    <p className="mt-3 text-sm text-red-500">
-                        {t.hexRgbConverter.invalidHexDescription}
-                    </p>
-                )}
-            </div>
+                <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
+                    <div className="grid grid-cols-[0.95fr_1.05fr] gap-3 md:grid-cols-2 md:gap-4">
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-gray-800 md:mb-3">
+                                {t.hexRgbConverter.pickColor}
+                            </label>
 
-            {colorData && (
-                <div className="grid gap-3 md:grid-cols-3 md:gap-4">
-                    <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
-                        <div className="flex items-center justify-between gap-3">
-                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                {t.hexRgbConverter.hex}
-                            </p>
+                            <button
+                                type="button"
+                                onClick={openPicker}
+                                className="flex h-12 w-full items-center gap-3 rounded-xl border border-[#F1E5DF] bg-white px-3 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] md:h-14 md:px-4"
+                            >
+                                <span
+                                    className="h-7 w-8 shrink-0 rounded-lg border border-[#F1E5DF] shadow-sm"
+                                    style={{
+                                        backgroundColor: colorData?.hex ?? DEFAULT_COLOR,
+                                    }}
+                                />
+                                <span className="min-w-0 truncate font-mono text-sm font-semibold text-gray-900">
+                                    {colorData?.hex ?? DEFAULT_COLOR}
+                                </span>
+                            </button>
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-gray-800 md:mb-3">
+                                {t.hexRgbConverter.hexValue}
+                            </label>
+
+                            <input
+                                value={hexInput}
+                                onChange={(event) => setHexInput(event.target.value)}
+                                placeholder={DEFAULT_COLOR}
+                                className="h-12 w-full rounded-xl border border-[#F1E5DF] px-3 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] md:h-14 md:px-4"
+                            />
+                        </div>
+                    </div>
+
+                    {!colorData && (
+                        <p className="mt-3 text-sm text-red-500">
+                            {t.hexRgbConverter.invalidHexDescription}
+                        </p>
+                    )}
+                </div>
+
+                {colorData && (
+                    <div className="grid gap-3 md:grid-cols-3 md:gap-4">
+                        <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
+                            <div className="flex items-center justify-between gap-3">
+                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                    {t.hexRgbConverter.hex}
+                                </p>
+
+                                <button
+                                    onClick={() => copyValue("HEX", colorData.hex)}
+                                    className="shrink-0 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-3 py-2 text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] md:px-4 md:text-sm"
+                                >
+                                    {copied === "HEX"
+                                        ? t.common.copied
+                                        : t.hexRgbConverter.copyHex}
+                                </button>
+                            </div>
 
                             <button
                                 onClick={() => copyValue("HEX", colorData.hex)}
-                                className="shrink-0 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-3 py-2 text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] md:px-4 md:text-sm"
+                                className="mt-3 w-full rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-3 text-left font-mono text-lg font-semibold text-gray-900 transition hover:border-[#F4C8BA] hover:bg-[#FFF0EA] md:text-xl"
                             >
-                                {copied === "HEX"
-                                    ? t.common.copied
-                                    : t.hexRgbConverter.copyHex}
+                                {colorData.hex}
                             </button>
                         </div>
 
-                        <button
-                            onClick={() => copyValue("HEX", colorData.hex)}
-                            className="mt-3 w-full rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-3 text-left font-mono text-lg font-semibold text-gray-900 transition hover:border-[#F4C8BA] hover:bg-[#FFF0EA] md:text-xl"
-                        >
-                            {colorData.hex}
-                        </button>
-                    </div>
+                        <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
+                            <div className="flex items-center justify-between gap-3">
+                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                    {t.hexRgbConverter.rgb}
+                                </p>
 
-                    <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
-                        <div className="flex items-center justify-between gap-3">
-                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                {t.hexRgbConverter.rgb}
-                            </p>
+                                <button
+                                    onClick={() => copyValue("RGB", colorData.rgbText)}
+                                    className="shrink-0 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-3 py-2 text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] md:px-4 md:text-sm"
+                                >
+                                    {copied === "RGB"
+                                        ? t.common.copied
+                                        : t.hexRgbConverter.copyRgb}
+                                </button>
+                            </div>
 
                             <button
                                 onClick={() => copyValue("RGB", colorData.rgbText)}
-                                className="shrink-0 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-3 py-2 text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] md:px-4 md:text-sm"
+                                className="mt-3 w-full rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-3 text-left font-mono text-base font-semibold text-gray-900 transition hover:border-[#F4C8BA] hover:bg-[#FFF0EA] md:text-xl"
                             >
-                                {copied === "RGB"
-                                    ? t.common.copied
-                                    : t.hexRgbConverter.copyRgb}
+                                {colorData.rgbText}
                             </button>
                         </div>
 
-                        <button
-                            onClick={() => copyValue("RGB", colorData.rgbText)}
-                            className="mt-3 w-full rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-3 text-left font-mono text-base font-semibold text-gray-900 transition hover:border-[#F4C8BA] hover:bg-[#FFF0EA] md:text-xl"
-                        >
-                            {colorData.rgbText}
-                        </button>
-                    </div>
+                        <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
+                            <div className="flex items-center justify-between gap-3">
+                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                    {t.hexRgbConverter.hsl}
+                                </p>
 
-                    <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
-                        <div className="flex items-center justify-between gap-3">
-                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                {t.hexRgbConverter.hsl}
-                            </p>
+                                <button
+                                    onClick={() => copyValue("HSL", colorData.hslText)}
+                                    className="shrink-0 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-3 py-2 text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] md:px-4 md:text-sm"
+                                >
+                                    {copied === "HSL"
+                                        ? t.common.copied
+                                        : t.hexRgbConverter.copyHsl}
+                                </button>
+                            </div>
 
                             <button
                                 onClick={() => copyValue("HSL", colorData.hslText)}
-                                className="shrink-0 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-3 py-2 text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] md:px-4 md:text-sm"
+                                className="mt-3 w-full rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-3 text-left font-mono text-base font-semibold text-gray-900 transition hover:border-[#F4C8BA] hover:bg-[#FFF0EA] md:text-xl"
                             >
-                                {copied === "HSL"
-                                    ? t.common.copied
-                                    : t.hexRgbConverter.copyHsl}
+                                {colorData.hslText}
                             </button>
                         </div>
+                    </div>
+                )}
+
+                {colorData && (
+                    <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
+                        <h3 className="mb-3 text-sm font-semibold text-gray-800">
+                            CSS Output
+                        </h3>
+
+                        <pre className="overflow-x-auto rounded-xl bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-700">
+                            {colorData.cssText}
+                        </pre>
 
                         <button
-                            onClick={() => copyValue("HSL", colorData.hslText)}
-                            className="mt-3 w-full rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-3 text-left font-mono text-base font-semibold text-gray-900 transition hover:border-[#F4C8BA] hover:bg-[#FFF0EA] md:text-xl"
+                            onClick={() => copyValue("CSS", colorData.cssText)}
+                            className="mt-4 w-fit rounded-xl bg-[#F28C6F] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                         >
-                            {colorData.hslText}
+                            {copied === "CSS" ? t.common.copied : "Copy CSS"}
                         </button>
+                    </div>
+                )}
+            </div>
+
+            {isPickerOpen && (
+                <div className="fixed inset-0 z-50 flex items-end bg-black/35 px-3 pb-4 pt-10 backdrop-blur-[2px] md:items-center md:justify-center md:p-6">
+                    <div
+                        ref={mobilePickerPanelRef}
+                        className="max-h-[calc(100vh-96px)] w-full overflow-y-auto rounded-[2rem] border border-[#F1E5DF] bg-white p-5 shadow-2xl md:max-w-3xl md:p-6"
+                    >
+                        {renderColorPickerPanel("mobile", wheelRef)}
                     </div>
                 </div>
             )}
-
-            {colorData && (
-                <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
-                    <h3 className="mb-3 text-sm font-semibold text-gray-800">
-                        CSS Output
-                    </h3>
-
-                    <pre className="overflow-x-auto rounded-xl bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-700">
-                        {colorData.cssText}
-                    </pre>
-
-                    <button
-                        onClick={() => copyValue("CSS", colorData.cssText)}
-                        className="mt-4 w-fit rounded-xl bg-[#F28C6F] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                    >
-                        {copied === "CSS" ? t.common.copied : "Copy CSS"}
-                    </button>
-                </div>
-            )}
-        </div>
+        </>
     );
 }
