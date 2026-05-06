@@ -3,6 +3,21 @@
 import { useMemo, useState } from "react";
 import { t } from "@/data/messages";
 
+const presetColors = [
+    "#F28C6F",
+    "#F7B267",
+    "#FFD166",
+    "#8FD694",
+    "#4ECDC4",
+    "#5DADEC",
+    "#7C6FF2",
+    "#B66DFF",
+    "#FF7AA2",
+    "#2A1F1B",
+    "#6B7280",
+    "#FFFFFF",
+];
+
 function normalizeHex(value: string) {
     let hex = value.trim().replace("#", "");
 
@@ -111,6 +126,10 @@ border-color: ${normalizedHex};`,
         setHexInput(value.toUpperCase());
     }
 
+    function handlePresetColorClick(value: string) {
+        setHexInput(value.toUpperCase());
+    }
+
     return (
         <div className="space-y-5 md:space-y-6">
             <div
@@ -157,6 +176,35 @@ border-color: ${normalizedHex};`,
                             placeholder="#F28C6F"
                             className="h-12 w-full rounded-xl border border-[#F1E5DF] px-3 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] md:h-14 md:px-4"
                         />
+                    </div>
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-3">
+                    <div className="grid grid-cols-6 gap-2 sm:grid-cols-12">
+                        {presetColors.map((color) => {
+                            const isActive = colorData?.hex === color;
+
+                            return (
+                                <button
+                                    key={color}
+                                    type="button"
+                                    onClick={() => handlePresetColorClick(color)}
+                                    aria-label={color}
+                                    title={color}
+                                    className={`relative h-9 rounded-xl border transition ${isActive
+                                            ? "border-[#F28C6F] ring-2 ring-[#F28C6F]/25"
+                                            : "border-white/80 hover:border-[#F4C8BA]"
+                                        }`}
+                                    style={{
+                                        backgroundColor: color,
+                                    }}
+                                >
+                                    {isActive && (
+                                        <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#F28C6F] shadow-sm ring-2 ring-white" />
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
