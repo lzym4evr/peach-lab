@@ -1,7 +1,7 @@
 "use client";
 
 import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
-import { Copy, Download, Dices, Pencil, Shuffle, X } from "lucide-react";
+import { Copy, Download, Dices, Shuffle, X } from "lucide-react";
 import { t } from "@/data/messages";
 
 type PaletteType =
@@ -970,19 +970,17 @@ export default function ColorPaletteGenerator() {
                         <button
                             type="button"
                             onClick={openPicker}
-                            className="flex h-12 w-full items-center justify-between gap-2 rounded-2xl border border-[#F1E5DF] bg-white px-3 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] md:hidden"
+                            className="flex h-12 w-full items-center rounded-2xl border border-[#F1E5DF] bg-white px-3 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] md:hidden"
                         >
-                            <div className="flex min-w-0 items-center gap-2">
+                            <div className="flex min-w-0 items-center gap-3">
                                 <span
                                     className="h-8 w-8 shrink-0 rounded-xl shadow-sm"
                                     style={{ backgroundColor: baseColor }}
                                 />
-                                <span className="truncate text-sm font-semibold text-[#2A1F1B]">
+                                <span className="truncate text-sm font-medium text-[#2A1F1B]">
                                     {baseColor}
                                 </span>
                             </div>
-
-                            <Pencil className="h-4 w-4 shrink-0 text-gray-400" />
                         </button>
 
                         <div className="hidden md:block">
