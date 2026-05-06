@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { t } from "@/data/messages";
 
 type GradientType = "linear" | "radial";
@@ -43,6 +43,10 @@ export default function GradientGeneratorTool() {
     const [radialPosition, setRadialPosition] = useState("center");
     const [copied, setCopied] = useState(false);
 
+    const [isSettingsRendered, setIsSettingsRendered] = useState(false);
+    const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+    const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     const visibleColors = useMemo(() => {
         return colors.slice(0, colorCount);
     }, [colors, colorCount]);
@@ -56,6 +60,38 @@ export default function GradientGeneratorTool() {
 
         return `linear-gradient(${angle}deg, ${colorStops})`;
     }, [angle, gradientType, radialPosition, visibleColors]);
+
+    const gradientSummary = useMemo(() => {
+        if (gradientType === "radial") {
+            return `Radial · ${colorCount} colors · ${radialPosition}`;
+        }
+
+        return `Linear · ${colorCount} colors · ${angle}°`;
+    }, [angle, colorCount, gradientType, radialPosition]);
+
+    useEffect(() => {
+        return () => {
+            if (closeTimerRef.current) {
+                clearTimeout(closeTimerRef.current);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!isSettingsRendered) return;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        const raf = requestAnimationFrame(() => {
+            setIsSettingsVisible(true);
+        });
+
+        return () => {
+            cancelAnimationFrame(raf);
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [isSettingsRendered]);
 
     async function copyCss() {
         await navigator.clipboard.writeText(`background: ${cssValue};`);
@@ -108,96 +144,88 @@ export default function GradientGeneratorTool() {
         setColors([getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor()]);
     }
 
-    return (
-        <div className="space-y-4 md:space-y-6">
-            <div
-                className="flex min-h-48 items-end rounded-3xl border border-[#F1E5DF] p-5 shadow-sm md:min-h-72"
-                style={{ background: cssValue }}
-            >
-                <div className="rounded-2xl bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                        {t.gradientGenerator.preview}
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-gray-900">
-                        {gradientType === "linear"
-                            ? `${angle}° Gradient`
-                            : `Radial ${radialPosition}`}
-                    </p>
+    function openSettings() {
+        if (closeTimerRef.current) {
+            clearTimeout(closeTimerRef.current);
+        }
+
+        setIsSettingsRendered(true);
+    }
+
+    function closeSettings() {
+        setIsSettingsVisible(false);
+
+        if (closeTimerRef.current) {
+            clearTimeout(closeTimerRef.current);
+        }
+
+        closeTimerRef.current = setTimeout(() => {
+            setIsSettingsRendered(false);
+        }, 260);
+    }
+
+    function renderTypeControls() {
+        return (
+            <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
+                <label className="mb-3 block text-sm font-semibold text-gray-800">
+                    Gradient Type
+                </label>
+
+                <div className="grid grid-cols-2 gap-3">
+                    <button
+                        type="button"
+                        onClick={() => setGradientType("linear")}
+                        className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${gradientType === "linear"
+                                ? "bg-[#F28C6F] text-white shadow-sm"
+                                : "border border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                            }`}
+                    >
+                        Linear
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setGradientType("radial")}
+                        className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${gradientType === "radial"
+                                ? "bg-[#F28C6F] text-white shadow-sm"
+                                : "border border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                            }`}
+                    >
+                        Radial
+                    </button>
                 </div>
             </div>
+        );
+    }
 
-            <div className="grid grid-cols-2 gap-3 md:flex md:justify-end">
-                <button
-                    type="button"
-                    onClick={shuffleGradient}
-                    className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] md:min-w-[128px]"
-                >
-                    Shuffle
-                </button>
+    function renderColorCountControls() {
+        return (
+            <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
+                <label className="mb-3 block text-sm font-semibold text-gray-800">
+                    Color Count
+                </label>
 
-                <button
-                    type="button"
-                    onClick={randomGradient}
-                    className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:min-w-[128px]"
-                >
-                    Random
-                </button>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-                <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
-                    <label className="mb-3 block text-sm font-semibold text-gray-800">
-                        Gradient Type
-                    </label>
-
-                    <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
+                    {[2, 3, 4].map((count) => (
                         <button
+                            key={count}
                             type="button"
-                            onClick={() => setGradientType("linear")}
-                            className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${gradientType === "linear"
+                            onClick={() => setColorCount(count)}
+                            className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${colorCount === count
                                     ? "bg-[#F28C6F] text-white shadow-sm"
                                     : "border border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
                                 }`}
                         >
-                            Linear
+                            {count}
                         </button>
-
-                        <button
-                            type="button"
-                            onClick={() => setGradientType("radial")}
-                            className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${gradientType === "radial"
-                                    ? "bg-[#F28C6F] text-white shadow-sm"
-                                    : "border border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
-                                }`}
-                        >
-                            Radial
-                        </button>
-                    </div>
-                </div>
-
-                <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
-                    <label className="mb-3 block text-sm font-semibold text-gray-800">
-                        Color Count
-                    </label>
-
-                    <div className="grid grid-cols-3 gap-3">
-                        {[2, 3, 4].map((count) => (
-                            <button
-                                key={count}
-                                type="button"
-                                onClick={() => setColorCount(count)}
-                                className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${colorCount === count
-                                        ? "bg-[#F28C6F] text-white shadow-sm"
-                                        : "border border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
-                                    }`}
-                            >
-                                {count}
-                            </button>
-                        ))}
-                    </div>
+                    ))}
                 </div>
             </div>
+        );
+    }
 
+    function renderColorControls() {
+        return (
             <div className="grid gap-4 md:grid-cols-2">
                 {visibleColors.map((color, index) => (
                     <div
@@ -225,8 +253,12 @@ export default function GradientGeneratorTool() {
                     </div>
                 ))}
             </div>
+        );
+    }
 
-            {gradientType === "linear" ? (
+    function renderAngleOrPositionControls() {
+        if (gradientType === "linear") {
+            return (
                 <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
                     <label className="mb-3 block text-sm font-semibold text-gray-800">
                         {t.gradientGenerator.angle}: {angle}°
@@ -257,48 +289,186 @@ export default function GradientGeneratorTool() {
                         ))}
                     </div>
                 </div>
-            ) : (
-                <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
-                    <label className="mb-3 block text-sm font-semibold text-gray-800">
-                        Position
-                    </label>
+            );
+        }
 
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-                        {RADIAL_POSITIONS.map((item) => (
-                            <button
-                                key={item.value}
-                                type="button"
-                                onClick={() => setRadialPosition(item.value)}
-                                className={`rounded-2xl px-3 py-3 text-sm font-semibold transition ${radialPosition === item.value
-                                        ? "bg-[#F28C6F] text-white shadow-sm"
-                                        : "border border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
-                                    }`}
-                            >
-                                {item.label}
-                            </button>
-                        ))}
+        return (
+            <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
+                <label className="mb-3 block text-sm font-semibold text-gray-800">
+                    Position
+                </label>
+
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                    {RADIAL_POSITIONS.map((item) => (
+                        <button
+                            key={item.value}
+                            type="button"
+                            onClick={() => setRadialPosition(item.value)}
+                            className={`rounded-2xl px-3 py-3 text-sm font-semibold transition ${radialPosition === item.value
+                                    ? "bg-[#F28C6F] text-white shadow-sm"
+                                    : "border border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                                }`}
+                        >
+                            {item.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    function renderSettingsControls() {
+        return (
+            <>
+                <div className="grid gap-4 md:grid-cols-2">
+                    {renderTypeControls()}
+                    {renderColorCountControls()}
+                </div>
+
+                {renderColorControls()}
+
+                {renderAngleOrPositionControls()}
+            </>
+        );
+    }
+
+    return (
+        <>
+            <div className="space-y-4 md:space-y-6">
+                <div
+                    className="flex min-h-48 items-end rounded-3xl border border-[#F1E5DF] p-5 shadow-sm md:min-h-72"
+                    style={{ background: cssValue }}
+                >
+                    <div className="rounded-2xl bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
+                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                            {t.gradientGenerator.preview}
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-gray-900">
+                            {gradientType === "linear"
+                                ? `${angle}° Gradient`
+                                : `Radial ${radialPosition}`}
+                        </p>
                     </div>
                 </div>
-            )}
 
-            <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                    <h3 className="text-sm font-semibold text-gray-800">
-                        {t.gradientGenerator.cssOutput}
-                    </h3>
+                <div className="grid grid-cols-2 gap-3 md:flex md:justify-end">
+                    <button
+                        type="button"
+                        onClick={shuffleGradient}
+                        className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] md:min-w-[128px]"
+                    >
+                        Shuffle
+                    </button>
 
                     <button
-                        onClick={copyCss}
-                        className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                        type="button"
+                        onClick={randomGradient}
+                        className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:min-w-[128px]"
                     >
-                        {copied ? t.common.copied : t.gradientGenerator.copyCss}
+                        Random
                     </button>
                 </div>
 
-                <pre className="overflow-x-auto rounded-xl bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-700">
-                    {`background: ${cssValue};`}
-                </pre>
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#F1E5DF] bg-white p-4 md:hidden">
+                    <div className="min-w-0">
+                        <p className="text-sm font-semibold text-[#2A1F1B]">
+                            Gradient settings
+                        </p>
+                        <p className="mt-1 truncate text-sm text-gray-500">
+                            {gradientSummary}
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={openSettings}
+                        className="shrink-0 rounded-2xl bg-[#F28C6F] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                    >
+                        Edit
+                    </button>
+                </div>
+
+                <div className="hidden space-y-6 md:block">
+                    {renderSettingsControls()}
+                </div>
+
+                <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                        <h3 className="text-sm font-semibold text-gray-800">
+                            {t.gradientGenerator.cssOutput}
+                        </h3>
+
+                        <button
+                            onClick={copyCss}
+                            className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                        >
+                            {copied ? t.common.copied : t.gradientGenerator.copyCss}
+                        </button>
+                    </div>
+
+                    <pre className="overflow-x-auto rounded-xl bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-700">
+                        {`background: ${cssValue};`}
+                    </pre>
+                </div>
             </div>
-        </div>
+
+            {isSettingsRendered && (
+                <div
+                    className={`fixed inset-0 z-50 bg-black/35 backdrop-blur-[2px] transition-opacity duration-300 md:hidden ${isSettingsVisible ? "opacity-100" : "opacity-0"
+                        }`}
+                    onClick={closeSettings}
+                >
+                    <div
+                        onClick={(event) => event.stopPropagation()}
+                        className={`fixed inset-x-0 bottom-0 h-[66dvh] rounded-t-[2rem] border-t border-[#F1E5DF] bg-white px-4 pb-5 pt-4 shadow-2xl transition-transform duration-300 ease-out ${isSettingsVisible ? "translate-y-0" : "translate-y-full"
+                            }`}
+                    >
+                        <div className="mb-4 flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                                <h3 className="text-lg font-semibold text-[#2A1F1B]">
+                                    Gradient settings
+                                </h3>
+                                <p className="mt-1 truncate text-sm text-gray-500">
+                                    {gradientSummary}
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={closeSettings}
+                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl leading-none text-[#2A1F1B] transition hover:bg-[#FFEDE6]"
+                                aria-label="Close settings"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div className="h-[calc(100%-112px)] overflow-y-auto pb-4">
+                            <div className="space-y-5">
+                                {renderSettingsControls()}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 border-t border-[#F1E5DF] bg-white pt-3">
+                            <button
+                                type="button"
+                                onClick={closeSettings}
+                                className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={closeSettings}
+                                className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                Apply
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 }
