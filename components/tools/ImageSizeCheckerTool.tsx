@@ -1,6 +1,13 @@
 "use client";
 
-import { type ChangeEvent, type DragEvent, useEffect, useRef, useState } from "react";
+import {
+    type ChangeEvent,
+    type DragEvent,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
+import SectionTitle from "@/components/ui/SectionTitle";
 import { t } from "@/data/messages";
 
 type ImageInfo = {
@@ -316,19 +323,18 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
             {imageInfo && (
                 <div className="grid gap-6 lg:grid-cols-2">
                     <div className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                        <div className="flex items-center justify-between gap-4">
-                            <h3 className="font-semibold text-gray-900">
-                                {t.imageSizeChecker.preview}
-                            </h3>
-
-                            <button
-                                type="button"
-                                onClick={resetImage}
-                                className="rounded-xl border border-[#F1E5DF] bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F]"
-                            >
-                                {t.common.clear}
-                            </button>
-                        </div>
+                        <SectionTitle
+                            title={t.imageSizeChecker.preview}
+                            right={
+                                <button
+                                    type="button"
+                                    onClick={resetImage}
+                                    className="rounded-xl border border-[#F1E5DF] bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F]"
+                                >
+                                    {t.common.clear}
+                                </button>
+                            }
+                        />
 
                         <div className="mt-4 flex min-h-64 items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-4 md:min-h-80">
                             <img
@@ -340,41 +346,41 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
                     </div>
 
                     <div className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                        <div className="flex items-center justify-between gap-4">
-                            <div className="min-w-0">
-                                <h3 className="font-semibold text-gray-900">
-                                    {t.imageSizeChecker.imageInformation}
-                                </h3>
-                                <p className="mt-1 text-xs text-gray-500">
-                                    {t.imageSizeChecker.tapValueToCopy}
-                                </p>
-                            </div>
+                        <SectionTitle
+                            title={t.imageSizeChecker.imageInformation}
+                            right={
+                                <button
+                                    type="button"
+                                    onClick={copyImageResult}
+                                    className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                >
+                                    {copiedResult
+                                        ? t.common.copied
+                                        : t.imageSizeChecker.copyResult}
+                                </button>
+                            }
+                        />
 
-                            <button
-                                type="button"
-                                onClick={copyImageResult}
-                                className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                            >
-                                {copiedResult
-                                    ? t.common.copied
-                                    : t.imageSizeChecker.copyResult}
-                            </button>
-                        </div>
+                        <p className="mt-2 text-xs text-gray-500">
+                            {t.imageSizeChecker.tapValueToCopy}
+                        </p>
 
-                        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                        <div className="mt-5 grid grid-cols-2 gap-3">
                             {infoCards.map((item) => (
                                 <button
                                     key={item.key}
                                     type="button"
                                     onClick={() => copySingleItem(item.key, item.value)}
-                                    className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                                    className="min-w-0 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-3 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] active:scale-[0.99] md:p-4"
                                 >
-                                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                    <p className="truncate text-[11px] font-medium uppercase tracking-wide text-gray-500 md:text-xs">
                                         {item.label}
                                     </p>
 
-                                    <p className="mt-2 break-all text-lg font-bold text-[#2A1F1B] md:text-2xl">
-                                        {copiedItem === item.key ? t.common.copied : item.value}
+                                    <p className="mt-2 break-all text-lg font-semibold text-[#2A1F1B] md:text-2xl md:font-bold">
+                                        {copiedItem === item.key
+                                            ? t.common.copied
+                                            : item.value}
                                     </p>
                                 </button>
                             ))}
