@@ -414,22 +414,28 @@ export const messages = {
         imageSizeChecker: {
             uploadTitle: "Drag and drop an image here",
             uploadDescription:
-                "Or click to upload. Check image width, height, file size, format, aspect ratio, and PNG transparency. Your image is processed locally in your browser.",
+                "Or click to upload. Check image width, height, file size, format, aspect ratio, and transparency. Your image is processed locally in your browser.",
             chooseImage: "Choose image",
+
             preview: "Preview",
             imageInformation: "Image information",
+
             width: "Width",
             height: "Height",
             aspectRatio: "Aspect ratio",
             fileSize: "File size",
             format: "Format",
             transparency: "Transparency",
+
             notChecked: "Not checked",
             yes: "Yes",
             no: "No",
+
             copyResult: "Copy result",
+
             localProcessingDescription:
-                "This file is read directly in your browser. It is not uploaded to a server.",
+                "This image is read directly in your browser. It is not uploaded to a server.",
+
             invalidImage: "Please upload a valid image file.",
             readError: "Could not read this image. Please try another file.",
         },

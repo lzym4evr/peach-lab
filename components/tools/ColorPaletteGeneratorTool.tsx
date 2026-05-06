@@ -1109,20 +1109,25 @@ export default function ColorPaletteGenerator() {
                 </div>
 
                 <div className="border-t border-[#F1E5DF] pt-5">
-                    <SectionTitle title={t.colorPaletteGenerator.cssOutput} />
+                    <SectionTitle
+                        title={t.colorPaletteGenerator.cssOutput}
+                        right={
+                            <button
+                                type="button"
+                                onClick={handleCopyCss}
+                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                <Copy className="h-4 w-4" />
+                                {copiedTarget === "css"
+                                    ? t.common.copied
+                                    : t.colorPaletteGenerator.copyCss}
+                            </button>
+                        }
+                    />
 
                     <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
                         <code>{cssOutput}</code>
                     </pre>
-
-                    <button
-                        type="button"
-                        onClick={handleCopyCss}
-                        className="mt-4 inline-flex w-fit items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                    >
-                        <Copy className="h-4 w-4" />
-                        {copiedTarget === "css" ? t.common.copied : t.colorPaletteGenerator.copyCss}
-                    </button>
                 </div>
             </div>
 

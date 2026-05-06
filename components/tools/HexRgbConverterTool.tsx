@@ -758,20 +758,24 @@ border-color: ${normalizedHex};`,
 
                 {colorData && (
                     <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-5">
-                        <SectionTitle title={t.hexRgbConverter.cssOutput} />
+                        <SectionTitle
+                            title={t.hexRgbConverter.cssOutput}
+                            right={
+                                <button
+                                    onClick={() => copyValue("CSS", colorData.cssText)}
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                >
+                                    <Copy className="h-4 w-4" />
+                                    {copied === "CSS"
+                                        ? t.common.copied
+                                        : t.hexRgbConverter.copyCss}
+                                </button>
+                            }
+                        />
 
                         <pre className="mt-3 overflow-x-auto rounded-xl bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-700">
                             {colorData.cssText}
                         </pre>
-
-                        <button
-                            onClick={() => copyValue("CSS", colorData.cssText)}
-                            className="mt-4 w-fit rounded-xl bg-[#F28C6F] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                        >
-                            {copied === "CSS"
-                                ? t.common.copied
-                                : t.hexRgbConverter.copyCss}
-                        </button>
                     </div>
                 )}
             </div>
