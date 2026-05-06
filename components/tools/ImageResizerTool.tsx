@@ -203,8 +203,8 @@ export default function ImageResizerTool() {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 className={`block cursor-pointer rounded-3xl border-2 border-dashed p-8 text-center transition ${isDragging
-                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                    : "border-[#F4C8BA] bg-[#FFF7F3]"
+                        ? "border-[#F28C6F] bg-[#FFF0EA]"
+                        : "border-[#F4C8BA] bg-[#FFF7F3]"
                     }`}
             >
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-3xl shadow-sm">
