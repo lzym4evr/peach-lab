@@ -1,6 +1,12 @@
 "use client";
 
-import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
+import {
+    type RefObject,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { Copy, X } from "lucide-react";
 import { t } from "@/data/messages";
 
@@ -183,14 +189,17 @@ export default function HexRgbConverterTool() {
     const [hexInput, setHexInput] = useState(DEFAULT_COLOR);
     const [copied, setCopied] = useState("");
 
-    const [isPickerOpen, setIsPickerOpen] = useState(false);
+    const [isPickerRendered, setIsPickerRendered] = useState(false);
+    const [isPickerVisible, setIsPickerVisible] = useState(false);
+
     const [draftHsl, setDraftHsl] = useState<HslColor>(() =>
         hexToHsl(DEFAULT_COLOR)
     );
     const [draftHex, setDraftHex] = useState(DEFAULT_COLOR);
 
-    const mobilePickerPanelRef = useRef<HTMLDivElement | null>(null);
+    const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const wheelRef = useRef<HTMLDivElement | null>(null);
+    const sheetRef = useRef<HTMLDivElement | null>(null);
 
     const colorData = useMemo(() => {
         const normalizedHex = normalizeHex(hexInput);
@@ -219,35 +228,28 @@ border-color: ${normalizedHex};`,
     }, [draftHsl]);
 
     useEffect(() => {
-        if (!isPickerOpen) return;
-
-        const preventBackgroundTouchMove = (event: TouchEvent) => {
-            const panel = mobilePickerPanelRef.current;
-            const target = event.target;
-
-            if (panel && target instanceof Node && panel.contains(target)) {
-                return;
+        return () => {
+            if (closeTimerRef.current) {
+                clearTimeout(closeTimerRef.current);
             }
-
-            event.preventDefault();
         };
+    }, []);
 
-        window.addEventListener("touchmove", preventBackgroundTouchMove, {
-            passive: false,
+    useEffect(() => {
+        if (!isPickerRendered) return;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        const raf = requestAnimationFrame(() => {
+            setIsPickerVisible(true);
         });
 
         return () => {
-            window.removeEventListener("touchmove", preventBackgroundTouchMove);
+            cancelAnimationFrame(raf);
+            document.body.style.overflow = previousOverflow;
         };
-    }, [isPickerOpen]);
-
-    useEffect(() => {
-        if (isPickerOpen) return;
-
-        const currentColor = colorData?.hex ?? DEFAULT_COLOR;
-        setDraftHsl(hexToHsl(currentColor));
-        setDraftHex(currentColor);
-    }, [colorData?.hex, isPickerOpen]);
+    }, [isPickerRendered]);
 
     async function copyValue(label: string, value: string) {
         await copyToClipboard(value);
@@ -262,26 +264,42 @@ border-color: ${normalizedHex};`,
         const currentColor = colorData?.hex ?? DEFAULT_COLOR;
         setDraftHsl(hexToHsl(currentColor));
         setDraftHex(currentColor);
-        setIsPickerOpen(true);
+
+        if (closeTimerRef.current) {
+            clearTimeout(closeTimerRef.current);
+        }
+
+        setIsPickerRendered(true);
     }
 
     function closePicker() {
-        const currentColor = colorData?.hex ?? DEFAULT_COLOR;
-        setDraftHsl(hexToHsl(currentColor));
-        setDraftHex(currentColor);
-        setIsPickerOpen(false);
+        setIsPickerVisible(false);
+
+        if (closeTimerRef.current) {
+            clearTimeout(closeTimerRef.current);
+        }
+
+        closeTimerRef.current = setTimeout(() => {
+            const currentColor = colorData?.hex ?? DEFAULT_COLOR;
+            setDraftHsl(hexToHsl(currentColor));
+            setDraftHex(currentColor);
+            setIsPickerRendered(false);
+        }, 260);
     }
 
     function applyPickerColor() {
         const nextColor = isValidHex(draftHex) ? normalizeHex(draftHex) : draftColor;
 
-        if (!nextColor) {
-            setHexInput(draftColor);
-        } else {
-            setHexInput(nextColor.toUpperCase());
+        setHexInput((nextColor ?? draftColor).toUpperCase());
+        setIsPickerVisible(false);
+
+        if (closeTimerRef.current) {
+            clearTimeout(closeTimerRef.current);
         }
 
-        setIsPickerOpen(false);
+        closeTimerRef.current = setTimeout(() => {
+            setIsPickerRendered(false);
+        }, 260);
     }
 
     function updateDraftFromHex(value: string) {
@@ -350,7 +368,7 @@ border-color: ${normalizedHex};`,
                     className={
                         isDesktop
                             ? "mb-5 flex min-w-0 items-center justify-between gap-4"
-                            : "mb-3 flex min-w-0 items-center justify-between gap-3"
+                            : "mb-4 flex min-w-0 items-center justify-between gap-3"
                     }
                 >
                     <div className="min-w-0">
@@ -358,7 +376,7 @@ border-color: ${normalizedHex};`,
                             className={
                                 isDesktop
                                     ? "text-xl font-semibold text-[#2A1F1B] md:text-2xl"
-                                    : "text-base font-semibold text-[#2A1F1B]"
+                                    : "text-lg font-semibold text-[#2A1F1B]"
                             }
                         >
                             {t.colorPaletteGenerator.chooseBaseColor}
@@ -367,39 +385,31 @@ border-color: ${normalizedHex};`,
                             className={
                                 isDesktop
                                     ? "mt-1 text-sm text-gray-500"
-                                    : "mt-0.5 text-xs text-gray-500"
+                                    : "mt-1 text-sm text-gray-500"
                             }
                         >
                             {t.colorPaletteGenerator.chooseBaseColorDescription}
                         </p>
                     </div>
 
-                    {!isDesktop ? (
-                        <button
-                            type="button"
-                            onClick={closePicker}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-[#2A1F1B] transition hover:bg-[#FFEDE6]"
-                            aria-label={t.colorPaletteGenerator.cancel}
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
-                    ) : null}
+                    <button
+                        type="button"
+                        onClick={closePicker}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-[#2A1F1B] transition hover:bg-[#FFEDE6]"
+                        aria-label={t.colorPaletteGenerator.cancel}
+                    >
+                        <X className="h-5 w-5" />
+                    </button>
                 </div>
 
                 <div
                     className={
                         isDesktop
-                            ? "grid min-w-0 gap-5 overflow-x-hidden md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] md:items-start md:gap-8"
-                            : "grid min-w-0 gap-3 overflow-x-hidden"
+                            ? "grid min-w-0 gap-6 md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]"
+                            : "space-y-4"
                     }
                 >
-                    <div
-                        className={
-                            isDesktop
-                                ? "min-w-0 space-y-5 overflow-x-hidden"
-                                : "min-w-0 space-y-3 overflow-x-hidden"
-                        }
-                    >
+                    <div className={isDesktop ? "space-y-5" : "space-y-4"}>
                         <div
                             ref={currentWheelRef}
                             onPointerDown={(event) => {
@@ -420,8 +430,8 @@ border-color: ${normalizedHex};`,
                             }}
                             className={
                                 isDesktop
-                                    ? "relative mx-auto aspect-square w-full max-w-[280px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)] md:max-w-[360px]"
-                                    : "relative mx-auto aspect-square w-full max-w-[210px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)]"
+                                    ? "relative mx-auto aspect-square w-full max-w-[320px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)]"
+                                    : "relative mx-auto aspect-square w-full max-w-[250px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)]"
                             }
                             style={{
                                 background:
@@ -429,11 +439,7 @@ border-color: ${normalizedHex};`,
                             }}
                         >
                             <span
-                                className={
-                                    isDesktop
-                                        ? "absolute h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md md:h-8 md:w-8"
-                                        : "absolute h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md"
-                                }
+                                className="absolute h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md"
                                 style={{
                                     left: `${50 +
                                         Math.cos((draftHsl.h * Math.PI) / 180) *
@@ -449,12 +455,12 @@ border-color: ${normalizedHex};`,
                             />
                         </div>
 
-                        <div className="min-w-0">
-                            <label className="mb-1.5 block text-xs font-medium text-gray-500">
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-gray-500">
                                 {t.colorPaletteGenerator.hex}
                             </label>
 
-                            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_44px] items-center gap-2">
+                            <div className="grid grid-cols-[minmax(0,1fr)_48px] items-center gap-3">
                                 <input
                                     value={draftHex}
                                     onChange={(event) =>
@@ -465,14 +471,14 @@ border-color: ${normalizedHex};`,
                                             setDraftHex(draftColor);
                                         }
                                     }}
-                                    className="w-full min-w-0 rounded-2xl border border-[#F1E5DF] px-3 py-2.5 text-sm font-semibold text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
+                                    className="h-12 w-full min-w-0 rounded-2xl border border-[#F1E5DF] px-4 text-sm font-medium text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
                                     aria-label={t.colorPaletteGenerator.hexColor}
                                 />
 
                                 <button
                                     type="button"
                                     onClick={() => copyValue("PICKER", draftColor)}
-                                    className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                                    className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
                                     aria-label={t.colorPaletteGenerator.copySelectedColor}
                                 >
                                     {copied === "PICKER" ? (
@@ -485,15 +491,9 @@ border-color: ${normalizedHex};`,
                         </div>
                     </div>
 
-                    <div
-                        className={
-                            isDesktop
-                                ? "min-w-0 space-y-5 overflow-x-hidden"
-                                : "min-w-0 space-y-3 overflow-x-hidden"
-                        }
-                    >
-                        <div className="min-w-0 overflow-x-hidden">
-                            <label className="mb-1.5 block text-xs font-medium text-gray-500">
+                    <div className={isDesktop ? "space-y-5" : "space-y-4"}>
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-gray-500">
                                 {t.colorPaletteGenerator.hue}
                             </label>
                             <input
@@ -508,8 +508,8 @@ border-color: ${normalizedHex};`,
                             />
                         </div>
 
-                        <div className="min-w-0 overflow-x-hidden">
-                            <label className="mb-1.5 block text-xs font-medium text-gray-500">
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-gray-500">
                                 {t.colorPaletteGenerator.saturation}
                             </label>
                             <input
@@ -524,8 +524,8 @@ border-color: ${normalizedHex};`,
                             />
                         </div>
 
-                        <div className="min-w-0 overflow-x-hidden">
-                            <label className="mb-1.5 block text-xs font-medium text-gray-500">
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-gray-500">
                                 {t.colorPaletteGenerator.lightness}
                             </label>
                             <input
@@ -540,28 +540,28 @@ border-color: ${normalizedHex};`,
                             />
                         </div>
 
-                        <div className="min-w-0">
-                            <span className="mb-1.5 block text-xs font-medium text-gray-500">
+                        <div>
+                            <span className="mb-2 block text-sm font-medium text-gray-500">
                                 {t.colorPaletteGenerator.currentColor}
                             </span>
-                            <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-2.5">
+                            <div className="flex items-center gap-3 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
                                 <div
-                                    className="h-11 w-11 shrink-0 rounded-2xl border border-[#F1E5DF] shadow-sm md:h-14 md:w-14"
+                                    className="h-12 w-12 shrink-0 rounded-2xl border border-[#F1E5DF] shadow-sm"
                                     style={{ backgroundColor: draftColor }}
                                 />
                                 <div className="min-w-0">
-                                    <p className="truncate text-sm font-semibold text-[#2A1F1B]">
+                                    <p className="truncate text-sm font-medium text-[#2A1F1B]">
                                         {draftColor}
                                     </p>
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-sm text-gray-500">
                                         {t.colorPaletteGenerator.selectedBaseColor}
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="min-w-0">
-                            <span className="mb-2 block text-xs font-medium text-gray-500">
+                        <div>
+                            <span className="mb-2 block text-sm font-medium text-gray-500">
                                 {t.colorPaletteGenerator.presets}
                             </span>
 
@@ -579,8 +579,8 @@ border-color: ${normalizedHex};`,
                                             }}
                                             className={
                                                 active
-                                                    ? "h-9 w-9 shrink-0 rounded-2xl border-2 border-[#F28C6F] bg-white p-1 md:h-10 md:w-10"
-                                                    : "h-9 w-9 shrink-0 rounded-2xl border border-[#F1E5DF] p-1 md:h-10 md:w-10"
+                                                    ? "h-9 w-9 shrink-0 rounded-2xl border-2 border-[#F28C6F] bg-white p-1"
+                                                    : "h-9 w-9 shrink-0 rounded-2xl border border-[#F1E5DF] p-1"
                                             }
                                             aria-label={`Use ${color}`}
                                         >
@@ -594,11 +594,11 @@ border-color: ${normalizedHex};`,
                             </div>
                         </div>
 
-                        <div className="grid min-w-0 grid-cols-2 gap-3 pt-1">
+                        <div className="grid grid-cols-2 gap-3 pt-1">
                             <button
                                 type="button"
                                 onClick={closePicker}
-                                className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-2.5 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
+                                className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
                             >
                                 {t.colorPaletteGenerator.cancel}
                             </button>
@@ -606,7 +606,7 @@ border-color: ${normalizedHex};`,
                             <button
                                 type="button"
                                 onClick={applyPickerColor}
-                                className="rounded-2xl bg-[#F28C6F] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                             >
                                 {t.colorPaletteGenerator.apply}
                             </button>
@@ -631,7 +631,7 @@ border-color: ${normalizedHex};`,
                             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                                 {t.hexRgbConverter.previewColor}
                             </p>
-                            <p className="mt-1 text-sm font-semibold text-gray-900">
+                            <p className="mt-1 text-sm font-medium text-gray-900">
                                 {colorData?.hex ?? t.hexRgbConverter.invalidHex}
                             </p>
                         </div>
@@ -656,7 +656,7 @@ border-color: ${normalizedHex};`,
                                         backgroundColor: colorData?.hex ?? DEFAULT_COLOR,
                                     }}
                                 />
-                                <span className="min-w-0 truncate font-mono text-sm font-semibold text-gray-900">
+                                <span className="min-w-0 truncate font-mono text-sm font-medium text-gray-900">
                                     {colorData?.hex ?? DEFAULT_COLOR}
                                 </span>
                             </button>
@@ -671,7 +671,7 @@ border-color: ${normalizedHex};`,
                                 value={hexInput}
                                 onChange={(event) => setHexInput(event.target.value)}
                                 placeholder={DEFAULT_COLOR}
-                                className="h-12 w-full rounded-xl border border-[#F1E5DF] px-3 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] md:h-14 md:px-4"
+                                className="h-12 w-full rounded-xl border border-[#F1E5DF] px-3 text-sm font-medium uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] md:h-14 md:px-4"
                             />
                         </div>
                     </div>
@@ -703,7 +703,7 @@ border-color: ${normalizedHex};`,
 
                             <button
                                 onClick={() => copyValue("HEX", colorData.hex)}
-                                className="mt-3 w-full rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-3 text-left font-mono text-lg font-semibold text-gray-900 transition hover:border-[#F4C8BA] hover:bg-[#FFF0EA] md:text-xl"
+                                className="mt-3 w-full rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-3 text-left font-mono text-base font-medium text-gray-900 transition hover:border-[#F4C8BA] hover:bg-[#FFF0EA] md:text-lg"
                             >
                                 {colorData.hex}
                             </button>
@@ -727,7 +727,7 @@ border-color: ${normalizedHex};`,
 
                             <button
                                 onClick={() => copyValue("RGB", colorData.rgbText)}
-                                className="mt-3 w-full rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-3 text-left font-mono text-base font-semibold text-gray-900 transition hover:border-[#F4C8BA] hover:bg-[#FFF0EA] md:text-xl"
+                                className="mt-3 w-full rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-3 text-left font-mono text-base font-medium text-gray-900 transition hover:border-[#F4C8BA] hover:bg-[#FFF0EA] md:text-lg"
                             >
                                 {colorData.rgbText}
                             </button>
@@ -751,7 +751,7 @@ border-color: ${normalizedHex};`,
 
                             <button
                                 onClick={() => copyValue("HSL", colorData.hslText)}
-                                className="mt-3 w-full rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-3 text-left font-mono text-base font-semibold text-gray-900 transition hover:border-[#F4C8BA] hover:bg-[#FFF0EA] md:text-xl"
+                                className="mt-3 w-full rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-3 text-left font-mono text-base font-medium text-gray-900 transition hover:border-[#F4C8BA] hover:bg-[#FFF0EA] md:text-lg"
                             >
                                 {colorData.hslText}
                             </button>
@@ -779,13 +779,36 @@ border-color: ${normalizedHex};`,
                 )}
             </div>
 
-            {isPickerOpen && (
-                <div className="fixed inset-0 z-50 flex items-end bg-black/35 px-3 pb-4 pt-10 backdrop-blur-[2px] md:items-center md:justify-center md:p-6">
-                    <div
-                        ref={mobilePickerPanelRef}
-                        className="max-h-[calc(100vh-96px)] w-full overflow-y-auto rounded-[2rem] border border-[#F1E5DF] bg-white p-5 shadow-2xl md:max-w-3xl md:p-6"
-                    >
-                        {renderColorPickerPanel("mobile", wheelRef)}
+            {isPickerRendered && (
+                <div
+                    className={`fixed inset-0 z-50 bg-black/35 backdrop-blur-[2px] transition-opacity duration-300 ${isPickerVisible ? "opacity-100" : "opacity-0"
+                        }`}
+                    onClick={closePicker}
+                >
+                    <div className="hidden md:flex md:h-full md:items-center md:justify-center md:p-6">
+                        <div
+                            onClick={(event) => event.stopPropagation()}
+                            className={`w-full max-w-3xl rounded-[2rem] border border-[#F1E5DF] bg-white p-6 shadow-2xl transition-all duration-300 ${isPickerVisible
+                                    ? "translate-y-0 opacity-100"
+                                    : "translate-y-6 opacity-0"
+                                }`}
+                        >
+                            {renderColorPickerPanel("desktop", wheelRef)}
+                        </div>
+                    </div>
+
+                    <div className="md:hidden">
+                        <div
+                            ref={sheetRef}
+                            onClick={(event) => event.stopPropagation()}
+                            className={`fixed inset-x-0 bottom-0 h-[66dvh] rounded-t-[2rem] border-t border-[#F1E5DF] bg-white px-4 pb-5 pt-4 shadow-2xl transition-transform duration-300 ease-out ${isPickerVisible ? "translate-y-0" : "translate-y-full"
+                                }`}
+                        >
+                            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-[#E9DDD6]" />
+                            <div className="h-full overflow-y-auto pb-2">
+                                {renderColorPickerPanel("mobile", wheelRef)}
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
