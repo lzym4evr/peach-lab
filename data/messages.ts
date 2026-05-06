@@ -294,7 +294,26 @@ export const messages = {
             copyHex: "Copy HEX",
             copyRgb: "Copy RGB",
             copyHsl: "Copy HSL",
+            cssOutput: "CSS Output",
+            copyCss: "Copy CSS",
             colorValues: "Color values",
+
+            colorPicker: {
+                title: "Choose color",
+                description: "Pick a color, adjust it, then apply it.",
+                hex: "HEX",
+                hexColor: "HEX color",
+                copySelectedColor: "Copy selected color",
+                hue: "Hue",
+                saturation: "Saturation",
+                lightness: "Lightness",
+                currentColor: "Current color",
+                selectedColor: "Selected color",
+                presets: "Presets",
+                cancel: "Cancel",
+                apply: "Apply",
+                useColor: "Use color",
+            },
         },
 
         colorPaletteGenerator: {

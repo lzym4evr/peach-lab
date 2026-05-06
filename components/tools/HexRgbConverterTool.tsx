@@ -360,6 +360,7 @@ border-color: ${normalizedHex};`,
         currentWheelRef: RefObject<HTMLDivElement | null>
     ) => {
         const isDesktop = mode === "desktop";
+        const colorPickerText = t.hexRgbConverter.colorPicker;
 
         return (
             <div className="min-w-0 overflow-x-hidden">
@@ -378,10 +379,10 @@ border-color: ${normalizedHex};`,
                                     : "text-lg font-semibold text-[#2A1F1B]"
                             }
                         >
-                            {t.colorPaletteGenerator.chooseBaseColor}
+                            {colorPickerText.title}
                         </h2>
                         <p className="mt-1 text-sm text-gray-500">
-                            {t.colorPaletteGenerator.chooseBaseColorDescription}
+                            {colorPickerText.description}
                         </p>
                     </div>
 
@@ -389,7 +390,7 @@ border-color: ${normalizedHex};`,
                         type="button"
                         onClick={closePicker}
                         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-[#2A1F1B] transition hover:bg-[#FFEDE6]"
-                        aria-label={t.colorPaletteGenerator.cancel}
+                        aria-label={colorPickerText.cancel}
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -450,7 +451,7 @@ border-color: ${normalizedHex};`,
 
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-500">
-                                {t.colorPaletteGenerator.hex}
+                                {colorPickerText.hex}
                             </label>
 
                             <div className="grid grid-cols-[minmax(0,1fr)_48px] items-center gap-3">
@@ -465,14 +466,14 @@ border-color: ${normalizedHex};`,
                                         }
                                     }}
                                     className="h-12 w-full min-w-0 rounded-2xl border border-[#F1E5DF] px-4 text-sm font-medium text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
-                                    aria-label={t.colorPaletteGenerator.hexColor}
+                                    aria-label={colorPickerText.hexColor}
                                 />
 
                                 <button
                                     type="button"
                                     onClick={() => copyValue("PICKER", draftColor)}
                                     className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
-                                    aria-label={t.colorPaletteGenerator.copySelectedColor}
+                                    aria-label={colorPickerText.copySelectedColor}
                                 >
                                     {copied === "PICKER" ? (
                                         <span className="text-sm font-semibold">✓</span>
@@ -487,7 +488,7 @@ border-color: ${normalizedHex};`,
                     <div className={isDesktop ? "space-y-5" : "space-y-4"}>
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-500">
-                                {t.colorPaletteGenerator.hue}
+                                {colorPickerText.hue}
                             </label>
                             <input
                                 type="range"
@@ -503,7 +504,7 @@ border-color: ${normalizedHex};`,
 
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-500">
-                                {t.colorPaletteGenerator.saturation}
+                                {colorPickerText.saturation}
                             </label>
                             <input
                                 type="range"
@@ -519,7 +520,7 @@ border-color: ${normalizedHex};`,
 
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-500">
-                                {t.colorPaletteGenerator.lightness}
+                                {colorPickerText.lightness}
                             </label>
                             <input
                                 type="range"
@@ -535,7 +536,7 @@ border-color: ${normalizedHex};`,
 
                         <div>
                             <span className="mb-2 block text-sm font-medium text-gray-500">
-                                {t.colorPaletteGenerator.currentColor}
+                                {colorPickerText.currentColor}
                             </span>
                             <div className="flex items-center gap-3 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
                                 <div
@@ -547,7 +548,7 @@ border-color: ${normalizedHex};`,
                                         {draftColor}
                                     </p>
                                     <p className="text-sm text-gray-500">
-                                        {t.colorPaletteGenerator.selectedBaseColor}
+                                        {colorPickerText.selectedColor}
                                     </p>
                                 </div>
                             </div>
@@ -555,7 +556,7 @@ border-color: ${normalizedHex};`,
 
                         <div>
                             <span className="mb-2 block text-sm font-medium text-gray-500">
-                                {t.colorPaletteGenerator.presets}
+                                {colorPickerText.presets}
                             </span>
 
                             <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1">
@@ -575,7 +576,7 @@ border-color: ${normalizedHex};`,
                                                     ? "h-9 w-9 shrink-0 rounded-2xl border-2 border-[#F28C6F] bg-white p-1"
                                                     : "h-9 w-9 shrink-0 rounded-2xl border border-[#F1E5DF] p-1"
                                             }
-                                            aria-label={`Use ${color}`}
+                                            aria-label={`${colorPickerText.useColor} ${color}`}
                                         >
                                             <span
                                                 className="block h-full w-full rounded-xl"
@@ -593,7 +594,7 @@ border-color: ${normalizedHex};`,
                                 onClick={closePicker}
                                 className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
                             >
-                                {t.colorPaletteGenerator.cancel}
+                                {colorPickerText.cancel}
                             </button>
 
                             <button
@@ -601,7 +602,7 @@ border-color: ${normalizedHex};`,
                                 onClick={applyPickerColor}
                                 className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                             >
-                                {t.colorPaletteGenerator.apply}
+                                {colorPickerText.apply}
                             </button>
                         </div>
                     </div>
@@ -755,7 +756,7 @@ border-color: ${normalizedHex};`,
                 {colorData && (
                     <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-5">
                         <h3 className="mb-3 text-sm font-semibold text-gray-800">
-                            CSS Output
+                            {t.hexRgbConverter.cssOutput}
                         </h3>
 
                         <pre className="overflow-x-auto rounded-xl bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-700">
@@ -766,7 +767,9 @@ border-color: ${normalizedHex};`,
                             onClick={() => copyValue("CSS", colorData.cssText)}
                             className="mt-4 w-fit rounded-xl bg-[#F28C6F] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                         >
-                            {copied === "CSS" ? t.common.copied : "Copy CSS"}
+                            {copied === "CSS"
+                                ? t.common.copied
+                                : t.hexRgbConverter.copyCss}
                         </button>
                     </div>
                 )}
