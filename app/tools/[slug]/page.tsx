@@ -58,8 +58,17 @@ export default async function ToolPage({ params }: ToolPageProps) {
         <div className="mt-6 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm md:mt-8 md:p-10">
           <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between md:gap-6">
             <div className="flex items-start gap-4 md:block">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#FFF0EA] text-3xl md:mb-5 md:h-16 md:w-16 md:text-4xl">
-                {tool.icon}
+              <div className="shrink-0">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFF0EA] text-3xl md:mb-5 md:h-16 md:w-16 md:text-4xl">
+                  {tool.icon}
+                </div>
+
+                <a
+                  href="/"
+                  className="mt-2 flex w-14 items-center justify-center rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-2 text-center text-[11px] font-semibold leading-tight text-[#E6765B] hover:bg-[#FFF0EA] md:hidden"
+                >
+                  {t.common.viewAllTools}
+                </a>
               </div>
 
               <div className="min-w-0">
@@ -79,7 +88,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
 
             <a
               href="/"
-              className="rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-5 py-3 text-center text-sm font-semibold text-[#E6765B] hover:bg-[#FFF0EA] md:shrink-0"
+              className="hidden rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-5 py-3 text-center text-sm font-semibold text-[#E6765B] hover:bg-[#FFF0EA] md:block md:shrink-0"
             >
               {t.common.viewAllTools}
             </a>
