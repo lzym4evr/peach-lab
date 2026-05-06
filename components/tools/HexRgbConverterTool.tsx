@@ -199,7 +199,6 @@ export default function HexRgbConverterTool() {
 
     const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const wheelRef = useRef<HTMLDivElement | null>(null);
-    const sheetRef = useRef<HTMLDivElement | null>(null);
 
     const colorData = useMemo(() => {
         const normalizedHex = normalizeHex(hexInput);
@@ -381,13 +380,7 @@ border-color: ${normalizedHex};`,
                         >
                             {t.colorPaletteGenerator.chooseBaseColor}
                         </h2>
-                        <p
-                            className={
-                                isDesktop
-                                    ? "mt-1 text-sm text-gray-500"
-                                    : "mt-1 text-sm text-gray-500"
-                            }
-                        >
+                        <p className="mt-1 text-sm text-gray-500">
                             {t.colorPaletteGenerator.chooseBaseColorDescription}
                         </p>
                     </div>
@@ -638,7 +631,7 @@ border-color: ${normalizedHex};`,
                     </div>
                 </div>
 
-                <div className="rounded-2xl border border-[#F1E5DF] bg-white p-4 md:p-5">
+                <div className="md:rounded-2xl md:border md:border-[#F1E5DF] md:bg-white md:p-5">
                     <div className="grid grid-cols-[0.95fr_1.05fr] gap-3 md:grid-cols-2 md:gap-4">
                         <div>
                             <label className="mb-2 block text-sm font-semibold text-gray-800 md:mb-3">
@@ -671,7 +664,7 @@ border-color: ${normalizedHex};`,
                                 value={hexInput}
                                 onChange={(event) => setHexInput(event.target.value)}
                                 placeholder={DEFAULT_COLOR}
-                                className="h-12 w-full rounded-xl border border-[#F1E5DF] px-3 text-sm font-medium uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] md:h-14 md:px-4"
+                                className="h-12 w-full rounded-xl border border-[#F1E5DF] bg-white px-3 text-sm font-medium uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] md:h-14 md:px-4"
                             />
                         </div>
                     </div>
@@ -789,8 +782,8 @@ border-color: ${normalizedHex};`,
                         <div
                             onClick={(event) => event.stopPropagation()}
                             className={`w-full max-w-3xl rounded-[2rem] border border-[#F1E5DF] bg-white p-6 shadow-2xl transition-all duration-300 ${isPickerVisible
-                                ? "translate-y-0 opacity-100"
-                                : "translate-y-6 opacity-0"
+                                    ? "translate-y-0 opacity-100"
+                                    : "translate-y-6 opacity-0"
                                 }`}
                         >
                             {renderColorPickerPanel("desktop", wheelRef)}
@@ -799,7 +792,6 @@ border-color: ${normalizedHex};`,
 
                     <div className="md:hidden">
                         <div
-                            ref={sheetRef}
                             onClick={(event) => event.stopPropagation()}
                             className={`fixed inset-x-0 bottom-0 h-[66dvh] rounded-t-[2rem] border-t border-[#F1E5DF] bg-white px-4 pb-5 pt-4 shadow-2xl transition-transform duration-300 ease-out ${isPickerVisible ? "translate-y-0" : "translate-y-full"
                                 }`}
