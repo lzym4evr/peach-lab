@@ -285,10 +285,6 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
                     : "border-[#F4C8BA] bg-[#FFF7F3]"
                     }`}
             >
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[28px] bg-white text-4xl shadow-sm">
-                    🖼️
-                </div>
-
                 <h2 className="mx-auto mt-6 max-w-xl text-2xl font-semibold leading-tight text-[#2A1F1B] md:text-3xl">
                     {t.imageSizeChecker.uploadTitle}
                 </h2>
