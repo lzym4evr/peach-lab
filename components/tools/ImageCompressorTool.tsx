@@ -266,12 +266,12 @@ export default function ImageCompressorTool() {
 
     return (
         <>
-            <div className="space-y-6 pb-[calc(var(--mobile-action-bar-space,136px)+16px)] md:pb-0">
+            <div className="space-y-6">
                 <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#7A5A4F]">
                     {text.localProcessing}
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
                     <div className="min-w-0 space-y-5">
                         <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                             <label
@@ -279,8 +279,8 @@ export default function ImageCompressorTool() {
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
                                 className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                                        ? "border-[#F28C6F] bg-[#FFF0EA]"
+                                        : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                     }`}
                             >
                                 <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
@@ -349,7 +349,7 @@ export default function ImageCompressorTool() {
                         )}
                     </div>
 
-                    <section className="min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                    <section className="min-w-0 lg:self-start md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                         <SectionTitle title={text.settingsTitle || text.controlsTitle} />
 
                         <div className="mt-5 space-y-5">
@@ -477,16 +477,6 @@ export default function ImageCompressorTool() {
                     onClose={() => setIsCompareOpen(false)}
                 />
             ) : null}
-
-            <style jsx global>{`
-                @media (max-width: 1023px) {
-                    footer {
-                        padding-bottom: calc(
-                            var(--mobile-action-bar-space, 136px) + env(safe-area-inset-bottom, 0px) + 16px
-                        );
-                    }
-                }
-            `}</style>
         </>
     );
 }
