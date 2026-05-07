@@ -517,6 +517,11 @@ export const messages = {
             beforeAfterDescription: "Drag the center handle to compare image quality.",
             close: "Close",
             actionBarHint: "Tap values to preview and compare.",
+            actionOriginal: "Original",
+            actionNew: "New",
+            actionSaved: "Saved",
+            actionReady: "Ready",
+            actionNotReady: "Not ready",
 
             // Errors
             noFileError: "Please upload an image first.",

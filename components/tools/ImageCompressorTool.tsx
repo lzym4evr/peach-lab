@@ -279,8 +279,8 @@ export default function ImageCompressorTool() {
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
                                 className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                                        ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                        : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
+                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                     }`}
                             >
                                 <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
@@ -641,7 +641,7 @@ function MobileActionBar({
                 className="pointer-events-auto mx-auto max-w-md rounded-[30px] border border-[#F4C8BA] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
             >
                 <p className="mb-2 text-center text-xs font-medium text-[#9C7B70]">
-                    {text.actionBarHint || "Tap values to preview and compare."}
+                    {text.actionBarHint}
                 </p>
 
                 <div className="grid grid-cols-4 gap-2">
@@ -651,7 +651,7 @@ function MobileActionBar({
                         className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center"
                     >
                         <span className="block text-xs font-medium text-[#9C7B70]">
-                            Original
+                            {text.actionOriginal}
                         </span>
                         <span className="mt-1 block text-sm font-semibold text-[#2A1F1B]">
                             {originalSize}
@@ -665,7 +665,7 @@ function MobileActionBar({
                         className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center disabled:opacity-45"
                     >
                         <span className="block text-xs font-medium text-[#9C7B70]">
-                            Compressed
+                            {text.actionNew}
                         </span>
                         <span className="mt-1 block text-sm font-semibold text-[#2A1F1B]">
                             {compressedSize}
@@ -674,7 +674,7 @@ function MobileActionBar({
 
                     <div className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center">
                         <span className="block text-xs font-medium text-[#9C7B70]">
-                            Saved
+                            {text.actionSaved}
                         </span>
                         <span className="mt-1 block text-sm font-semibold text-[#2A1F1B]">
                             {savedPercent}%
@@ -691,7 +691,7 @@ function MobileActionBar({
                             {text.download}
                         </span>
                         <span className="mt-1 block text-xs text-white/85">
-                            {canDownload ? "Ready" : "Not ready"}
+                            {canDownload ? text.actionReady : text.actionNotReady}
                         </span>
                     </button>
                 </div>
