@@ -82,6 +82,7 @@ export default function ImageCompressorTool() {
     const [status, setStatus] = useState("");
     const [error, setError] = useState("");
     const [viewer, setViewer] = useState<ViewerState>(null);
+    const [isCompareOpen, setIsCompareOpen] = useState(false);
 
     const savedPercent = useMemo(() => {
         if (!originalFile || !compressedBlob) return 0;
@@ -94,11 +95,11 @@ export default function ImageCompressorTool() {
 
     const originalSizeText = originalFile ? formatBytes(originalFile.size) : "-";
     const compressedSizeText = compressedBlob ? formatBytes(compressedBlob.size) : "-";
-    const savedText = `${savedPercent}%`;
+    const savedText = compressedBlob ? `${savedPercent}%` : "0%";
 
     const originalShort = getShortLabel(text.originalSize);
     const compressedShort = getShortLabel(text.compressedSize);
-    const downloadShort = getShortLabel(text.downloadImage);
+    const downloadShort = getShortLabel(text.download ?? text.downloadImage);
 
     useEffect(() => {
         return () => {
@@ -122,6 +123,7 @@ export default function ImageCompressorTool() {
         setCompressedBlob(null);
         setCompressedInfo(null);
         setStatus("");
+        setIsCompareOpen(false);
     }
 
     function loadImageFile(file: File) {
@@ -314,8 +316,8 @@ export default function ImageCompressorTool() {
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
                                 className={`mt-5 cursor-pointer rounded-3xl border border-dashed px-5 py-6 text-center transition md:px-6 md:py-7 ${isDragging
-                                        ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                        : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
+                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                     }`}
                             >
                                 <p className="text-lg font-semibold text-[#2A1F1B]">
@@ -378,27 +380,6 @@ export default function ImageCompressorTool() {
                                 </p>
                             </div>
                         )}
-
-                        {originalUrl && compressedUrl ? (
-                            <BeforeAfterCompare
-                                originalUrl={originalUrl}
-                                compressedUrl={compressedUrl}
-                                originalLabel={text.originalImage}
-                                compressedLabel={text.compressedImage}
-                                onOriginalPreview={() =>
-                                    setViewer({
-                                        title: text.originalImage,
-                                        url: originalUrl,
-                                    })
-                                }
-                                onCompressedPreview={() =>
-                                    setViewer({
-                                        title: text.compressedImage,
-                                        url: compressedUrl,
-                                    })
-                                }
-                            />
-                        ) : null}
                     </div>
 
                     <section className="min-w-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
@@ -452,7 +433,7 @@ export default function ImageCompressorTool() {
                                 {isProcessing ? text.processing : text.compressImage}
                             </button>
 
-                            {(status || error) ? (
+                            {status || error ? (
                                 <div className="space-y-2">
                                     {status ? (
                                         <p className="text-sm text-[#7A5A4F]">
@@ -504,14 +485,28 @@ export default function ImageCompressorTool() {
                 <div className="fixed inset-x-3 bottom-3 z-40 md:hidden">
                     <div className="rounded-[30px] border border-[#F4C8BA] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur">
                         <div className="grid grid-cols-4 gap-2">
-                            <ActionInfoItem
+                            <ActionButtonItem
                                 label={originalShort}
                                 value={originalFile ? originalSizeText : "-"}
+                                disabled={!originalUrl}
+                                onClick={() => {
+                                    if (!originalUrl) return;
+
+                                    setViewer({
+                                        title: text.originalImage,
+                                        url: originalUrl,
+                                    });
+                                }}
                             />
 
-                            <ActionInfoItem
+                            <ActionButtonItem
                                 label={compressedShort}
                                 value={compressedBlob ? compressedSizeText : "-"}
+                                disabled={!compressedUrl}
+                                onClick={() => {
+                                    if (!compressedUrl) return;
+                                    setIsCompareOpen(true);
+                                }}
                             />
 
                             <ActionInfoItem
@@ -552,6 +547,17 @@ export default function ImageCompressorTool() {
                     title={viewer.title}
                     url={viewer.url}
                     onClose={() => setViewer(null)}
+                />
+            ) : null}
+
+            {isCompareOpen && originalUrl && compressedUrl ? (
+                <CompareViewer
+                    originalUrl={originalUrl}
+                    compressedUrl={compressedUrl}
+                    originalLabel={text.originalImage}
+                    compressedLabel={text.compressedImage}
+                    imageInfo={originalInfo}
+                    onClose={() => setIsCompareOpen(false)}
                 />
             ) : null}
         </>
@@ -621,20 +627,20 @@ function ImagePreviewCard({
     );
 }
 
-function BeforeAfterCompare({
+function CompareViewer({
     originalUrl,
     compressedUrl,
     originalLabel,
     compressedLabel,
-    onOriginalPreview,
-    onCompressedPreview,
+    imageInfo,
+    onClose,
 }: {
     originalUrl: string;
     compressedUrl: string;
     originalLabel: string;
     compressedLabel: string;
-    onOriginalPreview: () => void;
-    onCompressedPreview: () => void;
+    imageInfo: ImageInfo | null;
+    onClose: () => void;
 }) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [position, setPosition] = useState(50);
@@ -645,9 +651,8 @@ function BeforeAfterCompare({
 
         const rect = container.getBoundingClientRect();
         const nextPosition = ((clientX - rect.left) / rect.width) * 100;
-        const clampedPosition = Math.min(Math.max(nextPosition, 8), 92);
 
-        setPosition(clampedPosition);
+        setPosition(Math.min(Math.max(nextPosition, 6), 94));
     }
 
     function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -660,89 +665,93 @@ function BeforeAfterCompare({
         updatePosition(event.clientX);
     }
 
+    const aspectRatio =
+        imageInfo && imageInfo.width > 0 && imageInfo.height > 0
+            ? `${imageInfo.width} / ${imageInfo.height}`
+            : "16 / 9";
+
     return (
-        <div className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm">
-            <div className="mb-3 flex items-center justify-between gap-3">
-                <SectionTitle
-                    title="Before After Compare"
-                    titleClassName="text-lg md:text-lg"
-                />
-
-                <div className="flex shrink-0 gap-2">
-                    <button
-                        type="button"
-                        onClick={onOriginalPreview}
-                        className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]"
-                    >
-                        Original
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={onCompressedPreview}
-                        className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]"
-                    >
-                        Compressed
-                    </button>
-                </div>
-            </div>
-
-            <div
-                ref={containerRef}
-                role="slider"
-                tabIndex={0}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(position)}
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                className="relative overflow-hidden rounded-2xl bg-[#FFF7F3] p-3 touch-none"
+        <div
+            className="fixed inset-0 z-[70] bg-black/75 p-4"
+            onClick={onClose}
+        >
+            <button
+                type="button"
+                onClick={onClose}
+                className="absolute right-4 top-4 z-10 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#2A1F1B] shadow-sm"
             >
-                <div className="relative mx-auto flex max-h-[420px] justify-center overflow-hidden rounded-xl">
-                    <img
-                        src={compressedUrl}
-                        alt={compressedLabel}
-                        className="block max-h-[420px] w-auto max-w-full object-contain"
-                        draggable={false}
-                    />
+                Close
+            </button>
 
-                    <div
-                        className="absolute inset-y-0 left-0 overflow-hidden"
-                        style={{ width: `${position}%` }}
-                    >
-                        <img
-                            src={originalUrl}
-                            alt={originalLabel}
-                            className="block h-full max-h-[420px] w-auto max-w-none object-contain"
-                            draggable={false}
-                        />
+            <div className="flex h-full items-center justify-center">
+                <div
+                    className="w-full max-w-5xl"
+                    onClick={(event) => event.stopPropagation()}
+                >
+                    <div className="mb-4 text-center">
+                        <h3 className="text-lg font-semibold text-white">
+                            Before After Compare
+                        </h3>
+                        <p className="mt-1 text-sm text-white/70">
+                            Drag the center handle to compare image quality.
+                        </p>
                     </div>
 
                     <div
-                        className="absolute inset-y-0 w-[3px] -translate-x-1/2 bg-white shadow-[0_0_0_1px_rgba(42,31,27,0.15)]"
-                        style={{ left: `${position}%` }}
-                    />
-
-                    <div
-                        className="absolute top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-sm font-bold text-[#F28C6F] shadow-md"
-                        style={{ left: `${position}%` }}
+                        ref={containerRef}
+                        role="slider"
+                        tabIndex={0}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={Math.round(position)}
+                        onPointerDown={handlePointerDown}
+                        onPointerMove={handlePointerMove}
+                        className="relative mx-auto w-full touch-none overflow-hidden rounded-3xl bg-white/10 p-2 md:p-4"
                     >
-                        ↔
+                        <div
+                            className="relative mx-auto max-h-[78vh] max-w-full overflow-hidden rounded-2xl bg-black/20"
+                            style={{ aspectRatio }}
+                        >
+                            <img
+                                src={compressedUrl}
+                                alt={compressedLabel}
+                                className="absolute inset-0 h-full w-full object-contain"
+                                draggable={false}
+                            />
+
+                            <img
+                                src={originalUrl}
+                                alt={originalLabel}
+                                className="absolute inset-0 h-full w-full object-contain"
+                                style={{
+                                    clipPath: `inset(0 ${100 - position}% 0 0)`,
+                                }}
+                                draggable={false}
+                            />
+
+                            <div
+                                className="absolute inset-y-0 w-[3px] -translate-x-1/2 bg-white shadow-[0_0_0_1px_rgba(42,31,27,0.15)]"
+                                style={{ left: `${position}%` }}
+                            />
+
+                            <div
+                                className="absolute top-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-sm font-bold text-[#F28C6F] shadow-md"
+                                style={{ left: `${position}%` }}
+                            >
+                                ↔
+                            </div>
+
+                            <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
+                                Original
+                            </span>
+
+                            <span className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
+                                Compressed
+                            </span>
+                        </div>
                     </div>
-
-                    <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
-                        Original
-                    </span>
-
-                    <span className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
-                        Compressed
-                    </span>
                 </div>
             </div>
-
-            <p className="mt-3 text-xs leading-5 text-gray-500">
-                Drag the center handle to compare the original and compressed image.
-            </p>
         </div>
     );
 }
@@ -775,6 +784,34 @@ function ActionInfoItem({
                 {value}
             </span>
         </div>
+    );
+}
+
+function ActionButtonItem({
+    label,
+    value,
+    disabled,
+    onClick,
+}: {
+    label: string;
+    value: string;
+    disabled: boolean;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            className="flex min-h-[76px] flex-col items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] px-2 text-center transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+            <span className="text-[11px] font-medium leading-4 text-[#9C7B70]">
+                {label}
+            </span>
+            <span className="mt-1 text-sm font-semibold leading-5 text-[#2A1F1B]">
+                {value}
+            </span>
+        </button>
     );
 }
 
