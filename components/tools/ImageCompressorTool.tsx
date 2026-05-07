@@ -1,13 +1,12 @@
 "use client";
 
 import {
-    type ChangeEvent,
-    type DragEvent,
+    ChangeEvent,
+    DragEvent,
     useMemo,
     useRef,
     useState,
 } from "react";
-import SectionTitle from "@/components/ui/SectionTitle";
 import { t } from "@/data/messages";
 
 type OutputFormat = "image/jpeg" | "image/png" | "image/webp";
@@ -33,18 +32,25 @@ function formatBytes(bytes: number) {
     return `${value.toFixed(value >= 10 ? 1 : 2)} ${units[index]}`;
 }
 
-function getFileExtension(format: OutputFormat) {
-    if (format === "image/jpeg") return "jpg";
-    if (format === "image/webp") return "webp";
-    return "png";
-}
-
 function getOutputFileName(originalName: string, format: OutputFormat) {
     const nameWithoutExtension = originalName.replace(/\.[^/.]+$/, "");
 
-    return `${nameWithoutExtension || "peach-lab-image"}-compressed.${getFileExtension(
-        format,
-    )}`;
+    if (format === "image/jpeg") {
+        return `${nameWithoutExtension || "peach-lab-image"}-compressed.jpg`;
+    }
+
+    if (format === "image/webp") {
+        return `${nameWithoutExtension || "peach-lab-image"}-compressed.webp`;
+    }
+
+    return `${nameWithoutExtension || "peach-lab-image"}-compressed.png`;
+}
+
+function getShortLabel(label: string) {
+    return label
+        .replace(/\s+Image$/i, "")
+        .replace(/\s+Size$/i, "")
+        .trim();
 }
 
 export default function ImageCompressorTool() {
@@ -74,6 +80,14 @@ export default function ImageCompressorTool() {
 
         return Math.max(percent, 0);
     }, [originalFile, compressedBlob]);
+
+    const originalSizeText = originalFile ? formatBytes(originalFile.size) : "-";
+    const compressedSizeText = compressedBlob ? formatBytes(compressedBlob.size) : "-";
+    const savedText = `${savedPercent}%`;
+
+    const originalShort = getShortLabel(text.originalSize);
+    const compressedShort = getShortLabel(text.compressedSize);
+    const downloadShort = getShortLabel(text.downloadImage);
 
     function clearCompressedResult() {
         if (compressedUrl) {
@@ -230,31 +244,35 @@ export default function ImageCompressorTool() {
         link.click();
     }
 
-    const compressedEmptyText = originalFile
-        ? text.waitingCompress
-        : text.emptyDescription;
-
     return (
-        <div className="space-y-6">
-            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#7A5A4F]">
+        <div className="space-y-6 pb-28 md:pb-0">
+            <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#7A5A4F]">
                 {text.localProcessing}
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-                <div className="min-w-0">
-                    <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                        <SectionTitle
-                            title={text.uploadTitle}
-                            titleClassName="text-base md:text-lg"
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+                <div className="min-w-0 space-y-6">
+                    <section className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                        <div className="mb-5">
+                            <div className="flex items-center gap-3">
+                                <span className="h-7 w-2 rounded-full bg-[#F28C6F]" />
+                                <h3 className="text-2xl font-semibold text-[#2A1F1B]">
+                                    {text.uploadTitle}
+                                </h3>
+                            </div>
+
+                            <p className="mt-3 text-sm leading-6 text-gray-500">
+                                {text.uploadDescription}
+                            </p>
+                        </div>
+
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            onChange={handleChooseFile}
+                            className="hidden"
                         />
-
-                        <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
-                            {text.uploadDescription}
-                        </p>
-
-                        <p className="mt-2 max-w-2xl text-xs font-medium leading-6 text-[#A17F74] md:text-sm">
-                            {text.supportedFormats}
-                        </p>
 
                         <div
                             role="button"
@@ -268,73 +286,72 @@ export default function ImageCompressorTool() {
                             onDragOver={handleDragOver}
                             onDragLeave={handleDragLeave}
                             onDrop={handleDrop}
-                            className={`mt-5 cursor-pointer rounded-3xl border border-dashed px-5 py-6 text-center transition ${isDragging
-                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                            className={`cursor-pointer rounded-3xl border border-dashed px-6 py-8 text-center transition ${isDragging
+                                ? "border-[#F28C6F] bg-[#FFF0EA]"
+                                : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                 }`}
                         >
-                            <h3 className="text-lg font-semibold text-[#2A1F1B]">
-                                {text.dropTitle}
-                            </h3>
-
-                            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
-                                {text.dropHint}
+                            <p className="text-lg font-semibold text-[#2A1F1B]">
+                                {originalFile ? text.changeImage : text.dropHint}
                             </p>
 
-                            <div className="mt-5 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]">
-                                {originalFile ? text.changeImage : text.uploadButton}
-                            </div>
-
-                            <p className="mt-4 break-all text-sm text-gray-500">
-                                {originalFile?.name || text.noFileSelected}
+                            <p className="mt-2 text-sm leading-6 text-gray-500">
+                                {originalFile
+                                    ? originalFile.name
+                                    : "Drag and drop an image here, or click to choose a file."}
                             </p>
                         </div>
 
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/png,image/jpeg,image/webp"
-                            onChange={handleChooseFile}
-                            className="hidden"
-                        />
+                        {(error || status) && (
+                            <div className="mt-4 space-y-2">
+                                {error ? (
+                                    <p className="text-sm font-medium text-red-500">{error}</p>
+                                ) : null}
 
-                        {error ? (
-                            <p className="mt-4 text-sm font-medium text-red-500">{error}</p>
-                        ) : null}
-
-                        {originalUrl ? (
-                            <div className="mt-6 grid gap-4 md:grid-cols-2">
-                                <ImagePreviewCard
-                                    title={text.originalImage}
-                                    imageUrl={originalUrl}
-                                    size={originalFile ? formatBytes(originalFile.size) : "-"}
-                                    info={originalInfo}
-                                />
-
-                                <ImagePreviewCard
-                                    title={text.compressedImage}
-                                    imageUrl={compressedUrl}
-                                    size={compressedBlob ? formatBytes(compressedBlob.size) : "-"}
-                                    info={compressedInfo}
-                                    emptyText={compressedEmptyText}
-                                />
-                            </div>
-                        ) : (
-                            <div className="mt-6 rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center md:p-8">
-                                <h4 className="text-lg font-semibold text-gray-900">
-                                    {text.emptyTitle}
-                                </h4>
-
-                                <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-gray-500">
-                                    {text.emptyDescription}
-                                </p>
+                                {status ? (
+                                    <p className="text-sm text-[#7A5A4F]">{status}</p>
+                                ) : null}
                             </div>
                         )}
                     </section>
+
+                    {originalUrl ? (
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <ImagePreviewCard
+                                title={text.originalImage}
+                                imageUrl={originalUrl}
+                                size={originalSizeText}
+                                info={originalInfo}
+                            />
+
+                            <ImagePreviewCard
+                                title={text.compressedImage}
+                                imageUrl={compressedUrl}
+                                size={compressedSizeText}
+                                info={compressedInfo}
+                                emptyText="Click Compress to preview the compressed result."
+                            />
+                        </div>
+                    ) : (
+                        <div className="rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] px-6 py-10 text-center">
+                            <h4 className="text-lg font-semibold text-gray-900">
+                                {text.emptyTitle}
+                            </h4>
+
+                            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-gray-500">
+                                {text.emptyDescription}
+                            </p>
+                        </div>
+                    )}
                 </div>
 
-                <section className="min-w-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                    <SectionTitle title={text.settingsTitle} />
+                <section className="min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <span className="h-7 w-2 rounded-full bg-[#F28C6F]" />
+                        <h3 className="text-2xl font-semibold text-[#2A1F1B]">
+                            {text.controlsTitle}
+                        </h3>
+                    </div>
 
                     <div className="mt-5 space-y-5">
                         <RangeInput
@@ -360,7 +377,7 @@ export default function ImageCompressorTool() {
                                     setOutputFormat(event.target.value as OutputFormat);
                                     clearCompressedResult();
                                 }}
-                                className="h-12 w-full rounded-xl border border-[#F1E5DF] bg-white px-4 text-sm font-semibold text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                                className="h-12 w-full rounded-2xl border border-[#F1E5DF] bg-white px-4 text-sm font-semibold text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
                             >
                                 {formatOptions.map((format) => (
                                     <option key={format.value} value={format.value}>
@@ -370,54 +387,89 @@ export default function ImageCompressorTool() {
                             </select>
                         </label>
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <button
-                                type="button"
-                                onClick={handleCompress}
-                                disabled={isProcessing}
-                                className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:bg-[#F8D9CF] disabled:text-white"
-                            >
-                                {isProcessing ? text.processing : text.compress}
-                            </button>
+                        <button
+                            type="button"
+                            onClick={handleCompress}
+                            disabled={isProcessing}
+                            className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            {isProcessing ? text.processing : text.compressImage}
+                        </button>
+                    </div>
+
+                    <div className="mt-8 hidden border-t border-[#F1E5DF] pt-6 md:block">
+                        <div className="flex items-center gap-3">
+                            <span className="h-7 w-2 rounded-full bg-[#F28C6F]" />
+                            <h3 className="text-2xl font-semibold text-[#2A1F1B]">
+                                {text.outputTitle}
+                            </h3>
+                        </div>
+
+                        <div className="mt-4 grid grid-cols-1 gap-3">
+                            <InfoBox
+                                label={text.originalSize}
+                                value={originalSizeText}
+                            />
+
+                            <InfoBox
+                                label={text.compressedSize}
+                                value={compressedSizeText}
+                            />
+
+                            <InfoBox
+                                label={text.saved}
+                                value={savedText}
+                            />
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={handleDownload}
+                            disabled={!compressedBlob}
+                            className="mt-5 w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {text.downloadImage}
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            {originalFile && (
+                <div className="fixed inset-x-4 bottom-4 z-40 md:hidden">
+                    <div className="rounded-[28px] border border-[#F4C8BA] bg-white p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)]">
+                        <div className="grid grid-cols-4 gap-2">
+                            <ActionInfoItem
+                                label={originalShort}
+                                value={originalSizeText}
+                            />
+
+                            <ActionInfoItem
+                                label={compressedShort}
+                                value={compressedSizeText}
+                            />
+
+                            <ActionInfoItem
+                                label={text.saved}
+                                value={savedText}
+                            />
 
                             <button
                                 type="button"
                                 onClick={handleDownload}
                                 disabled={!compressedBlob}
-                                className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:bg-[#F8D9CF] disabled:text-white"
+                                className="flex min-h-[72px] flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 text-center text-white transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                {text.download}
+                                <span className="text-sm font-semibold leading-5">
+                                    {downloadShort}
+                                </span>
+                                <span className="mt-1 text-[11px] leading-4 text-white/85">
+                                    {compressedBlob ? "Ready" : "No result"}
+                                </span>
                             </button>
                         </div>
                     </div>
-
-                    <div className="mt-6 border-t border-[#F1E5DF] pt-5">
-                        <SectionTitle title={text.outputTitle} />
-
-                        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-1">
-                            <InfoBox
-                                label={text.originalSize}
-                                value={originalFile ? formatBytes(originalFile.size) : "-"}
-                            />
-
-                            <InfoBox
-                                label={text.compressedSize}
-                                value={compressedBlob ? formatBytes(compressedBlob.size) : "-"}
-                            />
-
-                            <InfoBox label={text.saved} value={`${savedPercent}%`} />
-                        </div>
-
-                        {status ? (
-                            <p className="mt-3 text-sm text-[#7A5A4F]">{status}</p>
-                        ) : null}
-
-                        {error ? (
-                            <p className="mt-3 text-sm font-medium text-red-500">{error}</p>
-                        ) : null}
-                    </div>
-                </section>
-            </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -436,27 +488,32 @@ function ImagePreviewCard({
     emptyText?: string;
 }) {
     return (
-        <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+        <div className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm">
             <div className="mb-3 flex items-center justify-between gap-3">
-                <SectionTitle title={title} titleClassName="text-sm md:text-sm" />
+                <div className="flex min-w-0 items-center gap-3">
+                    <span className="h-6 w-2 shrink-0 rounded-full bg-[#F28C6F]" />
+                    <h4 className="truncate text-lg font-semibold text-[#2A1F1B]">
+                        {title}
+                    </h4>
+                </div>
 
-                <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
+                <span className="shrink-0 rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
                     {size}
                 </span>
             </div>
 
             {imageUrl ? (
-                <div className="rounded-2xl bg-[#FFF7F3] p-3">
-                    <div className="flex justify-center">
+                <div className="overflow-hidden rounded-2xl bg-[#FFF7F3] p-3">
+                    <div className="flex items-center justify-center">
                         <img
                             src={imageUrl}
                             alt={title}
-                            className="max-h-[280px] w-auto max-w-full rounded-xl object-contain"
+                            className="mx-auto block max-h-[240px] max-w-full rounded-xl object-contain"
                         />
                     </div>
                 </div>
             ) : (
-                <div className="rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center">
+                <div className="rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] px-4 py-8 text-center">
                     <p className="text-sm leading-6 text-gray-500">{emptyText}</p>
                 </div>
             )}
@@ -472,14 +529,31 @@ function ImagePreviewCard({
 
 function InfoBox({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-3.5">
+        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#9C7B70]">
                 {label}
             </p>
 
-            <p className="mt-2 text-base font-bold text-gray-900 md:text-lg">
+            <p className="mt-2 text-lg font-bold text-gray-900">{value}</p>
+        </div>
+    );
+}
+
+function ActionInfoItem({
+    label,
+    value,
+}: {
+    label: string;
+    value: string;
+}) {
+    return (
+        <div className="flex min-h-[72px] flex-col items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] px-2 text-center">
+            <span className="text-[11px] font-medium leading-4 text-[#9C7B70]">
+                {label}
+            </span>
+            <span className="mt-1 text-sm font-semibold leading-5 text-[#2A1F1B]">
                 {value}
-            </p>
+            </span>
         </div>
     );
 }
