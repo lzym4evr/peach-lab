@@ -488,6 +488,9 @@ export const messages = {
             changeImage: "Change Image",
             noFileSelected: "No file selected",
 
+            dropTitle: "Drag and drop an image here",
+            dropHint: "Choose an image to compress locally.",
+
             emptyTitle: "No image selected",
             emptyDescription: "Upload an image to preview and compress it.",
             waitingCompress: "Click Compress to preview the compressed result.",
