@@ -127,7 +127,6 @@ export default function ImageCompressorTool() {
         if (!file) return;
 
         loadImageFile(file);
-
         event.target.value = "";
     }
 
@@ -231,43 +230,31 @@ export default function ImageCompressorTool() {
         link.click();
     }
 
+    const compressedEmptyText = originalFile
+        ? text.waitingCompress
+        : text.emptyDescription;
+
     return (
         <div className="space-y-6">
-            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm text-[#7A5A4F]">
+            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#7A5A4F]">
                 {text.localProcessing}
             </div>
 
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
                 <div className="min-w-0">
                     <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                        <div className="mb-5 flex items-start justify-between gap-4">
-                            <div className="min-w-0">
-                                <SectionTitle
-                                    title={text.uploadTitle}
-                                    titleClassName="text-base md:text-lg"
-                                />
+                        <SectionTitle
+                            title={text.uploadTitle}
+                            titleClassName="text-base md:text-lg"
+                        />
 
-                                <p className="mt-2 max-w-[360px] text-sm leading-6 text-gray-500">
-                                    {text.uploadDescription}
-                                </p>
-                            </div>
+                        <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
+                            {text.uploadDescription}
+                        </p>
 
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="shrink-0 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                            >
-                                {originalFile ? text.changeImage : text.uploadButton}
-                            </button>
-
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/png,image/jpeg,image/webp"
-                                onChange={handleChooseFile}
-                                className="hidden"
-                            />
-                        </div>
+                        <p className="mt-2 max-w-2xl text-xs font-medium leading-6 text-[#A17F74] md:text-sm">
+                            {text.supportedFormats}
+                        </p>
 
                         <div
                             role="button"
@@ -281,22 +268,42 @@ export default function ImageCompressorTool() {
                             onDragOver={handleDragOver}
                             onDragLeave={handleDragLeave}
                             onDrop={handleDrop}
-                            className={`mb-5 cursor-pointer rounded-3xl border border-dashed p-6 text-center transition ${isDragging
+                            className={`mt-5 cursor-pointer rounded-3xl border border-dashed px-5 py-6 text-center transition ${isDragging
                                     ? "border-[#F28C6F] bg-[#FFF0EA]"
                                     : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                 }`}
                         >
-                            <p className="text-sm font-semibold text-[#E6765B]">
-                                {originalFile ? text.changeImage : text.uploadButton}
+                            <h3 className="text-lg font-semibold text-[#2A1F1B]">
+                                {text.dropTitle}
+                            </h3>
+
+                            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
+                                {text.dropHint}
                             </p>
 
-                            <p className="mt-2 text-sm leading-6 text-gray-500">
-                                {text.dropHint}
+                            <div className="mt-5 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]">
+                                {originalFile ? text.changeImage : text.uploadButton}
+                            </div>
+
+                            <p className="mt-4 break-all text-sm text-gray-500">
+                                {originalFile?.name || text.noFileSelected}
                             </p>
                         </div>
 
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            onChange={handleChooseFile}
+                            className="hidden"
+                        />
+
+                        {error ? (
+                            <p className="mt-4 text-sm font-medium text-red-500">{error}</p>
+                        ) : null}
+
                         {originalUrl ? (
-                            <div className="grid gap-4 md:grid-cols-2">
+                            <div className="mt-6 grid gap-4 md:grid-cols-2">
                                 <ImagePreviewCard
                                     title={text.originalImage}
                                     imageUrl={originalUrl}
@@ -309,11 +316,11 @@ export default function ImageCompressorTool() {
                                     imageUrl={compressedUrl}
                                     size={compressedBlob ? formatBytes(compressedBlob.size) : "-"}
                                     info={compressedInfo}
-                                    emptyText={text.emptyDescription}
+                                    emptyText={compressedEmptyText}
                                 />
                             </div>
                         ) : (
-                            <div className="rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center md:p-8">
+                            <div className="mt-6 rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center md:p-8">
                                 <h4 className="text-lg font-semibold text-gray-900">
                                     {text.emptyTitle}
                                 </h4>
@@ -327,7 +334,7 @@ export default function ImageCompressorTool() {
                 </div>
 
                 <section className="min-w-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                    <SectionTitle title={text.controlsTitle} />
+                    <SectionTitle title={text.settingsTitle} />
 
                     <div className="mt-5 space-y-5">
                         <RangeInput
@@ -363,20 +370,31 @@ export default function ImageCompressorTool() {
                             </select>
                         </label>
 
-                        <button
-                            type="button"
-                            onClick={handleCompress}
-                            disabled={isProcessing}
-                            className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            {isProcessing ? text.processing : text.compressImage}
-                        </button>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={handleCompress}
+                                disabled={isProcessing}
+                                className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:bg-[#F8D9CF] disabled:text-white"
+                            >
+                                {isProcessing ? text.processing : text.compress}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleDownload}
+                                disabled={!compressedBlob}
+                                className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:bg-[#F8D9CF] disabled:text-white"
+                            >
+                                {text.download}
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="mt-8 border-t border-[#F1E5DF] pt-6">
+                    <div className="mt-6 border-t border-[#F1E5DF] pt-5">
                         <SectionTitle title={text.outputTitle} />
 
-                        <div className="mt-4 grid grid-cols-1 gap-3">
+                        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-1">
                             <InfoBox
                                 label={text.originalSize}
                                 value={originalFile ? formatBytes(originalFile.size) : "-"}
@@ -389,15 +407,6 @@ export default function ImageCompressorTool() {
 
                             <InfoBox label={text.saved} value={`${savedPercent}%`} />
                         </div>
-
-                        <button
-                            type="button"
-                            onClick={handleDownload}
-                            disabled={!compressedBlob}
-                            className="mt-5 w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            {text.downloadImage}
-                        </button>
 
                         {status ? (
                             <p className="mt-3 text-sm text-[#7A5A4F]">{status}</p>
@@ -429,10 +438,7 @@ function ImagePreviewCard({
     return (
         <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
-                <SectionTitle
-                    title={title}
-                    titleClassName="text-sm md:text-sm"
-                />
+                <SectionTitle title={title} titleClassName="text-sm md:text-sm" />
 
                 <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
                     {size}
@@ -466,12 +472,14 @@ function ImagePreviewCard({
 
 function InfoBox({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
+        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-3.5">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#9C7B70]">
                 {label}
             </p>
 
-            <p className="mt-2 text-lg font-bold text-gray-900">{value}</p>
+            <p className="mt-2 text-base font-bold text-gray-900 md:text-lg">
+                {value}
+            </p>
         </div>
     );
 }
