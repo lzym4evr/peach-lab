@@ -316,8 +316,8 @@ export default function ImageCompressorTool() {
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
                                 className={`mt-5 cursor-pointer rounded-3xl border border-dashed px-5 py-6 text-center transition md:px-6 md:py-7 ${isDragging
-                                        ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                        : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
+                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                     }`}
                             >
                                 <p className="text-lg font-semibold text-[#2A1F1B]">
@@ -472,14 +472,28 @@ export default function ImageCompressorTool() {
                                 <InfoBox label={text.saved} value={savedText} />
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={handleDownload}
-                                disabled={!compressedBlob}
-                                className="mt-5 w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                {text.downloadImage}
-                            </button>
+                            <div className="mt-5 grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (!compressedUrl) return;
+                                        setIsCompareOpen(true);
+                                    }}
+                                    disabled={!compressedUrl}
+                                    className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {text.compare ?? "Compare"}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={handleDownload}
+                                    disabled={!compressedBlob}
+                                    className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {text.downloadImage}
+                                </button>
+                            </div>
                         </div>
                     </section>
                 </div>

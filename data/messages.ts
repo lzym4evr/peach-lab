@@ -505,6 +505,7 @@ export const messages = {
 
             compress: "Compress",
             download: "Download",
+            compare: "Compare",
             compressImage: "Compress Image",
             downloadImage: "Download Image",
 
