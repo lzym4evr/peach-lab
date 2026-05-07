@@ -490,6 +490,7 @@ export const messages = {
 
             dropTitle: "Drag and drop an image here",
             dropHint: "Or click to choose a file.",
+            changeHint: "Click anywhere in this area to choose another image.",
 
             emptyTitle: "No image selected",
             emptyDescription: "Upload an image to preview and compress it.",
@@ -506,6 +507,18 @@ export const messages = {
             download: "Download",
             compressImage: "Compress Image",
             downloadImage: "Download Image",
+
+            actionBarHint: "Tap values to preview and compare.",
+            readyStatus: "Ready",
+            notReadyStatus: "Not ready",
+
+            beforeAfterTitle: "Before After Compare",
+            beforeAfterDescription:
+                "Drag the center handle to compare image quality.",
+            originalLabel: "Original",
+            compressedLabel: "Compressed",
+            previewLabel: "Preview",
+            close: "Close",
 
             processing: "Compressing...",
             ready: "Image compressed successfully.",

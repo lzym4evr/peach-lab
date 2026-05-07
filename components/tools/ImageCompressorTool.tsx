@@ -316,8 +316,8 @@ export default function ImageCompressorTool() {
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
                                 className={`mt-5 cursor-pointer rounded-3xl border border-dashed px-5 py-6 text-center transition md:px-6 md:py-7 ${isDragging
-                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                                        ? "border-[#F28C6F] bg-[#FFF0EA]"
+                                        : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                     }`}
                             >
                                 <p className="text-lg font-semibold text-[#2A1F1B]">
@@ -325,7 +325,7 @@ export default function ImageCompressorTool() {
                                 </p>
 
                                 <p className="mx-auto mt-2 max-w-md break-all text-sm leading-6 text-gray-500">
-                                    {originalFile ? originalFile.name : text.dropHint}
+                                    {originalFile ? text.changeHint : text.dropHint}
                                 </p>
 
                                 <div className="mt-5 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]">
@@ -345,6 +345,7 @@ export default function ImageCompressorTool() {
                                     imageUrl={originalUrl}
                                     size={originalSizeText}
                                     info={originalInfo}
+                                    previewLabel={text.previewLabel}
                                     onPreview={() =>
                                         setViewer({
                                             title: text.originalImage,
@@ -359,6 +360,7 @@ export default function ImageCompressorTool() {
                                     size={compressedSizeText}
                                     info={compressedInfo}
                                     emptyText={text.waitingCompress}
+                                    previewLabel={text.previewLabel}
                                     onPreview={() => {
                                         if (!compressedUrl) return;
 
@@ -484,6 +486,10 @@ export default function ImageCompressorTool() {
 
                 <div className="fixed inset-x-3 bottom-3 z-40 md:hidden">
                     <div className="rounded-[30px] border border-[#F4C8BA] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur">
+                        <p className="mb-2 px-2 text-center text-[11px] font-medium leading-4 text-[#9C7B70]">
+                            {text.actionBarHint}
+                        </p>
+
                         <div className="grid grid-cols-4 gap-2">
                             <ActionButtonItem
                                 label={originalShort}
@@ -524,7 +530,9 @@ export default function ImageCompressorTool() {
                                     {downloadShort}
                                 </span>
                                 <span className="mt-1 text-[11px] leading-4 text-white/85">
-                                    {compressedBlob ? "Ready" : "Not ready"}
+                                    {compressedBlob
+                                        ? text.readyStatus
+                                        : text.notReadyStatus}
                                 </span>
                             </button>
                         </div>
@@ -535,7 +543,7 @@ export default function ImageCompressorTool() {
                     @media (max-width: 767px) {
                         footer {
                             padding-bottom: calc(
-                                118px + env(safe-area-inset-bottom, 0px)
+                                128px + env(safe-area-inset-bottom, 0px)
                             ) !important;
                         }
                     }
@@ -546,6 +554,7 @@ export default function ImageCompressorTool() {
                 <ImageViewer
                     title={viewer.title}
                     url={viewer.url}
+                    closeText={text.close}
                     onClose={() => setViewer(null)}
                 />
             ) : null}
@@ -554,8 +563,11 @@ export default function ImageCompressorTool() {
                 <CompareViewer
                     originalUrl={originalUrl}
                     compressedUrl={compressedUrl}
-                    originalLabel={text.originalImage}
-                    compressedLabel={text.compressedImage}
+                    originalLabel={text.originalLabel}
+                    compressedLabel={text.compressedLabel}
+                    title={text.beforeAfterTitle}
+                    description={text.beforeAfterDescription}
+                    closeText={text.close}
                     imageInfo={originalInfo}
                     onClose={() => setIsCompareOpen(false)}
                 />
@@ -570,6 +582,7 @@ function ImagePreviewCard({
     size,
     info,
     emptyText,
+    previewLabel,
     onPreview,
 }: {
     title: string;
@@ -577,6 +590,7 @@ function ImagePreviewCard({
     size: string;
     info: ImageInfo | null;
     emptyText?: string;
+    previewLabel: string;
     onPreview: () => void;
 }) {
     return (
@@ -608,7 +622,7 @@ function ImagePreviewCard({
                         />
 
                         <span className="absolute right-2 top-2 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
-                            Preview
+                            {previewLabel}
                         </span>
                     </div>
                 </button>
@@ -632,6 +646,9 @@ function CompareViewer({
     compressedUrl,
     originalLabel,
     compressedLabel,
+    title,
+    description,
+    closeText,
     imageInfo,
     onClose,
 }: {
@@ -639,6 +656,9 @@ function CompareViewer({
     compressedUrl: string;
     originalLabel: string;
     compressedLabel: string;
+    title: string;
+    description: string;
+    closeText: string;
     imageInfo: ImageInfo | null;
     onClose: () => void;
 }) {
@@ -680,7 +700,7 @@ function CompareViewer({
                 onClick={onClose}
                 className="absolute right-4 top-4 z-10 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#2A1F1B] shadow-sm"
             >
-                Close
+                {closeText}
             </button>
 
             <div className="flex h-full items-center justify-center">
@@ -690,10 +710,10 @@ function CompareViewer({
                 >
                     <div className="mb-4 text-center">
                         <h3 className="text-lg font-semibold text-white">
-                            Before After Compare
+                            {title}
                         </h3>
                         <p className="mt-1 text-sm text-white/70">
-                            Drag the center handle to compare image quality.
+                            {description}
                         </p>
                     </div>
 
@@ -742,11 +762,11 @@ function CompareViewer({
                             </div>
 
                             <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
-                                Original
+                                {originalLabel}
                             </span>
 
                             <span className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
-                                Compressed
+                                {compressedLabel}
                             </span>
                         </div>
                     </div>
@@ -856,10 +876,12 @@ function RangeInput({
 function ImageViewer({
     title,
     url,
+    closeText,
     onClose,
 }: {
     title: string;
     url: string;
+    closeText: string;
     onClose: () => void;
 }) {
     return (
@@ -872,7 +894,7 @@ function ImageViewer({
                 onClick={onClose}
                 className="absolute right-4 top-4 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#2A1F1B] shadow-sm"
             >
-                Close
+                {closeText}
             </button>
 
             <div className="flex h-full items-center justify-center">
