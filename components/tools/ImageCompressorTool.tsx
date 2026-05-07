@@ -512,7 +512,7 @@ export default function ImageCompressorTool() {
     const hasCompressed = !!compressedInfo;
 
     return (
-        <div className="space-y-6 pb-32 md:pb-0">
+        <div className="space-y-6 pb-28 md:pb-0">
             <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
                 <p className="text-sm leading-7 text-[#6B5B56] md:text-base">
                     {text.localProcessing}
@@ -525,8 +525,8 @@ export default function ImageCompressorTool() {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                            ? "border-[#F28C6F] bg-[#FFF0EA]"
-                            : "border-[#F4C8BA] bg-[#FFF7F3]"
+                        ? "border-[#F28C6F] bg-[#FFF0EA]"
+                        : "border-[#F4C8BA] bg-[#FFF7F3]"
                         }`}
                 >
                     <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
@@ -677,8 +677,8 @@ export default function ImageCompressorTool() {
                                 onClick={handleCompress}
                                 disabled={!hasOriginal || isProcessing}
                                 className={`mt-5 w-full rounded-3xl px-6 py-4 text-base font-semibold text-white shadow-sm transition ${hasOriginal && !isProcessing
-                                        ? "bg-[#F28C6F] hover:bg-[#E6765B]"
-                                        : "cursor-not-allowed bg-[#F8D9CF]"
+                                    ? "bg-[#F28C6F] hover:bg-[#E6765B]"
+                                    : "cursor-not-allowed bg-[#F8D9CF]"
                                     }`}
                             >
                                 {isProcessing ? text.processing : text.compressImage}
@@ -751,8 +751,8 @@ export default function ImageCompressorTool() {
 
             <div className="md:hidden">
                 <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 px-4 pb-[max(0px,env(safe-area-inset-bottom))]">
-                    <div className="pointer-events-auto mx-auto max-w-md rounded-[32px] border border-[#F4C8BA] bg-white px-5 py-4 shadow-[0_12px_40px_rgba(42,31,27,0.10)]">
-                        <p className="mb-3 text-center text-xs font-medium text-[#8D6F67]">
+                    <div className="pointer-events-auto mx-auto max-w-md rounded-[28px] border border-[#F4C8BA] bg-white px-4 py-3 shadow-[0_10px_30px_rgba(42,31,27,0.10)]">
+                        <p className="mb-2 text-center text-xs font-medium text-[#8D6F67]">
                             {text.actionBarHint}
                         </p>
 
@@ -761,7 +761,7 @@ export default function ImageCompressorTool() {
                                 type="button"
                                 onClick={openOriginalPreview}
                                 disabled={!hasOriginal}
-                                className={`rounded-[24px] border px-3 py-4 text-center transition ${hasOriginal
+                                className={`rounded-[22px] border px-2 py-3 text-center transition ${hasOriginal
                                         ? "border-[#F1E5DF] bg-white"
                                         : "border-[#F1E5DF] bg-white opacity-60"
                                     }`}
@@ -769,10 +769,8 @@ export default function ImageCompressorTool() {
                                 <p className="text-sm font-medium text-[#8D6F67]">
                                     {text.originalLabel}
                                 </p>
-                                <p className="mt-2 text-[15px] font-semibold text-[#2A1F1B]">
-                                    {hasOriginal
-                                        ? formatFileSize(originalInfo.size)
-                                        : "-"}
+                                <p className="mt-1.5 text-[15px] font-semibold leading-5 text-[#2A1F1B]">
+                                    {hasOriginal ? formatFileSize(originalInfo.size) : "-"}
                                 </p>
                             </button>
 
@@ -780,7 +778,7 @@ export default function ImageCompressorTool() {
                                 type="button"
                                 onClick={openNewPreview}
                                 disabled={!hasCompressed}
-                                className={`rounded-[24px] border px-3 py-4 text-center transition ${hasCompressed
+                                className={`rounded-[22px] border px-2 py-3 text-center transition ${hasCompressed
                                         ? "border-[#F1E5DF] bg-white"
                                         : "border-[#F1E5DF] bg-white opacity-60"
                                     }`}
@@ -788,10 +786,8 @@ export default function ImageCompressorTool() {
                                 <p className="text-sm font-medium text-[#8D6F67]">
                                     {text.newLabel}
                                 </p>
-                                <p className="mt-2 text-[15px] font-semibold text-[#2A1F1B]">
-                                    {hasCompressed
-                                        ? formatFileSize(compressedInfo.size)
-                                        : "-"}
+                                <p className="mt-1.5 text-[15px] font-semibold leading-5 text-[#2A1F1B]">
+                                    {hasCompressed ? formatFileSize(compressedInfo.size) : "-"}
                                 </p>
                             </button>
 
@@ -799,7 +795,7 @@ export default function ImageCompressorTool() {
                                 type="button"
                                 onClick={openCompare}
                                 disabled={!hasCompressed}
-                                className={`rounded-[24px] border px-3 py-4 text-center transition ${hasCompressed
+                                className={`rounded-[22px] border px-2 py-3 text-center transition ${hasCompressed
                                         ? "border-[#F1E5DF] bg-white"
                                         : "border-[#F1E5DF] bg-white opacity-60"
                                     }`}
@@ -807,7 +803,7 @@ export default function ImageCompressorTool() {
                                 <p className="text-sm font-medium text-[#8D6F67]">
                                     {text.saved}
                                 </p>
-                                <p className="mt-2 text-[15px] font-semibold text-[#2A1F1B]">
+                                <p className="mt-1.5 text-[15px] font-semibold leading-5 text-[#2A1F1B]">
                                     {hasCompressed ? `${savedPercentage}%` : "0%"}
                                 </p>
                             </button>
@@ -816,7 +812,7 @@ export default function ImageCompressorTool() {
                                 type="button"
                                 onClick={handleDownload}
                                 disabled={!hasCompressed}
-                                className={`rounded-[24px] px-3 py-4 text-center transition ${hasCompressed
+                                className={`rounded-[22px] px-2 py-3 text-center transition ${hasCompressed
                                         ? "bg-[#F28C6F] text-white shadow-sm hover:bg-[#E6765B]"
                                         : "bg-[#F8D9CF] text-white"
                                     }`}
@@ -824,10 +820,8 @@ export default function ImageCompressorTool() {
                                 <p className="text-sm font-medium">
                                     {text.download}
                                 </p>
-                                <p className="mt-2 text-[15px] font-semibold">
-                                    {hasCompressed
-                                        ? text.readyStatus
-                                        : text.notReadyStatus}
+                                <p className="mt-1.5 text-[15px] font-semibold leading-5">
+                                    {hasCompressed ? text.readyStatus : text.notReadyStatus}
                                 </p>
                             </button>
                         </div>
