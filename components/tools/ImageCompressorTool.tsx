@@ -282,18 +282,30 @@ export default function ImageCompressorTool() {
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
                     <div className="min-w-0 space-y-6">
                         <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                            <SectionTitle
-                                title={text.uploadTitle}
-                                titleClassName="text-xl md:text-2xl"
-                            />
+                            <div className="flex items-start justify-between gap-4">
+                                <div className="min-w-0">
+                                    <SectionTitle
+                                        title={text.uploadTitle}
+                                        titleClassName="text-xl md:text-2xl"
+                                    />
 
-                            <p className="mt-3 text-sm leading-6 text-gray-500">
-                                {text.uploadDescription}
-                            </p>
+                                    <p className="mt-2 text-sm leading-6 text-gray-500">
+                                        {text.uploadDescription}
+                                    </p>
 
-                            <p className="mt-2 text-xs font-medium leading-6 text-[#A17F74] md:text-sm">
-                                {text.supportedFormats}
-                            </p>
+                                    <p className="mt-1 text-xs font-medium leading-5 text-[#A17F74] md:text-sm">
+                                        {text.supportedFormats}
+                                    </p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="hidden shrink-0 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:inline-flex"
+                                >
+                                    {originalFile ? text.changeImage : text.uploadButton}
+                                </button>
+                            </div>
 
                             <input
                                 ref={fileInputRef}
@@ -315,24 +327,23 @@ export default function ImageCompressorTool() {
                                 onDragOver={handleDragOver}
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
-                                className={`mt-5 cursor-pointer rounded-3xl border border-dashed px-5 py-6 text-center transition md:px-6 md:py-7 ${isDragging
-                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                                className={`mt-4 cursor-pointer rounded-3xl border border-dashed px-5 py-5 text-center transition md:px-6 ${isDragging
+                                        ? "border-[#F28C6F] bg-[#FFF0EA]"
+                                        : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                     }`}
                             >
-                                <p className="text-lg font-semibold text-[#2A1F1B]">
-                                    {originalFile ? text.changeImage : text.dropTitle}
-                                </p>
-
-                                <p className="mx-auto mt-2 max-w-md break-all text-sm leading-6 text-gray-500">
+                                <p className="text-sm font-semibold text-[#2A1F1B] md:text-base">
                                     {originalFile ? text.changeHint : text.dropHint}
                                 </p>
 
-                                <div className="mt-5 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]">
+                                <button
+                                    type="button"
+                                    className="pointer-events-none mt-4 rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                >
                                     {originalFile ? text.changeImage : text.uploadButton}
-                                </div>
+                                </button>
 
-                                <p className="mt-4 break-all text-sm text-gray-500">
+                                <p className="mx-auto mt-3 max-w-md break-all text-sm text-gray-500">
                                     {originalFile?.name || text.noFileSelected}
                                 </p>
                             </div>
