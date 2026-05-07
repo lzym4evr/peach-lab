@@ -3,12 +3,12 @@
 import {
     type ChangeEvent,
     type DragEvent,
-    type PointerEvent,
+    type PointerEvent as ReactPointerEvent,
+    useEffect,
     useMemo,
     useRef,
     useState,
 } from "react";
-import SectionTitle from "@/components/ui/SectionTitle";
 import { t } from "@/data/messages";
 
 type OutputFormat = "image/jpeg" | "image/png" | "image/webp";
@@ -22,6 +22,8 @@ type ViewerState = {
     title: string;
     url: string;
 } | null;
+
+type ImageCompressorText = typeof t.imageCompressor;
 
 const formatOptions: { label: string; value: OutputFormat }[] = [
     { label: "JPG", value: "image/jpeg" },
@@ -47,20 +49,29 @@ function getFileExtension(format: OutputFormat) {
 
 function getOutputFileName(originalName: string, format: OutputFormat) {
     const nameWithoutExtension = originalName.replace(/\.[^/.]+$/, "");
-
     return `${nameWithoutExtension || "peach-lab-image"}-compressed.${getFileExtension(
         format
     )}`;
 }
 
+function getShortLabel(label: string) {
+    return label
+        .replace(/\s+Image$/i, "")
+        .replace(/\s+Size$/i, "")
+        .trim();
+}
+
 export default function ImageCompressorTool() {
     const text = t.imageCompressor;
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const originalUrlRef = useRef("");
+    const compressedUrlRef = useRef("");
 
     const [originalFile, setOriginalFile] = useState<File | null>(null);
     const [originalUrl, setOriginalUrl] = useState("");
     const [compressedUrl, setCompressedUrl] = useState("");
     const [compressedBlob, setCompressedBlob] = useState<Blob | null>(null);
+
     const [originalInfo, setOriginalInfo] = useState<ImageInfo | null>(null);
     const [compressedInfo, setCompressedInfo] = useState<ImageInfo | null>(null);
 
@@ -75,6 +86,18 @@ export default function ImageCompressorTool() {
     const [viewer, setViewer] = useState<ViewerState>(null);
     const [isCompareOpen, setIsCompareOpen] = useState(false);
 
+    useEffect(() => {
+        return () => {
+            if (originalUrlRef.current) {
+                URL.revokeObjectURL(originalUrlRef.current);
+            }
+
+            if (compressedUrlRef.current) {
+                URL.revokeObjectURL(compressedUrlRef.current);
+            }
+        };
+    }, []);
+
     const savedPercent = useMemo(() => {
         if (!originalFile || !compressedBlob) return 0;
 
@@ -84,15 +107,25 @@ export default function ImageCompressorTool() {
         return Math.max(percent, 0);
     }, [originalFile, compressedBlob]);
 
+    const originalSizeText = originalFile ? formatBytes(originalFile.size) : "-";
+    const compressedSizeText = compressedBlob ? formatBytes(compressedBlob.size) : "-";
+    const savedText = compressedBlob ? `${savedPercent}%` : "0%";
+
+    const originalShort = getShortLabel(text.originalSize);
+    const compressedShort = text.newLabel || getShortLabel(text.compressedSize);
+    const downloadShort = text.download || getShortLabel(text.downloadImage);
+
     function clearCompressedResult() {
-        if (compressedUrl) {
-            URL.revokeObjectURL(compressedUrl);
+        if (compressedUrlRef.current) {
+            URL.revokeObjectURL(compressedUrlRef.current);
         }
 
+        compressedUrlRef.current = "";
         setCompressedUrl("");
         setCompressedBlob(null);
         setCompressedInfo(null);
         setStatus("");
+        setIsCompareOpen(false);
     }
 
     function loadImageFile(file: File) {
@@ -101,13 +134,14 @@ export default function ImageCompressorTool() {
             return;
         }
 
-        if (originalUrl) {
-            URL.revokeObjectURL(originalUrl);
+        if (originalUrlRef.current) {
+            URL.revokeObjectURL(originalUrlRef.current);
         }
 
         clearCompressedResult();
 
         const nextUrl = URL.createObjectURL(file);
+        originalUrlRef.current = nextUrl;
 
         setOriginalFile(file);
         setOriginalUrl(nextUrl);
@@ -115,7 +149,6 @@ export default function ImageCompressorTool() {
         setError("");
         setStatus("");
         setViewer(null);
-        setIsCompareOpen(false);
 
         const image = new Image();
 
@@ -141,17 +174,17 @@ export default function ImageCompressorTool() {
         event.target.value = "";
     }
 
-    function handleDragOver(event: DragEvent<HTMLLabelElement>) {
+    function handleDragOver(event: DragEvent<HTMLDivElement>) {
         event.preventDefault();
         setIsDragging(true);
     }
 
-    function handleDragLeave(event: DragEvent<HTMLLabelElement>) {
+    function handleDragLeave(event: DragEvent<HTMLDivElement>) {
         event.preventDefault();
         setIsDragging(false);
     }
 
-    function handleDrop(event: DragEvent<HTMLLabelElement>) {
+    function handleDrop(event: DragEvent<HTMLDivElement>) {
         event.preventDefault();
         setIsDragging(false);
 
@@ -205,6 +238,7 @@ export default function ImageCompressorTool() {
                         clearCompressedResult();
 
                         const nextCompressedUrl = URL.createObjectURL(blob);
+                        compressedUrlRef.current = nextCompressedUrl;
 
                         setCompressedUrl(nextCompressedUrl);
                         setCompressedBlob(blob);
@@ -212,7 +246,7 @@ export default function ImageCompressorTool() {
                             width: image.naturalWidth,
                             height: image.naturalHeight,
                         });
-                        setStatus(text.ready);
+                        setStatus(text.imageCompressedSuccessfully);
                         setIsProcessing(false);
                     },
                     outputFormat,
@@ -266,227 +300,255 @@ export default function ImageCompressorTool() {
 
     return (
         <>
-            <div className="space-y-6 pb-[calc(var(--mobile-action-bar-space,136px)+16px)] md:pb-0">
-                <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#7A5A4F]">
+            <div className="space-y-6">
+                <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] px-5 py-4 text-sm leading-7 text-[#7C6761] md:px-6 md:py-5">
                     {text.localProcessing}
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-                    <div className="min-w-0 space-y-5">
-                        <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                            <label
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+                    <div className="order-2 space-y-6 lg:order-1">
+                        {originalFile ? (
+                            <ImagePreviewCard
+                                title={text.originalImage}
+                                imageUrl={originalUrl}
+                                imageInfo={originalInfo}
+                                sizeText={originalSizeText}
+                                previewText={text.preview}
+                                onPreview={openOriginalPreview}
+                                emptyText={text.noImageYet}
+                            />
+                        ) : null}
+
+                        {originalFile ? (
+                            <ImagePreviewCard
+                                title={text.compressedImage}
+                                imageUrl={compressedUrl}
+                                imageInfo={compressedInfo}
+                                sizeText={compressedSizeText}
+                                previewText={text.preview}
+                                onPreview={openCompressedPreview}
+                                emptyText={text.compressedPlaceholder}
+                            />
+                        ) : null}
+                    </div>
+
+                    <div className="order-1 space-y-6 lg:order-2">
+                        <div
+                            className={`rounded-3xl border bg-[#FFF7F3] p-5 md:p-6 ${isDragging
+                                    ? "border-[#F28C6F] ring-2 ring-[#F4C8BA]"
+                                    : "border-[#F1E5DF]"
+                                }`}
+                        >
+                            <div
+                                className="rounded-3xl border-2 border-dashed border-[#F4C8BA] p-4 text-center transition md:p-8"
                                 onDragOver={handleDragOver}
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
-                                className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
-                                    }`}
+                                onClick={() => fileInputRef.current?.click()}
+                                role="button"
+                                tabIndex={0}
                             >
-                                <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
+                                <h3 className="text-2xl font-semibold tracking-tight text-[#2A1F1B]">
                                     {text.uploadTitle}
-                                </h2>
+                                </h3>
 
-                                <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-gray-500 md:mt-3 md:text-base md:leading-7">
+                                <p className="mt-2 text-base leading-7 text-[#7C6761] md:mt-3">
                                     {text.uploadDescription}
                                 </p>
 
-                                <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
+                                <p className="mt-2 text-sm leading-6 text-[#9A847C] md:mt-3">
                                     {text.supportedFormats}
                                 </p>
 
-                                <div className="mx-auto mt-4 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:mt-5">
+                                <p className="mt-3 text-sm leading-6 text-[#9A847C]">
+                                    {text.dropHint}
+                                </p>
+
+                                <button
+                                    type="button"
+                                    className="mt-4 inline-flex items-center justify-center rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:mt-5"
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        fileInputRef.current?.click();
+                                    }}
+                                >
                                     {originalFile ? text.changeImage : text.uploadButton}
-                                </div>
+                                </button>
+
+                                <p className="mt-4 text-sm text-[#7C6761]">
+                                    {originalFile?.name || text.noFileSelected}
+                                </p>
 
                                 <input
                                     ref={fileInputRef}
                                     type="file"
-                                    accept="image/png,image/jpeg,image/webp"
-                                    onChange={handleChooseFile}
+                                    accept="image/jpeg,image/png,image/webp"
                                     className="hidden"
-                                />
-
-                                <p className="mx-auto mt-3 max-w-xl break-all text-sm font-medium text-gray-500">
-                                    {originalFile?.name || text.noFileSelected}
-                                </p>
-                            </label>
-                        </section>
-
-                        {originalUrl ? (
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <ImagePreviewCard
-                                    title={text.originalImage}
-                                    imageUrl={originalUrl}
-                                    size={originalFile ? formatBytes(originalFile.size) : "-"}
-                                    info={originalInfo}
-                                    onPreview={openOriginalPreview}
-                                />
-
-                                <ImagePreviewCard
-                                    title={text.compressedImage}
-                                    imageUrl={compressedUrl}
-                                    size={compressedBlob ? formatBytes(compressedBlob.size) : "-"}
-                                    info={compressedInfo}
-                                    emptyText={
-                                        compressedBlob
-                                            ? text.emptyDescription
-                                            : text.waitingCompress
-                                    }
-                                    onPreview={openCompressedPreview}
+                                    onChange={handleChooseFile}
                                 />
                             </div>
-                        ) : (
-                            <div className="rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] px-6 py-8 text-center">
-                                <h4 className="text-lg font-semibold text-gray-900">
-                                    {text.emptyTitle}
-                                </h4>
+                        </div>
 
-                                <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-gray-500">
-                                    {text.emptyDescription}
-                                </p>
+                        {originalFile ? (
+                            <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm md:p-6">
+                                <div className="space-y-5">
+                                    <div>
+                                        <label className="mb-3 block text-sm font-medium text-[#2A1F1B]">
+                                            {text.quality}
+                                        </label>
+
+                                        <div className="space-y-3">
+                                            <input
+                                                type="range"
+                                                min={30}
+                                                max={95}
+                                                step={1}
+                                                value={quality}
+                                                onChange={(event) => setQuality(Number(event.target.value))}
+                                                className="w-full accent-[#F28C6F]"
+                                                disabled={isProcessing}
+                                            />
+
+                                            <div className="flex items-center justify-between text-sm text-[#7C6761]">
+                                                <span>30</span>
+                                                <span className="rounded-full bg-[#FFF7F3] px-3 py-1 font-medium text-[#2A1F1B]">
+                                                    {quality}%
+                                                </span>
+                                                <span>95</span>
+                                            </div>
+
+                                            <p className="text-sm leading-6 text-[#9A847C]">
+                                                {text.qualityHint}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-3 block text-sm font-medium text-[#2A1F1B]">
+                                            {text.outputFormat}
+                                        </label>
+
+                                        <select
+                                            value={outputFormat}
+                                            onChange={(event) =>
+                                                setOutputFormat(event.target.value as OutputFormat)
+                                            }
+                                            className="w-full rounded-2xl border border-[#E7D8D1] bg-white px-4 py-3 text-base text-[#2A1F1B] outline-none transition focus:border-[#F28C6F] focus:ring-2 focus:ring-[#F4C8BA]"
+                                            disabled={isProcessing}
+                                        >
+                                            {formatOptions.map((option) => (
+                                                <option key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleCompress}
+                                        disabled={isProcessing}
+                                        className="inline-flex w-full items-center justify-center rounded-2xl bg-[#F28C6F] px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        {isProcessing ? text.processing : text.compressImage}
+                                    </button>
+
+                                    {status ? (
+                                        <p className="text-sm text-[#7C6761]">{status}</p>
+                                    ) : null}
+
+                                    {error ? <p className="text-sm text-red-500">{error}</p> : null}
+                                </div>
                             </div>
-                        )}
+                        ) : null}
+
+                        {originalFile ? (
+                            <div className="hidden rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm md:block md:p-6">
+                                <div className="space-y-5">
+                                    <div className="flex items-center gap-3">
+                                        <span className="h-10 w-2 rounded-full bg-[#F28C6F]" />
+                                        <h3 className="text-2xl font-semibold tracking-tight text-[#2A1F1B]">
+                                            {text.resultTitle}
+                                        </h3>
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <StatCard
+                                            label={text.originalSize}
+                                            value={originalSizeText}
+                                        />
+                                        <StatCard
+                                            label={text.compressedSize}
+                                            value={compressedSizeText}
+                                        />
+                                        <StatCard label={text.saved} value={savedText} />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={openCompare}
+                                            disabled={!compressedBlob}
+                                            className="inline-flex items-center justify-center rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            {text.compare}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={handleDownload}
+                                            disabled={!compressedBlob}
+                                            className="inline-flex items-center justify-center rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            {text.downloadImage}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : null}
                     </div>
-
-                    <section className="min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                        <SectionTitle title={text.settingsTitle || text.controlsTitle} />
-
-                        <div className="mt-5 space-y-5">
-                            <RangeInput
-                                label={text.qualityLabel}
-                                value={quality}
-                                min={10}
-                                max={100}
-                                suffix="%"
-                                onChange={(value) => {
-                                    setQuality(value);
-                                    clearCompressedResult();
-                                }}
-                            />
-
-                            <label className="block">
-                                <span className="mb-2 block text-sm font-semibold text-gray-800">
-                                    {text.formatLabel}
-                                </span>
-
-                                <select
-                                    value={outputFormat}
-                                    onChange={(event) => {
-                                        setOutputFormat(event.target.value as OutputFormat);
-                                        clearCompressedResult();
-                                    }}
-                                    className="h-12 w-full rounded-xl border border-[#F1E5DF] bg-white px-4 text-sm font-semibold text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                                >
-                                    {formatOptions.map((format) => (
-                                        <option key={format.value} value={format.value}>
-                                            {format.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-
-                            <button
-                                type="button"
-                                onClick={handleCompress}
-                                disabled={isProcessing}
-                                className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                                {isProcessing ? text.processing : text.compressImage}
-                            </button>
-
-                            {status ? (
-                                <p className="text-sm text-[#7A5A4F]">{status}</p>
-                            ) : null}
-
-                            {error ? (
-                                <p className="text-sm font-medium text-red-500">{error}</p>
-                            ) : null}
-                        </div>
-
-                        <div className="mt-8 hidden border-t border-[#F1E5DF] pt-6 lg:block">
-                            <SectionTitle title={text.outputTitle} />
-
-                            <div className="mt-4 grid grid-cols-3 gap-3">
-                                <InfoBox
-                                    label={text.originalSize}
-                                    value={originalFile ? formatBytes(originalFile.size) : "-"}
-                                />
-
-                                <InfoBox
-                                    label={text.compressedSize}
-                                    value={compressedBlob ? formatBytes(compressedBlob.size) : "-"}
-                                />
-
-                                <InfoBox label={text.saved} value={`${savedPercent}%`} />
-                            </div>
-
-                            <div className="mt-5 grid grid-cols-2 gap-3">
-                                <button
-                                    type="button"
-                                    onClick={openCompare}
-                                    disabled={!compressedUrl}
-                                    className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    {text.compare || "Compare"}
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={handleDownload}
-                                    disabled={!compressedBlob}
-                                    className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    {text.downloadImage}
-                                </button>
-                            </div>
-                        </div>
-                    </section>
                 </div>
             </div>
 
             <MobileActionBar
-                originalSize={originalFile ? formatBytes(originalFile.size) : "-"}
-                compressedSize={compressedBlob ? formatBytes(compressedBlob.size) : "-"}
-                savedPercent={savedPercent}
-                canDownload={!!compressedBlob}
+                text={text}
+                originalLabel={originalShort}
+                compressedLabel={compressedShort}
+                downloadLabel={downloadShort}
+                originalValue={originalSizeText}
+                compressedValue={compressedSizeText}
+                savedValue={savedText}
+                canOriginal={Boolean(originalUrl)}
+                canCompare={Boolean(originalUrl && compressedUrl)}
+                canDownload={Boolean(compressedBlob)}
                 onOriginalClick={openOriginalPreview}
                 onCompressedClick={openCompare}
+                onSavedClick={openCompare}
                 onDownload={handleDownload}
-                text={text}
             />
 
             {viewer ? (
                 <ImageViewer
                     title={viewer.title}
                     url={viewer.url}
+                    closeText={text.close}
                     onClose={() => setViewer(null)}
                 />
             ) : null}
 
             {isCompareOpen && originalUrl && compressedUrl ? (
-                <CompareViewer
+                <CompareView
                     originalUrl={originalUrl}
                     compressedUrl={compressedUrl}
                     originalLabel={text.originalImage}
-                    compressedLabel={text.compressedImage}
-                    title={text.beforeAfterTitle}
-                    description={text.beforeAfterDescription}
+                    compressedLabel={text.newLabel || text.compressedImage}
+                    title={text.compareTitle || text.compare}
+                    description={text.compareDescription}
                     closeText={text.close}
                     imageInfo={originalInfo}
                     onClose={() => setIsCompareOpen(false)}
                 />
             ) : null}
-
-            <style jsx global>{`
-                @media (max-width: 1023px) {
-                    footer {
-                        padding-bottom: calc(
-                            var(--mobile-action-bar-space, 136px) + env(safe-area-inset-bottom, 0px) + 16px
-                        );
-                    }
-                }
-            `}</style>
         </>
     );
 }
@@ -494,267 +556,219 @@ export default function ImageCompressorTool() {
 function ImagePreviewCard({
     title,
     imageUrl,
-    size,
-    info,
-    emptyText,
+    imageInfo,
+    sizeText,
+    previewText,
     onPreview,
+    emptyText,
 }: {
     title: string;
     imageUrl: string;
-    size: string;
-    info: ImageInfo | null;
-    emptyText?: string;
-    onPreview?: () => void;
+    imageInfo: ImageInfo | null;
+    sizeText: string;
+    previewText: string;
+    onPreview: () => void;
+    emptyText: string;
 }) {
     return (
-        <div className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm">
-            <div className="mb-3">
-                <SectionTitle title={title} titleClassName="text-lg md:text-xl" />
-            </div>
-
-            {imageUrl ? (
-                <button
-                    type="button"
-                    onClick={onPreview}
-                    className="block w-full rounded-2xl bg-[#FFF7F3] p-3 text-left transition hover:bg-[#FFF0EA]"
-                >
-                    <div className="relative flex items-center justify-center">
-                        <img
-                            src={imageUrl}
-                            alt={title}
-                            className="block max-h-[260px] max-w-full rounded-xl object-contain md:max-h-[320px]"
-                        />
-
-                        <span className="absolute right-2 top-2 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
-                            Preview
-                        </span>
-                    </div>
-                </button>
-            ) : (
-                <div className="flex min-h-[160px] items-center justify-center rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-5 text-center md:min-h-[200px]">
-                    <p className="text-sm leading-6 text-gray-500">{emptyText}</p>
+        <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm md:p-6">
+            <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                    <span className="h-10 w-2 rounded-full bg-[#F28C6F]" />
+                    <h3 className="text-2xl font-semibold tracking-tight text-[#2A1F1B]">
+                        {title}
+                    </h3>
                 </div>
-            )}
 
-            {info ? (
-                <p className="mt-3 text-xs font-semibold text-gray-500">
-                    {info.width} × {info.height}px
-                    <span className="mx-2 text-[#D6C3BB]">·</span>
-                    {size}
-                </p>
-            ) : null}
+                <div className="rounded-3xl bg-[#FFF7F3] p-4">
+                    {imageUrl ? (
+                        <div className="space-y-4">
+                            <div className="relative overflow-hidden rounded-3xl bg-white">
+                                <div className="flex items-center justify-center p-3">
+                                    <img
+                                        src={imageUrl}
+                                        alt={title}
+                                        className="max-h-[420px] w-auto max-w-full rounded-2xl object-contain"
+                                    />
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={onPreview}
+                                    className="absolute right-4 top-4 inline-flex items-center justify-center rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-[#7C6761] shadow-sm backdrop-blur"
+                                >
+                                    {previewText}
+                                </button>
+                            </div>
+
+                            <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-[#7C6761]">
+                                <span>
+                                    {imageInfo
+                                        ? `${imageInfo.width} × ${imageInfo.height}px`
+                                        : "-"}
+                                </span>
+                                <span>{sizeText}</span>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="rounded-3xl border-2 border-dashed border-[#F4C8BA] px-5 py-12 text-center text-sm leading-6 text-[#9A847C]">
+                            {emptyText}
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }
 
-function InfoBox({ label, value }: { label: string; value: string }) {
+function StatCard({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-3 md:p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#9C7B70]">
-                {label}
-            </p>
-
-            <p className="mt-2 break-all text-base font-bold text-gray-900 md:text-lg">
+        <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-5">
+            <p className="text-sm leading-6 text-[#9A847C]">{label}</p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight text-[#2A1F1B]">
                 {value}
             </p>
         </div>
     );
 }
 
-function RangeInput({
-    label,
-    value,
-    min,
-    max,
-    suffix,
-    onChange,
-}: {
-    label: string;
-    value: number;
-    min: number;
-    max: number;
-    suffix: string;
-    onChange: (value: number) => void;
-}) {
-    return (
-        <label className="block">
-            <div className="mb-2 flex items-center justify-between gap-4">
-                <span className="text-sm font-semibold text-gray-800">{label}</span>
-
-                <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
-                    {value}
-                    {suffix}
-                </span>
-            </div>
-
-            <input
-                type="range"
-                min={min}
-                max={max}
-                value={value}
-                onChange={(event) => onChange(Number(event.target.value))}
-                className="w-full accent-[#F28C6F]"
-            />
-        </label>
-    );
-}
-
 function MobileActionBar({
-    originalSize,
-    compressedSize,
-    savedPercent,
+    text,
+    originalLabel,
+    compressedLabel,
+    downloadLabel,
+    originalValue,
+    compressedValue,
+    savedValue,
+    canOriginal,
+    canCompare,
     canDownload,
     onOriginalClick,
     onCompressedClick,
+    onSavedClick,
     onDownload,
-    text,
 }: {
-    originalSize: string;
-    compressedSize: string;
-    savedPercent: number;
+    text: ImageCompressorText;
+    originalLabel: string;
+    compressedLabel: string;
+    downloadLabel: string;
+    originalValue: string;
+    compressedValue: string;
+    savedValue: string;
+    canOriginal: boolean;
+    canCompare: boolean;
     canDownload: boolean;
     onOriginalClick: () => void;
     onCompressedClick: () => void;
+    onSavedClick: () => void;
     onDownload: () => void;
-    text: typeof t.imageCompressor;
 }) {
-    const actionBarRef = useRef<HTMLDivElement | null>(null);
-
-    useMemo(() => {
-        if (typeof window === "undefined") return;
-
-        const updateSpace = () => {
-            const element = actionBarRef.current;
-            if (!element) return;
-
-            const rect = element.getBoundingClientRect();
-            document.documentElement.style.setProperty(
-                "--mobile-action-bar-space",
-                `${Math.ceil(rect.height + 28)}px`
-            );
-        };
-
-        const timer = window.setTimeout(updateSpace, 0);
-        window.addEventListener("resize", updateSpace);
-
-        return () => {
-            window.clearTimeout(timer);
-            window.removeEventListener("resize", updateSpace);
-            document.documentElement.style.removeProperty("--mobile-action-bar-space");
-        };
-    }, []);
-
     return (
-        <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
-            <div
-                ref={actionBarRef}
-                className="pointer-events-auto mx-auto max-w-md rounded-[30px] border border-[#F4C8BA] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
-            >
-                <p className="mb-2 text-center text-xs font-medium text-[#9C7B70]">
-                    {text.actionBarHint || "Tap values to preview and compare."}
+        <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 px-4 md:hidden">
+            <div className="pointer-events-auto mx-auto max-w-md rounded-[28px] border border-[#F4C8BA] bg-white px-4 py-3 shadow-[0_10px_30px_rgba(42,31,27,0.10)]">
+                <p className="mb-3 text-center text-sm text-[#8C746C]">
+                    {text.actionHint}
                 </p>
 
                 <div className="grid grid-cols-4 gap-2">
-                    <button
-                        type="button"
+                    <ActionTile
+                        label={originalLabel}
+                        value={originalValue}
                         onClick={onOriginalClick}
-                        className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center"
-                    >
-                        <span className="block text-xs font-medium text-[#9C7B70]">
-                            Original
-                        </span>
-                        <span className="mt-1 block text-sm font-semibold text-[#2A1F1B]">
-                            {originalSize}
-                        </span>
-                    </button>
-
-                    <button
-                        type="button"
+                        disabled={!canOriginal}
+                    />
+                    <ActionTile
+                        label={compressedLabel}
+                        value={compressedValue}
                         onClick={onCompressedClick}
-                        disabled={!canDownload}
-                        className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center disabled:opacity-45"
-                    >
-                        <span className="block text-xs font-medium text-[#9C7B70]">
-                            Compressed
-                        </span>
-                        <span className="mt-1 block text-sm font-semibold text-[#2A1F1B]">
-                            {compressedSize}
-                        </span>
-                    </button>
-
-                    <div className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center">
-                        <span className="block text-xs font-medium text-[#9C7B70]">
-                            Saved
-                        </span>
-                        <span className="mt-1 block text-sm font-semibold text-[#2A1F1B]">
-                            {savedPercent}%
-                        </span>
-                    </div>
-
+                        disabled={!canCompare}
+                    />
+                    <ActionTile
+                        label={text.saved}
+                        value={savedValue}
+                        onClick={onSavedClick}
+                        disabled={!canCompare}
+                    />
                     <button
                         type="button"
                         onClick={onDownload}
                         disabled={!canDownload}
-                        className="rounded-2xl bg-[#F28C6F] px-2 py-3 text-center text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
+                        className="flex min-h-[92px] flex-col items-center justify-center rounded-[24px] bg-[#F28C6F] px-2 py-3 text-center text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40"
                     >
-                        <span className="block text-sm font-semibold">
-                            {text.download}
-                        </span>
-                        <span className="mt-1 block text-xs text-white/85">
-                            {canDownload ? "Ready" : "Not ready"}
+                        <span className="text-sm font-medium leading-5">{downloadLabel}</span>
+                        <span className="mt-2 text-sm font-semibold leading-5">
+                            {canDownload ? text.ready : text.notReady}
                         </span>
                     </button>
                 </div>
             </div>
         </div>
+    );
+}
+
+function ActionTile({
+    label,
+    value,
+    onClick,
+    disabled,
+}: {
+    label: string;
+    value: string;
+    onClick: () => void;
+    disabled?: boolean;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            className="flex min-h-[92px] flex-col items-center justify-center rounded-[24px] border border-[#EDE2DC] bg-white px-2 py-3 text-center transition disabled:cursor-not-allowed disabled:opacity-50"
+        >
+            <span className="text-sm font-medium leading-5 text-[#8C746C]">{label}</span>
+            <span className="mt-2 text-sm font-semibold leading-5 text-[#2A1F1B]">
+                {value}
+            </span>
+        </button>
     );
 }
 
 function ImageViewer({
     title,
     url,
+    closeText,
     onClose,
 }: {
     title: string;
     url: string;
+    closeText: string;
     onClose: () => void;
 }) {
     return (
-        <div
-            className="fixed inset-0 z-[70] bg-black/75 p-4"
-            onClick={onClose}
-        >
-            <button
-                type="button"
-                onClick={onClose}
-                className="absolute right-4 top-4 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#2A1F1B] shadow-sm"
-            >
-                Close
-            </button>
+        <div className="fixed inset-0 z-50 bg-[rgba(24,18,15,0.72)] p-4 backdrop-blur-sm">
+            <div className="mx-auto flex h-full max-w-6xl flex-col">
+                <div className="mb-4 flex justify-end">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-base font-medium text-[#2A1F1B] shadow-sm"
+                    >
+                        {closeText}
+                    </button>
+                </div>
 
-            <div className="flex h-full items-center justify-center">
-                <div
-                    className="w-full max-w-5xl"
-                    onClick={(event) => event.stopPropagation()}
-                >
-                    <div className="mb-3 text-center text-sm font-medium text-white/85">
-                        {title}
-                    </div>
-
-                    <div className="flex items-center justify-center rounded-3xl bg-white/10 p-3 md:p-6">
-                        <img
-                            src={url}
-                            alt={title}
-                            className="max-h-[82vh] max-w-full rounded-2xl object-contain"
-                        />
-                    </div>
+                <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-[32px] bg-white/10 p-3">
+                    <img
+                        src={url}
+                        alt={title}
+                        className="max-h-full max-w-full rounded-[28px] object-contain"
+                    />
                 </div>
             </div>
         </div>
     );
 }
 
-function CompareViewer({
+function CompareView({
     originalUrl,
     compressedUrl,
     originalLabel,
@@ -775,119 +789,122 @@ function CompareViewer({
     imageInfo: ImageInfo | null;
     onClose: () => void;
 }) {
-    const containerRef = useRef<HTMLDivElement | null>(null);
     const [position, setPosition] = useState(50);
+    const boxRef = useRef<HTMLDivElement | null>(null);
+    const isDraggingRef = useRef(false);
 
     function updatePosition(clientX: number) {
-        const container = containerRef.current;
-        if (!container) return;
+        const box = boxRef.current;
+        if (!box) return;
 
-        const rect = container.getBoundingClientRect();
-        const nextPosition = ((clientX - rect.left) / rect.width) * 100;
-
-        setPosition(Math.min(Math.max(nextPosition, 6), 94));
+        const rect = box.getBoundingClientRect();
+        const percent = ((clientX - rect.left) / rect.width) * 100;
+        const clamped = Math.min(100, Math.max(0, percent));
+        setPosition(clamped);
     }
 
-    function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
-        event.preventDefault();
+    function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+        isDraggingRef.current = true;
+        updatePosition(event.clientX);
         event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+        if (!isDraggingRef.current) return;
         updatePosition(event.clientX);
     }
 
-    function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
-        if (event.buttons !== 1) return;
-
-        event.preventDefault();
-        updatePosition(event.clientX);
+    function handlePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
+        isDraggingRef.current = false;
+        event.currentTarget.releasePointerCapture(event.pointerId);
     }
 
-    const aspectRatio =
-        imageInfo && imageInfo.width > 0 && imageInfo.height > 0
-            ? `${imageInfo.width} / ${imageInfo.height}`
-            : "16 / 9";
+    function handlePointerLeave(event: ReactPointerEvent<HTMLDivElement>) {
+        if (!isDraggingRef.current) return;
+        isDraggingRef.current = false;
+
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+    }
 
     return (
-        <div
-            className="fixed inset-0 z-[70] select-none bg-black/75 p-4"
-            onClick={onClose}
-        >
-            <button
-                type="button"
-                onClick={onClose}
-                className="absolute right-4 top-4 z-10 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#2A1F1B] shadow-sm"
-            >
-                {closeText}
-            </button>
+        <div className="fixed inset-0 z-50 bg-[rgba(24,18,15,0.72)] p-4 backdrop-blur-sm">
+            <div className="mx-auto flex h-full max-w-6xl flex-col">
+                <div className="mb-4 flex justify-end">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-base font-medium text-[#2A1F1B] shadow-sm"
+                    >
+                        {closeText}
+                    </button>
+                </div>
 
-            <div className="flex h-full items-center justify-center">
-                <div
-                    className="w-full max-w-5xl select-none"
-                    onClick={(event) => event.stopPropagation()}
-                >
-                    <div className="mb-4 select-none text-center">
-                        <h3 className="text-lg font-semibold text-white">
+                <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
+                    <div className="mb-5 text-center">
+                        <h3 className="text-3xl font-semibold tracking-tight text-white">
                             {title}
                         </h3>
-                        <p className="mt-1 text-sm text-white/70">
+                        <p className="mt-2 max-w-2xl text-base leading-7 text-white/85">
                             {description}
                         </p>
                     </div>
 
-                    <div
-                        ref={containerRef}
-                        role="slider"
-                        tabIndex={0}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-valuenow={Math.round(position)}
-                        onPointerDown={handlePointerDown}
-                        onPointerMove={handlePointerMove}
-                        className="relative mx-auto w-full cursor-ew-resize touch-none select-none overflow-hidden rounded-3xl bg-white/10 p-2 md:p-4"
-                    >
+                    <div className="w-full rounded-[32px] bg-white/10 p-3">
                         <div
-                            className="relative mx-auto max-h-[78vh] max-w-full select-none overflow-hidden rounded-2xl bg-black/20"
+                            ref={boxRef}
+                            className="relative mx-auto w-full overflow-hidden rounded-[28px] bg-black/20 touch-none"
                             style={{
-                                aspectRatio,
-                                WebkitUserSelect: "none",
-                                userSelect: "none",
+                                aspectRatio: imageInfo
+                                    ? `${imageInfo.width} / ${imageInfo.height}`
+                                    : "16 / 9",
                             }}
+                            onPointerDown={handlePointerDown}
+                            onPointerMove={handlePointerMove}
+                            onPointerUp={handlePointerUp}
+                            onPointerLeave={handlePointerLeave}
                         >
                             <img
                                 src={compressedUrl}
                                 alt={compressedLabel}
-                                className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
+                                className="absolute inset-0 h-full w-full object-contain"
                                 draggable={false}
                             />
 
-                            <img
-                                src={originalUrl}
-                                alt={originalLabel}
-                                className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
+                            <div
+                                className="absolute inset-0"
                                 style={{
                                     clipPath: `inset(0 ${100 - position}% 0 0)`,
                                 }}
-                                draggable={false}
+                            >
+                                <img
+                                    src={originalUrl}
+                                    alt={originalLabel}
+                                    className="absolute inset-0 h-full w-full object-contain"
+                                    draggable={false}
+                                />
+                            </div>
+
+                            <div className="pointer-events-none absolute left-5 top-5 rounded-full bg-white/92 px-4 py-2 text-sm font-medium text-[#7C6761] shadow-sm">
+                                {originalLabel}
+                            </div>
+
+                            <div className="pointer-events-none absolute right-5 top-5 rounded-full bg-white/92 px-4 py-2 text-sm font-medium text-[#7C6761] shadow-sm">
+                                {compressedLabel}
+                            </div>
+
+                            <div
+                                className="pointer-events-none absolute inset-y-0 z-10 w-1 bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.04)]"
+                                style={{ left: `calc(${position}% - 2px)` }}
                             />
 
                             <div
-                                className="pointer-events-none absolute inset-y-0 w-[3px] -translate-x-1/2 bg-white shadow-[0_0_0_1px_rgba(42,31,27,0.15)]"
-                                style={{ left: `${position}%` }}
-                            />
-
-                            <div
-                                className="pointer-events-none absolute top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-lg font-bold leading-none text-[#F28C6F] shadow-md md:h-16 md:w-16 md:text-xl"
+                                className="pointer-events-none absolute top-1/2 z-20 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-3xl text-[#F28C6F] shadow-[0_10px_30px_rgba(42,31,27,0.18)]"
                                 style={{ left: `${position}%` }}
                             >
                                 ↔
                             </div>
-
-                            <span className="pointer-events-none absolute left-3 top-3 select-none rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
-                                {originalLabel}
-                            </span>
-
-                            <span className="pointer-events-none absolute right-3 top-3 select-none rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
-                                {compressedLabel}
-                            </span>
                         </div>
                     </div>
                 </div>
