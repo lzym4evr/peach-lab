@@ -296,46 +296,42 @@ export default function ImageCompressorTool() {
                                 onClick={() => fileInputRef.current?.click()}
                                 onKeyDown={(event) => {
                                     if (event.key === "Enter" || event.key === " ") {
+                                        event.preventDefault();
                                         fileInputRef.current?.click();
                                     }
                                 }}
                                 onDragOver={handleDragOver}
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
-                                className={`cursor-pointer rounded-3xl border border-dashed px-5 py-6 text-center transition md:px-8 md:py-8 ${isDragging
+                                className={`cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
                                         ? "border-[#F28C6F] bg-[#FFF0EA]"
                                         : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                     }`}
                             >
-                                <div className="mx-auto flex max-w-xl flex-col items-center">
-                                    <SectionTitle
-                                        title={text.uploadTitle}
-                                        titleClassName="text-xl md:text-2xl"
-                                    />
+                                <SectionTitle
+                                    title={text.uploadTitle}
+                                    titleClassName="justify-center text-xl md:text-3xl"
+                                />
 
-                                    <p className="mt-3 text-sm leading-6 text-gray-500">
-                                        {text.uploadDescription}
-                                    </p>
+                                <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-gray-500 md:mt-3 md:text-base md:leading-7">
+                                    {text.uploadDescription}
+                                </p>
 
-                                    <p className="mt-2 text-xs font-medium leading-5 text-[#A17F74] md:text-sm">
-                                        {text.supportedFormats}
-                                    </p>
+                                <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
+                                    {text.supportedFormats}
+                                </p>
 
-                                    <p className="mt-4 text-sm font-medium leading-6 text-gray-500">
-                                        {originalFile ? text.changeHint : text.dropHint}
-                                    </p>
+                                <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-gray-500">
+                                    {originalFile ? text.changeHint : text.dropHint}
+                                </p>
 
-                                    <button
-                                        type="button"
-                                        className="pointer-events-none mt-4 rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                                    >
-                                        {originalFile ? text.changeImage : text.uploadButton}
-                                    </button>
-
-                                    <p className="mt-4 max-w-full break-all text-sm text-gray-500">
-                                        {originalFile?.name || text.noFileSelected}
-                                    </p>
+                                <div className="mx-auto mt-4 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:mt-5">
+                                    {originalFile ? text.changeImage : text.uploadButton}
                                 </div>
+
+                                <p className="mx-auto mt-3 max-w-xl break-all text-sm font-medium text-gray-500">
+                                    {originalFile?.name || text.noFileSelected}
+                                </p>
                             </div>
                         </section>
 

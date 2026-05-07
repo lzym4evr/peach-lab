@@ -247,7 +247,7 @@ export default function ImageResizerTool() {
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`block cursor-pointer rounded-3xl border-2 border-dashed px-6 py-8 text-center transition md:px-8 md:py-10 ${isDragging
+                className={`block cursor-pointer rounded-3xl border-2 border-dashed px-6 py-5 text-center transition md:px-8 md:py-7 ${isDragging
                     ? "border-[#F28C6F] bg-[#FFF0EA]"
                     : "border-[#F4C8BA] bg-[#FFF7F3]"
                     }`}
