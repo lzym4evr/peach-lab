@@ -464,8 +464,8 @@ export const messages = {
             outputFormat: "Output format",
             quality: "Quality",
 
-            resizeImage: "Resize Image",
-            downloadImage: "Download Image",
+            resize: "Resize",
+            download: "Download",
 
             localProcessingDescription:
                 "This image is resized directly in your browser. It is not uploaded to a server.",

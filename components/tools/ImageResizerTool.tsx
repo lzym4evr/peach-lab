@@ -232,62 +232,48 @@ export default function ImageResizerTool() {
 
     const canResize = !!imageInfo && newWidth > 0 && newHeight > 0;
 
-    const uploadTitle =
-        t.imageResizer.uploadTitle ?? "Drag and drop an image here";
-
-    const uploadDescription =
-        t.imageResizer.uploadDescription ??
-        "Or click to upload. Resize your image by width and height. Your image is processed locally in your browser.";
-
-    const supportedFormats =
-        (t.imageResizer as Record<string, string>).supportedFormats ??
-        "Supports JPG, PNG, WebP, and common mobile image formats.";
-
-    const noFileSelected =
-        (t.common as Record<string, string>).noFileSelected ??
-        "No file selected";
-
-    const originalSizeLabel =
-        (t.imageResizer as Record<string, string>).originalSize ??
-        "Original size";
-
-    const resizeSettingsTitle =
-        (t.imageResizer as Record<string, string>).resizeSettings ??
-        "Resize Settings";
-
     return (
         <div className="space-y-6">
+            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
+                <p className="font-semibold text-[#2A1F1B]">
+                    {t.common.localProcessing}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-gray-600">
+                    {t.imageResizer.localProcessingDescription}
+                </p>
+            </div>
+
             <label
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`block cursor-pointer rounded-3xl border-2 border-dashed px-6 py-8 text-center transition md:px-8 ${isDragging
+                className={`block cursor-pointer rounded-3xl border-2 border-dashed px-6 py-8 text-center transition md:px-8 md:py-10 ${isDragging
                     ? "border-[#F28C6F] bg-[#FFF0EA]"
                     : "border-[#F4C8BA] bg-[#FFF7F3]"
                     }`}
             >
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-3xl shadow-sm">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[28px] bg-white text-4xl shadow-sm">
                     ↔️
                 </div>
 
-                <h2 className="text-xl font-semibold text-[#2A1F1B]">
-                    {uploadTitle}
+                <h2 className="mx-auto mt-6 max-w-xl text-2xl font-semibold leading-tight text-[#2A1F1B] md:text-3xl">
+                    {t.imageResizer.uploadTitle}
                 </h2>
 
-                <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-gray-500">
-                    {uploadDescription}
+                <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-gray-500 md:text-base">
+                    {t.imageResizer.uploadDescription}
                 </p>
 
-                <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-gray-500">
-                    {supportedFormats}
+                <p className="mx-auto mt-4 max-w-2xl text-xs font-medium leading-6 text-[#A17F74] md:text-sm">
+                    {t.imageResizer.supportedFormats}
                 </p>
 
-                <div className="mt-6 inline-flex rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]">
+                <div className="mt-7 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:px-8 md:py-3.5 md:text-base">
                     {t.imageResizer.chooseImage}
                 </div>
 
-                <p className="mt-4 text-sm text-gray-500">
-                    {imageInfo?.name || noFileSelected}
+                <p className="mt-5 break-all text-sm text-gray-500">
+                    {imageInfo?.name || t.imageResizer.noFileSelected}
                 </p>
 
                 <input
@@ -298,7 +284,7 @@ export default function ImageResizerTool() {
                     className="hidden"
                 />
 
-                {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
+                {error ? <p className="mt-4 text-sm text-red-500">{error}</p> : null}
             </label>
 
             {imageInfo && (
@@ -330,7 +316,7 @@ export default function ImageResizerTool() {
                             <div className="mt-4 space-y-1 text-sm text-gray-500">
                                 <p className="break-all">{imageInfo.name}</p>
                                 <p>
-                                    {originalSizeLabel}: {imageInfo.width}px ×{" "}
+                                    {t.imageResizer.originalSize}: {imageInfo.width}px ×{" "}
                                     {imageInfo.height}px
                                 </p>
                             </div>
@@ -359,7 +345,7 @@ export default function ImageResizerTool() {
 
                     <div className="space-y-6">
                         <div className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                            <SectionTitle title={resizeSettingsTitle} />
+                            <SectionTitle title={t.imageResizer.resizeSettings} />
 
                             <div className="mt-4 grid grid-cols-2 gap-3">
                                 <div>
@@ -452,7 +438,7 @@ export default function ImageResizerTool() {
                                         : "cursor-not-allowed bg-[#F8D9CF] text-white"
                                         }`}
                                 >
-                                    {t.imageResizer.resizeImage}
+                                    {t.imageResizer.resize}
                                 </button>
 
                                 <button
@@ -464,17 +450,8 @@ export default function ImageResizerTool() {
                                         : "cursor-not-allowed bg-[#F8D9CF] text-white"
                                         }`}
                                 >
-                                    {t.imageResizer.downloadImage}
+                                    {t.imageResizer.download}
                                 </button>
-                            </div>
-
-                            <div className="mt-5 rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
-                                <p className="font-semibold text-[#2A1F1B]">
-                                    {t.common.localProcessing}
-                                </p>
-                                <p className="mt-2 text-sm leading-6 text-gray-600">
-                                    {t.imageResizer.localProcessingDescription}
-                                </p>
                             </div>
                         </div>
                     </div>

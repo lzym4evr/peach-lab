@@ -281,8 +281,8 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 className={`block cursor-pointer rounded-[32px] border-2 border-dashed px-6 py-8 text-center transition md:px-8 md:py-10 ${isDragging
-                        ? "border-[#F28C6F] bg-[#FFF0EA]"
-                        : "border-[#F4C8BA] bg-[#FFF7F3]"
+                    ? "border-[#F28C6F] bg-[#FFF0EA]"
+                    : "border-[#F4C8BA] bg-[#FFF7F3]"
                     }`}
             >
                 <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[28px] bg-white text-4xl shadow-sm">
@@ -336,12 +336,14 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
                             }
                         />
 
-                        <div className="mt-4 flex min-h-64 items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-4 md:min-h-80">
-                            <img
-                                src={imageInfo.previewUrl}
-                                alt={imageInfo.name}
-                                className="max-h-64 max-w-full rounded-xl object-contain md:max-h-80"
-                            />
+                        <div className="mt-4 rounded-2xl bg-[#FFFDFC] p-3 md:p-4">
+                            <div className="flex justify-center">
+                                <img
+                                    src={imageInfo.previewUrl}
+                                    alt={imageInfo.name}
+                                    className="max-h-[360px] w-auto max-w-full rounded-xl object-contain"
+                                />
+                            </div>
                         </div>
                     </div>
 
