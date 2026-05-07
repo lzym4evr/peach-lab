@@ -247,28 +247,28 @@ export default function ImageResizerTool() {
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`block cursor-pointer rounded-3xl border-2 border-dashed px-6 py-5 text-center transition md:px-8 md:py-7 ${isDragging
+                className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
                     ? "border-[#F28C6F] bg-[#FFF0EA]"
                     : "border-[#F4C8BA] bg-[#FFF7F3]"
                     }`}
             >
-                <h2 className="mx-auto mt-6 max-w-xl text-2xl font-semibold leading-tight text-[#2A1F1B] md:text-3xl">
+                <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
                     {t.imageResizer.uploadTitle}
                 </h2>
 
-                <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-gray-500 md:text-base">
+                <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-gray-500 md:mt-3 md:text-base md:leading-7">
                     {t.imageResizer.uploadDescription}
                 </p>
 
-                <p className="mx-auto mt-4 max-w-2xl text-xs font-medium leading-6 text-[#A17F74] md:text-sm">
+                <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
                     {t.imageResizer.supportedFormats}
                 </p>
 
-                <div className="mt-7 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:px-8 md:py-3.5 md:text-base">
+                <div className="mx-auto mt-4 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:mt-5">
                     {t.imageResizer.chooseImage}
                 </div>
 
-                <p className="mt-5 break-all text-sm text-gray-500">
+                <p className="mx-auto mt-3 max-w-xl break-all text-sm font-medium text-gray-500">
                     {imageInfo?.name || t.imageResizer.noFileSelected}
                 </p>
 

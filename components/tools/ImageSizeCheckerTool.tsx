@@ -28,14 +28,8 @@ type InfoCardItem = {
 };
 
 function formatFileSize(bytes: number) {
-    if (bytes < 1024) {
-        return `${bytes} B`;
-    }
-
-    if (bytes < 1024 * 1024) {
-        return `${(bytes / 1024).toFixed(2)} KB`;
-    }
-
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
     return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
 }
 
@@ -43,7 +37,6 @@ function getAspectRatio(width: number, height: number) {
     function gcd(a: number, b: number): number {
         return b === 0 ? a : gcd(b, a % b);
     }
-
     const divisor = gcd(width, height);
     return `${width / divisor}:${height / divisor}`;
 }
@@ -52,21 +45,15 @@ function checkTransparentPixels(image: HTMLImageElement) {
     const canvas = document.createElement("canvas");
     canvas.width = image.naturalWidth;
     canvas.height = image.naturalHeight;
-
     const context = canvas.getContext("2d");
     if (!context) return null;
 
     context.drawImage(image, 0, 0);
+    const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
 
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-
-    for (let index = 3; index < data.length; index += 4) {
-        if (data[index] < 255) {
-            return true;
-        }
+    for (let i = 3; i < data.length; i += 4) {
+        if (data[i] < 255) return true;
     }
-
     return false;
 }
 
@@ -97,17 +84,12 @@ export default function ImageSizeCheckerTool() {
 
     useEffect(() => {
         return () => {
-            if (imageInfo?.previewUrl) {
-                URL.revokeObjectURL(imageInfo.previewUrl);
-            }
+            if (imageInfo?.previewUrl) URL.revokeObjectURL(imageInfo.previewUrl);
         };
     }, [imageInfo]);
 
     function getTransparencyText(info: ImageInfo) {
-        if (info.transparent === null) {
-            return t.imageSizeChecker.notChecked;
-        }
-
+        if (info.transparent === null) return t.imageSizeChecker.notChecked;
         return info.transparent ? t.imageSizeChecker.yes : t.imageSizeChecker.no;
     }
 
@@ -121,16 +103,13 @@ export default function ImageSizeCheckerTool() {
             return;
         }
 
-        if (imageInfo?.previewUrl) {
-            URL.revokeObjectURL(imageInfo.previewUrl);
-        }
+        if (imageInfo?.previewUrl) URL.revokeObjectURL(imageInfo.previewUrl);
 
         const previewUrl = URL.createObjectURL(file);
         const image = new Image();
 
         image.onload = () => {
             let transparent: boolean | null = null;
-
             if (file.type === "image/png" || file.type === "image/webp") {
                 try {
                     transparent = checkTransparentPixels(image);
@@ -162,7 +141,6 @@ export default function ImageSizeCheckerTool() {
     function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
         if (!file) return;
-
         processFile(file);
     }
 
@@ -179,98 +157,56 @@ export default function ImageSizeCheckerTool() {
     function handleDrop(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
-
         const file = event.dataTransfer.files?.[0];
         if (!file) return;
-
         processFile(file);
     }
 
     function resetImage() {
-        if (imageInfo?.previewUrl) {
-            URL.revokeObjectURL(imageInfo.previewUrl);
-        }
-
+        if (imageInfo?.previewUrl) URL.revokeObjectURL(imageInfo.previewUrl);
         setImageInfo(null);
         setError("");
         setIsDragging(false);
         setCopiedResult(false);
         setCopiedItem("");
-
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
+        if (fileInputRef.current) fileInputRef.current.value = "";
     }
 
     async function copyImageResult() {
         if (!imageInfo) return;
-
-        const resultText = `${t.imageSizeChecker.imageInformation}
+        const text = `${t.imageSizeChecker.imageInformation}
 ${t.imageSizeChecker.width}: ${imageInfo.width}px
 ${t.imageSizeChecker.height}: ${imageInfo.height}px
 ${t.imageSizeChecker.aspectRatio}: ${imageInfo.ratio}
 ${t.imageSizeChecker.fileSize}: ${formatFileSize(imageInfo.size)}
 ${t.imageSizeChecker.format}: ${imageInfo.type}
 ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
-
-        await copyToClipboard(resultText);
+        await copyToClipboard(text);
         setCopiedResult(true);
-
-        setTimeout(() => {
-            setCopiedResult(false);
-        }, 1500);
+        setTimeout(() => setCopiedResult(false), 1500);
     }
 
     async function copySingleItem(key: string, value: string) {
         await copyToClipboard(value);
         setCopiedItem(key);
-
-        setTimeout(() => {
-            setCopiedItem((current) => (current === key ? "" : current));
-        }, 1500);
+        setTimeout(() => setCopiedItem((cur) => (cur === key ? "" : cur)), 1500);
     }
 
     const infoCards: InfoCardItem[] = imageInfo
         ? [
-            {
-                key: "width",
-                label: t.imageSizeChecker.width,
-                value: `${imageInfo.width}px`,
-            },
-            {
-                key: "height",
-                label: t.imageSizeChecker.height,
-                value: `${imageInfo.height}px`,
-            },
-            {
-                key: "ratio",
-                label: t.imageSizeChecker.aspectRatio,
-                value: imageInfo.ratio,
-            },
-            {
-                key: "size",
-                label: t.imageSizeChecker.fileSize,
-                value: formatFileSize(imageInfo.size),
-            },
-            {
-                key: "format",
-                label: t.imageSizeChecker.format,
-                value: imageInfo.type,
-            },
-            {
-                key: "transparency",
-                label: t.imageSizeChecker.transparency,
-                value: getTransparencyText(imageInfo),
-            },
+            { key: "width", label: t.imageSizeChecker.width, value: `${imageInfo.width}px` },
+            { key: "height", label: t.imageSizeChecker.height, value: `${imageInfo.height}px` },
+            { key: "ratio", label: t.imageSizeChecker.aspectRatio, value: imageInfo.ratio },
+            { key: "size", label: t.imageSizeChecker.fileSize, value: formatFileSize(imageInfo.size) },
+            { key: "format", label: t.imageSizeChecker.format, value: imageInfo.type },
+            { key: "transparency", label: t.imageSizeChecker.transparency, value: getTransparencyText(imageInfo) },
         ]
         : [];
 
     return (
         <div className="space-y-6">
             <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
-                <p className="font-semibold text-[#2A1F1B]">
-                    {t.common.localProcessing}
-                </p>
+                <p className="font-semibold text-[#2A1F1B]">{t.common.localProcessing}</p>
                 <p className="mt-2 text-sm leading-6 text-gray-600">
                     {t.imageSizeChecker.localProcessingDescription}
                 </p>
@@ -280,40 +216,32 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`block cursor-pointer rounded-[32px] border-2 border-dashed px-6 py-8 text-center transition md:px-8 md:py-10 ${isDragging
-                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                    : "border-[#F4C8BA] bg-[#FFF7F3]"
+                className={`block cursor-pointer rounded-3xl border-2 border-dashed px-6 py-5 text-center transition md:px-8 md:py-7 ${isDragging ? "border-[#F28C6F] bg-[#FFF0EA]" : "border-[#F4C8BA] bg-[#FFF7F3]"
                     }`}
             >
-                <h2 className="mx-auto mt-6 max-w-xl text-2xl font-semibold leading-tight text-[#2A1F1B] md:text-3xl">
+                <h2 className="mx-auto max-w-xl text-2xl font-semibold leading-tight text-[#2A1F1B] md:text-3xl">
                     {t.imageSizeChecker.uploadTitle}
                 </h2>
 
-                <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-gray-500 md:text-base">
+                <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-gray-500 md:text-base">
                     {t.imageSizeChecker.uploadDescription}
                 </p>
 
-                <p className="mx-auto mt-4 max-w-2xl text-xs font-medium leading-6 text-[#A17F74] md:text-sm">
+                <p className="mx-auto mt-2 max-w-2xl text-xs font-medium leading-6 text-[#A17F74] md:text-sm">
                     {t.imageSizeChecker.supportedFormats}
                 </p>
 
-                <div className="mt-7 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:px-8 md:py-3.5 md:text-base">
+                <div className="mt-6 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:px-8 md:py-3.5 md:text-base">
                     {t.imageSizeChecker.chooseImage}
                 </div>
 
-                <p className="mt-5 break-all text-sm text-gray-500">
+                <p className="mt-4 break-all text-sm text-gray-500">
                     {imageInfo?.name || t.imageSizeChecker.noFileSelected}
                 </p>
 
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                />
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
 
-                {error ? <p className="mt-4 text-sm text-red-500">{error}</p> : null}
+                {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
             </label>
 
             {imageInfo && (
@@ -331,7 +259,6 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
                                 </button>
                             }
                         />
-
                         <div className="mt-4 rounded-2xl bg-[#FFFDFC] p-3 md:p-4">
                             <div className="flex justify-center">
                                 <img
@@ -352,16 +279,12 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
                                     onClick={copyImageResult}
                                     className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                                 >
-                                    {copiedResult
-                                        ? t.common.copied
-                                        : t.imageSizeChecker.copyResult}
+                                    {copiedResult ? t.common.copied : t.imageSizeChecker.copyResult}
                                 </button>
                             }
                         />
 
-                        <p className="mt-2 text-xs text-gray-500">
-                            {t.imageSizeChecker.tapValueToCopy}
-                        </p>
+                        <p className="mt-2 text-xs text-gray-500">{t.imageSizeChecker.tapValueToCopy}</p>
 
                         <div className="mt-5 grid grid-cols-2 gap-3">
                             {infoCards.map((item) => (
@@ -376,9 +299,7 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
                                     </p>
 
                                     <p className="mt-2 break-all text-lg font-semibold text-[#2A1F1B] md:text-2xl md:font-bold">
-                                        {copiedItem === item.key
-                                            ? t.common.copied
-                                            : item.value}
+                                        {copiedItem === item.key ? t.common.copied : item.value}
                                     </p>
                                 </button>
                             ))}
