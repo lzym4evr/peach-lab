@@ -310,8 +310,8 @@ export default function ImageCompressorTool() {
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
                                 className={`mt-5 cursor-pointer rounded-3xl border border-dashed px-5 py-6 text-center transition md:px-6 md:py-7 ${isDragging
-                                        ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                        : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
+                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                     }`}
                             >
                                 <p className="text-lg font-semibold text-[#2A1F1B]">
@@ -486,42 +486,40 @@ export default function ImageCompressorTool() {
                     </section>
                 </div>
 
-                {originalFile ? (
-                    <div className="fixed inset-x-3 bottom-3 z-40 md:hidden">
-                        <div className="rounded-[30px] border border-[#F4C8BA] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur">
-                            <div className="grid grid-cols-4 gap-2">
-                                <ActionInfoItem
-                                    label={originalShort}
-                                    value={originalSizeText}
-                                />
+                <div className="fixed inset-x-3 bottom-3 z-40 md:hidden">
+                    <div className="rounded-[30px] border border-[#F4C8BA] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur">
+                        <div className="grid grid-cols-4 gap-2">
+                            <ActionInfoItem
+                                label={originalShort}
+                                value={originalFile ? originalSizeText : "-"}
+                            />
 
-                                <ActionInfoItem
-                                    label={compressedShort}
-                                    value={compressedSizeText}
-                                />
+                            <ActionInfoItem
+                                label={compressedShort}
+                                value={compressedBlob ? compressedSizeText : "-"}
+                            />
 
-                                <ActionInfoItem
-                                    label={text.saved}
-                                    value={savedText}
-                                />
+                            <ActionInfoItem
+                                label={text.saved}
+                                value={compressedBlob ? savedText : "0%"}
+                            />
 
-                                <button
-                                    type="button"
-                                    onClick={handleDownload}
-                                    disabled={!compressedBlob}
-                                    className="flex min-h-[76px] flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 text-center text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:bg-[#F8D9CF] disabled:text-white"
-                                >
-                                    <span className="text-sm font-semibold leading-5">
-                                        {downloadShort}
-                                    </span>
-                                    <span className="mt-1 text-[11px] leading-4 text-white/85">
-                                        {compressedBlob ? "Ready" : "Not ready"}
-                                    </span>
-                                </button>
-                            </div>
+                            <button
+                                type="button"
+                                onClick={handleDownload}
+                                disabled={!compressedBlob}
+                                className="flex min-h-[76px] flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 text-center text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:bg-[#F8D9CF] disabled:text-white"
+                            >
+                                <span className="text-sm font-semibold leading-5">
+                                    {downloadShort}
+                                </span>
+                                <span className="mt-1 text-[11px] leading-4 text-white/85">
+                                    {compressedBlob ? "Ready" : "Not ready"}
+                                </span>
+                            </button>
                         </div>
                     </div>
-                ) : null}
+                </div>
 
                 <style jsx global>{`
                     @media (max-width: 767px) {
