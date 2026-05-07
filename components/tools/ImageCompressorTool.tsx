@@ -690,12 +690,15 @@ function CompareViewer({
     }
 
     function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
+        event.preventDefault();
         event.currentTarget.setPointerCapture(event.pointerId);
         updatePosition(event.clientX);
     }
 
     function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
         if (event.buttons !== 1) return;
+
+        event.preventDefault();
         updatePosition(event.clientX);
     }
 
@@ -706,7 +709,7 @@ function CompareViewer({
 
     return (
         <div
-            className="fixed inset-0 z-[70] bg-black/75 p-4"
+            className="fixed inset-0 z-[70] select-none bg-black/75 p-4"
             onClick={onClose}
         >
             <button
@@ -719,10 +722,10 @@ function CompareViewer({
 
             <div className="flex h-full items-center justify-center">
                 <div
-                    className="w-full max-w-5xl"
+                    className="w-full max-w-5xl select-none"
                     onClick={(event) => event.stopPropagation()}
                 >
-                    <div className="mb-4 text-center">
+                    <div className="mb-4 select-none text-center">
                         <h3 className="text-lg font-semibold text-white">
                             {title}
                         </h3>
@@ -740,23 +743,27 @@ function CompareViewer({
                         aria-valuenow={Math.round(position)}
                         onPointerDown={handlePointerDown}
                         onPointerMove={handlePointerMove}
-                        className="relative mx-auto w-full touch-none overflow-hidden rounded-3xl bg-white/10 p-2 md:p-4"
+                        className="relative mx-auto w-full cursor-ew-resize touch-none select-none overflow-hidden rounded-3xl bg-white/10 p-2 md:p-4"
                     >
                         <div
-                            className="relative mx-auto max-h-[78vh] max-w-full overflow-hidden rounded-2xl bg-black/20"
-                            style={{ aspectRatio }}
+                            className="relative mx-auto max-h-[78vh] max-w-full select-none overflow-hidden rounded-2xl bg-black/20"
+                            style={{
+                                aspectRatio,
+                                WebkitUserSelect: "none",
+                                userSelect: "none",
+                            }}
                         >
                             <img
                                 src={compressedUrl}
                                 alt={compressedLabel}
-                                className="absolute inset-0 h-full w-full object-contain"
+                                className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
                                 draggable={false}
                             />
 
                             <img
                                 src={originalUrl}
                                 alt={originalLabel}
-                                className="absolute inset-0 h-full w-full object-contain"
+                                className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
                                 style={{
                                     clipPath: `inset(0 ${100 - position}% 0 0)`,
                                 }}
@@ -764,22 +771,22 @@ function CompareViewer({
                             />
 
                             <div
-                                className="absolute inset-y-0 w-[3px] -translate-x-1/2 bg-white shadow-[0_0_0_1px_rgba(42,31,27,0.15)]"
+                                className="pointer-events-none absolute inset-y-0 w-[3px] -translate-x-1/2 bg-white shadow-[0_0_0_1px_rgba(42,31,27,0.15)]"
                                 style={{ left: `${position}%` }}
                             />
 
                             <div
-                                className="absolute top-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-sm font-bold text-[#F28C6F] shadow-md"
+                                className="pointer-events-none absolute top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-lg font-bold leading-none text-[#F28C6F] shadow-md md:h-16 md:w-16 md:text-xl"
                                 style={{ left: `${position}%` }}
                             >
                                 ↔
                             </div>
 
-                            <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
+                            <span className="pointer-events-none absolute left-3 top-3 select-none rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
                                 {originalLabel}
                             </span>
 
-                            <span className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
+                            <span className="pointer-events-none absolute right-3 top-3 select-none rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
                                 {compressedLabel}
                             </span>
                         </div>
