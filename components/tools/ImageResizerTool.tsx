@@ -1,6 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import {
+    type ChangeEvent,
+    type DragEvent,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import SectionTitle from "@/components/ui/SectionTitle";
 import { t } from "@/data/messages";
 
@@ -21,6 +27,7 @@ type OutputInfo = {
 
 export default function ImageResizerTool() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const [imageInfo, setImageInfo] = useState<ImageInfo | null>(null);
     const [outputInfo, setOutputInfo] = useState<OutputInfo | null>(null);
@@ -31,6 +38,18 @@ export default function ImageResizerTool() {
     const [quality, setQuality] = useState(90);
     const [error, setError] = useState("");
     const [isDragging, setIsDragging] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            if (imageInfo?.previewUrl) {
+                URL.revokeObjectURL(imageInfo.previewUrl);
+            }
+
+            if (outputInfo?.previewUrl) {
+                URL.revokeObjectURL(outputInfo.previewUrl);
+            }
+        };
+    }, [imageInfo?.previewUrl, outputInfo?.previewUrl]);
 
     function processFile(file: File) {
         setError("");
@@ -55,7 +74,7 @@ export default function ImageResizerTool() {
         image.onload = () => {
             setImageInfo({
                 name: file.name,
-                type: file.type,
+                type: file.type || "image/*",
                 width: image.naturalWidth,
                 height: image.naturalHeight,
                 previewUrl,
@@ -73,24 +92,25 @@ export default function ImageResizerTool() {
         image.src = previewUrl;
     }
 
-    function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
         if (!file) return;
 
         processFile(file);
+        event.target.value = "";
     }
 
-    function handleDragOver(event: React.DragEvent<HTMLLabelElement>) {
+    function handleDragOver(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(true);
     }
 
-    function handleDragLeave(event: React.DragEvent<HTMLLabelElement>) {
+    function handleDragLeave(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
     }
 
-    function handleDrop(event: React.DragEvent<HTMLLabelElement>) {
+    function handleDrop(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
 
@@ -101,25 +121,35 @@ export default function ImageResizerTool() {
     }
 
     function handleWidthChange(value: number) {
+        if (!Number.isFinite(value) || value <= 0) {
+            setNewWidth(0);
+            return;
+        }
+
         setNewWidth(value);
 
         if (lockRatio && imageInfo && imageInfo.width > 0) {
             const ratio = imageInfo.height / imageInfo.width;
-            setNewHeight(Math.round(value * ratio));
+            setNewHeight(Math.max(1, Math.round(value * ratio)));
         }
     }
 
     function handleHeightChange(value: number) {
+        if (!Number.isFinite(value) || value <= 0) {
+            setNewHeight(0);
+            return;
+        }
+
         setNewHeight(value);
 
         if (lockRatio && imageInfo && imageInfo.height > 0) {
             const ratio = imageInfo.width / imageInfo.height;
-            setNewWidth(Math.round(value * ratio));
+            setNewWidth(Math.max(1, Math.round(value * ratio)));
         }
     }
 
     function resizeImage() {
-        if (!imageInfo) return;
+        if (!imageInfo || newWidth <= 0 || newHeight <= 0) return;
 
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -194,7 +224,36 @@ export default function ImageResizerTool() {
         setNewHeight(0);
         setError("");
         setIsDragging(false);
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
     }
+
+    const canResize = !!imageInfo && newWidth > 0 && newHeight > 0;
+
+    const uploadTitle =
+        t.imageResizer.uploadTitle ?? "Drag and drop an image here";
+
+    const uploadDescription =
+        t.imageResizer.uploadDescription ??
+        "Or click to upload. Resize your image by width and height. Your image is processed locally in your browser.";
+
+    const supportedFormats =
+        (t.imageResizer as Record<string, string>).supportedFormats ??
+        "Supports JPG, PNG, WebP, and common mobile image formats.";
+
+    const noFileSelected =
+        (t.common as Record<string, string>).noFileSelected ??
+        "No file selected";
+
+    const originalSizeLabel =
+        (t.imageResizer as Record<string, string>).originalSize ??
+        "Original size";
+
+    const resizeSettingsTitle =
+        (t.imageResizer as Record<string, string>).resizeSettings ??
+        "Resize Settings";
 
     return (
         <div className="space-y-6">
@@ -202,26 +261,37 @@ export default function ImageResizerTool() {
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`block cursor-pointer rounded-3xl border-2 border-dashed p-8 text-center transition ${isDragging
-                        ? "border-[#F28C6F] bg-[#FFF0EA]"
-                        : "border-[#F4C8BA] bg-[#FFF7F3]"
+                className={`block cursor-pointer rounded-3xl border-2 border-dashed px-6 py-8 text-center transition md:px-8 ${isDragging
+                    ? "border-[#F28C6F] bg-[#FFF0EA]"
+                    : "border-[#F4C8BA] bg-[#FFF7F3]"
                     }`}
             >
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-3xl shadow-sm">
                     ↔️
                 </div>
 
-                <h2 className="text-xl font-semibold">{t.imageResizer.uploadTitle}</h2>
+                <h2 className="text-xl font-semibold text-[#2A1F1B]">
+                    {uploadTitle}
+                </h2>
 
-                <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-gray-500">
-                    {t.imageResizer.uploadDescription}
+                <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-gray-500">
+                    {uploadDescription}
                 </p>
 
-                <div className="mt-6 inline-flex rounded-xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]">
+                <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-gray-500">
+                    {supportedFormats}
+                </p>
+
+                <div className="mt-6 inline-flex rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]">
                     {t.imageResizer.chooseImage}
                 </div>
 
+                <p className="mt-4 text-sm text-gray-500">
+                    {imageInfo?.name || noFileSelected}
+                </p>
+
                 <input
+                    ref={fileInputRef}
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
@@ -232,92 +302,118 @@ export default function ImageResizerTool() {
             </label>
 
             {imageInfo && (
-                <div className="grid gap-6 lg:grid-cols-2">
-                    <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                        <SectionTitle
-                            title={t.imageResizer.originalImage}
-                            right={
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                    <div className="space-y-6">
+                        <div className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                            <div className="flex items-center justify-between gap-4">
+                                <SectionTitle title={t.imageResizer.originalImage} />
+
                                 <button
+                                    type="button"
                                     onClick={clearImage}
-                                    className="rounded-xl border border-[#F1E5DF] px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F]"
+                                    className="rounded-2xl border border-[#F1E5DF] bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
                                 >
                                     {t.common.clear}
                                 </button>
-                            }
-                        />
+                            </div>
 
-                        <div className="mt-4 flex min-h-80 items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-4">
-                            <img
-                                src={imageInfo.previewUrl}
-                                alt={imageInfo.name}
-                                className="max-h-80 max-w-full rounded-xl object-contain"
-                            />
+                            <div className="mt-4 rounded-2xl bg-[#FFFDFC] p-3 md:p-4">
+                                <div className="flex justify-center">
+                                    <img
+                                        src={imageInfo.previewUrl}
+                                        alt={imageInfo.name}
+                                        className="max-h-[360px] w-auto max-w-full rounded-xl object-contain"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="mt-4 space-y-1 text-sm text-gray-500">
+                                <p className="break-all">{imageInfo.name}</p>
+                                <p>
+                                    {originalSizeLabel}: {imageInfo.width}px ×{" "}
+                                    {imageInfo.height}px
+                                </p>
+                            </div>
                         </div>
 
-                        <div className="mt-4 space-y-1 text-sm text-gray-500">
-                            <p className="break-all">{imageInfo.name}</p>
-                            <p>
-                                {t.imageResizer.originalSize}: {imageInfo.width}px ×{" "}
-                                {imageInfo.height}px
-                            </p>
-                        </div>
+                        {outputInfo && (
+                            <div className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                                <SectionTitle title={t.imageResizer.resizedOutput} />
+
+                                <div className="mt-4 rounded-2xl bg-[#FFFDFC] p-3 md:p-4">
+                                    <div className="flex justify-center">
+                                        <img
+                                            src={outputInfo.previewUrl}
+                                            alt={t.imageResizer.resizedOutput}
+                                            className="max-h-[360px] w-auto max-w-full rounded-xl object-contain"
+                                        />
+                                    </div>
+                                </div>
+
+                                <p className="mt-4 text-sm text-gray-500">
+                                    {outputInfo.width}px × {outputInfo.height}px
+                                </p>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                        <SectionTitle title={t.imageResizer.resizedOutput} />
+                    <div className="space-y-6">
+                        <div className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                            <SectionTitle title={resizeSettingsTitle} />
 
-                        <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                            <div>
-                                <label className="mb-2 block text-sm font-semibold text-gray-800">
-                                    {t.imageResizer.newWidth}
-                                </label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={newWidth}
-                                    onChange={(event) =>
-                                        handleWidthChange(Number(event.target.value))
-                                    }
-                                    className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                                />
+                            <div className="mt-4 grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
+                                        {t.imageResizer.newWidth}
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        value={newWidth || ""}
+                                        onChange={(event) =>
+                                            handleWidthChange(Number(event.target.value))
+                                        }
+                                        className="h-12 w-full rounded-2xl border border-[#F1E5DF] bg-white px-4 text-sm text-[#2A1F1B] outline-none transition focus:border-[#F28C6F]"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
+                                        {t.imageResizer.newHeight}
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        value={newHeight || ""}
+                                        onChange={(event) =>
+                                            handleHeightChange(Number(event.target.value))
+                                        }
+                                        className="h-12 w-full rounded-2xl border border-[#F1E5DF] bg-white px-4 text-sm text-[#2A1F1B] outline-none transition focus:border-[#F28C6F]"
+                                    />
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="mb-2 block text-sm font-semibold text-gray-800">
-                                    {t.imageResizer.newHeight}
-                                </label>
+                            <label className="mt-4 flex items-center gap-3 text-sm text-[#2A1F1B]">
                                 <input
-                                    type="number"
-                                    min="1"
-                                    value={newHeight}
-                                    onChange={(event) =>
-                                        handleHeightChange(Number(event.target.value))
-                                    }
-                                    className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                                    type="checkbox"
+                                    checked={lockRatio}
+                                    onChange={(event) => setLockRatio(event.target.checked)}
+                                    className="h-4 w-4 rounded border-[#F4C8BA] text-[#F28C6F] focus:ring-[#F28C6F]"
                                 />
-                            </div>
-                        </div>
+                                <span>{t.imageResizer.lockAspectRatio}</span>
+                            </label>
 
-                        <label className="mt-4 flex items-center gap-2 text-sm font-semibold text-gray-800">
-                            <input
-                                type="checkbox"
-                                checked={lockRatio}
-                                onChange={(event) => setLockRatio(event.target.checked)}
-                                className="h-4 w-4 accent-[#F28C6F]"
-                            />
-                            {t.imageResizer.lockAspectRatio}
-                        </label>
-
-                        <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                            <div>
-                                <label className="mb-2 block text-sm font-semibold text-gray-800">
+                            <div className="mt-4">
+                                <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
                                     {t.imageResizer.outputFormat}
                                 </label>
 
                                 <select
                                     value={outputFormat}
-                                    onChange={(event) => setOutputFormat(event.target.value)}
-                                    className="h-12 w-full rounded-xl border border-[#F1E5DF] bg-white px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                                    onChange={(event) =>
+                                        setOutputFormat(event.target.value)
+                                    }
+                                    className="h-12 w-full rounded-2xl border border-[#F1E5DF] bg-white px-4 text-sm text-[#2A1F1B] outline-none transition focus:border-[#F28C6F]"
                                 >
                                     <option value="image/png">PNG</option>
                                     <option value="image/jpeg">JPEG</option>
@@ -325,73 +421,63 @@ export default function ImageResizerTool() {
                                 </select>
                             </div>
 
-                            <div>
-                                <label className="mb-2 block text-sm font-semibold text-gray-800">
-                                    {t.imageResizer.quality}: {quality}%
-                                </label>
+                            <div className="mt-4">
+                                <div className="mb-2 flex items-center justify-between gap-3">
+                                    <label className="text-sm font-medium text-[#2A1F1B]">
+                                        {t.imageResizer.quality}
+                                    </label>
+                                    <span className="text-sm text-gray-500">{quality}%</span>
+                                </div>
 
                                 <input
                                     type="range"
                                     min="10"
                                     max="100"
+                                    step="1"
                                     value={quality}
-                                    onChange={(event) => setQuality(Number(event.target.value))}
-                                    disabled={outputFormat === "image/png"}
-                                    className="w-full accent-[#F28C6F] disabled:opacity-40"
+                                    onChange={(event) =>
+                                        setQuality(Number(event.target.value))
+                                    }
+                                    className="block w-full accent-[#F28C6F]"
                                 />
                             </div>
-                        </div>
 
-                        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                            <button
-                                onClick={resizeImage}
-                                className="rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                            >
-                                {t.imageResizer.resizeImage}
-                            </button>
+                            <div className="mt-5 grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={resizeImage}
+                                    disabled={!canResize}
+                                    className={`rounded-2xl px-4 py-3 text-sm font-semibold shadow-sm transition ${canResize
+                                        ? "bg-[#F28C6F] text-white hover:bg-[#E6765B]"
+                                        : "cursor-not-allowed bg-[#F8D9CF] text-white"
+                                        }`}
+                                >
+                                    {t.imageResizer.resizeImage}
+                                </button>
 
-                            <button
-                                onClick={downloadImage}
-                                disabled={!outputInfo}
-                                className="rounded-xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40"
-                            >
-                                {t.imageResizer.downloadImage}
-                            </button>
-                        </div>
+                                <button
+                                    type="button"
+                                    onClick={downloadImage}
+                                    disabled={!outputInfo}
+                                    className={`rounded-2xl px-4 py-3 text-sm font-semibold shadow-sm transition ${outputInfo
+                                        ? "bg-[#F28C6F] text-white hover:bg-[#E6765B]"
+                                        : "cursor-not-allowed bg-[#F8D9CF] text-white"
+                                        }`}
+                                >
+                                    {t.imageResizer.downloadImage}
+                                </button>
+                            </div>
 
-                        <div className="mt-5 rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
-                            <p className="text-sm font-semibold text-gray-800">
-                                {t.common.localProcessing}
-                            </p>
-                            <p className="mt-2 text-sm leading-6 text-gray-500">
-                                {t.imageResizer.localProcessingDescription}
-                            </p>
+                            <div className="mt-5 rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
+                                <p className="font-semibold text-[#2A1F1B]">
+                                    {t.common.localProcessing}
+                                </p>
+                                <p className="mt-2 text-sm leading-6 text-gray-600">
+                                    {t.imageResizer.localProcessingDescription}
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {outputInfo && (
-                <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                    <SectionTitle title={t.imageResizer.resizedOutput} />
-
-                    <div className="mt-4 flex min-h-80 items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-4">
-                        <img
-                            src={outputInfo.previewUrl}
-                            alt={t.imageResizer.resizedOutput}
-                            className="max-h-80 max-w-full rounded-xl object-contain"
-                        />
-                    </div>
-
-                    <p className="mt-4 text-sm text-gray-500">
-                        {outputInfo.width}px × {outputInfo.height}px
-                    </p>
-                </div>
-            )}
-
-            {!outputInfo && imageInfo && (
-                <div className="rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-8 text-center text-sm text-gray-500">
-                    {t.imageResizer.noOutput}
                 </div>
             )}
 

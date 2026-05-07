@@ -448,20 +448,28 @@ export const messages = {
             uploadTitle: "Drag and drop an image here",
             uploadDescription:
                 "Or click to upload. Resize your image by width and height. Your image is processed locally in your browser.",
+            supportedFormats:
+                "Supports JPG, PNG, WebP, and common mobile image formats.",
+            noFileSelected: "No file selected",
             chooseImage: "Choose image",
+
             originalImage: "Original Image",
             resizedOutput: "Resized Output",
+            resizeSettings: "Resize Settings",
+
             originalSize: "Original size",
             newWidth: "New width",
             newHeight: "New height",
             lockAspectRatio: "Lock aspect ratio",
             outputFormat: "Output format",
             quality: "Quality",
+
             resizeImage: "Resize Image",
             downloadImage: "Download Image",
-            noOutput: "Resize the image to preview and download the result.",
+
             localProcessingDescription:
                 "This image is resized directly in your browser. It is not uploaded to a server.",
+
             invalidImage: "Please upload a valid image file.",
             readError: "Could not read this image. Please try another file.",
         },
