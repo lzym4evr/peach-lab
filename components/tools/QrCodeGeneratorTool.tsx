@@ -211,24 +211,24 @@ export default function QrCodeGeneratorTool() {
         <div className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
                 <div className="min-w-0 space-y-6">
-                    <section className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                    <section>
                         <div className="mb-5">
                             <h3 className="font-semibold text-gray-900">
                                 {text.previewTitle}
                             </h3>
 
-                            <p className="mt-2 max-w-[360px] text-sm leading-6 text-gray-500">
+                            <p className="mt-2 max-w-[420px] text-sm leading-6 text-gray-500">
                                 {text.previewDescription}
                             </p>
                         </div>
 
-                        <div className="flex min-h-[420px] items-center justify-center rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-8">
+                        <div className="mx-auto flex aspect-square w-full max-w-[520px] items-center justify-center rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 md:p-5">
                             {pngUrl ? (
-                                <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                                <div className="rounded-[28px] border border-[#F1E5DF] bg-white p-3 shadow-sm md:p-4">
                                     <img
                                         src={pngUrl}
                                         alt="Generated QR code"
-                                        className="h-auto max-h-[360px] w-full max-w-[360px] object-contain"
+                                        className="block h-auto w-full max-w-[260px] object-contain md:max-w-[320px]"
                                     />
                                 </div>
                             ) : (
@@ -241,7 +241,7 @@ export default function QrCodeGeneratorTool() {
                         </div>
                     </section>
 
-                    <section className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                    <section>
                         <div className="mb-4 flex items-center justify-between gap-4">
                             <h3 className="font-semibold text-gray-900">
                                 {text.outputTitle}
@@ -293,7 +293,7 @@ export default function QrCodeGeneratorTool() {
                     </section>
                 </div>
 
-                <section className="min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                <section className="min-w-0">
                     <h3 className="font-semibold text-gray-900">
                         {text.controlsTitle}
                     </h3>
