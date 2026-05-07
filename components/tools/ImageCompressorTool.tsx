@@ -1,12 +1,13 @@
 "use client";
 
 import {
-    ChangeEvent,
-    DragEvent,
+    type ChangeEvent,
+    type DragEvent,
     useMemo,
     useRef,
     useState,
 } from "react";
+import SectionTitle from "@/components/ui/SectionTitle";
 import { t } from "@/data/messages";
 
 type OutputFormat = "image/jpeg" | "image/png" | "image/webp";
@@ -232,18 +233,19 @@ export default function ImageCompressorTool() {
 
     return (
         <div className="space-y-6">
-            <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm text-[#7A5A4F]">
+            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm text-[#7A5A4F]">
                 {text.localProcessing}
             </div>
 
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
                 <div className="min-w-0">
-                    <section className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                    <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                         <div className="mb-5 flex items-start justify-between gap-4">
-                            <div>
-                                <h3 className="font-semibold text-gray-900">
-                                    {text.uploadTitle}
-                                </h3>
+                            <div className="min-w-0">
+                                <SectionTitle
+                                    title={text.uploadTitle}
+                                    titleClassName="text-base md:text-lg"
+                                />
 
                                 <p className="mt-2 max-w-[360px] text-sm leading-6 text-gray-500">
                                     {text.uploadDescription}
@@ -311,25 +313,21 @@ export default function ImageCompressorTool() {
                                 />
                             </div>
                         ) : (
-                            <div className="flex min-h-[300px] items-center justify-center rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-8 text-center">
-                                <div>
-                                    <h4 className="text-lg font-semibold text-gray-900">
-                                        {text.emptyTitle}
-                                    </h4>
+                            <div className="rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center md:p-8">
+                                <h4 className="text-lg font-semibold text-gray-900">
+                                    {text.emptyTitle}
+                                </h4>
 
-                                    <p className="mt-2 max-w-sm text-sm leading-6 text-gray-500">
-                                        {text.emptyDescription}
-                                    </p>
-                                </div>
+                                <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-gray-500">
+                                    {text.emptyDescription}
+                                </p>
                             </div>
                         )}
                     </section>
                 </div>
 
-                <section className="min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                    <h3 className="font-semibold text-gray-900">
-                        {text.controlsTitle}
-                    </h3>
+                <section className="min-w-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                    <SectionTitle title={text.controlsTitle} />
 
                     <div className="mt-5 space-y-5">
                         <RangeInput
@@ -376,9 +374,7 @@ export default function ImageCompressorTool() {
                     </div>
 
                     <div className="mt-8 border-t border-[#F1E5DF] pt-6">
-                        <h3 className="font-semibold text-gray-900">
-                            {text.outputTitle}
-                        </h3>
+                        <SectionTitle title={text.outputTitle} />
 
                         <div className="mt-4 grid grid-cols-1 gap-3">
                             <InfoBox
@@ -433,7 +429,10 @@ function ImagePreviewCard({
     return (
         <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
-                <h4 className="text-sm font-semibold text-gray-900">{title}</h4>
+                <SectionTitle
+                    title={title}
+                    titleClassName="text-sm md:text-sm"
+                />
 
                 <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
                     {size}
@@ -441,15 +440,17 @@ function ImagePreviewCard({
             </div>
 
             {imageUrl ? (
-                <div className="flex min-h-[220px] items-center justify-center overflow-hidden rounded-2xl bg-[#FFF7F3]">
-                    <img
-                        src={imageUrl}
-                        alt={title}
-                        className="max-h-[320px] w-full object-contain"
-                    />
+                <div className="rounded-2xl bg-[#FFF7F3] p-3">
+                    <div className="flex justify-center">
+                        <img
+                            src={imageUrl}
+                            alt={title}
+                            className="max-h-[280px] w-auto max-w-full rounded-xl object-contain"
+                        />
+                    </div>
                 </div>
             ) : (
-                <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center">
+                <div className="rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center">
                     <p className="text-sm leading-6 text-gray-500">{emptyText}</p>
                 </div>
             )}
