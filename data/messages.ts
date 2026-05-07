@@ -475,67 +475,54 @@ export const messages = {
         },
 
         imageCompressor: {
+            // Local processing notice
             localProcessing:
                 "Local processing: your image is compressed in your browser. No files are uploaded.",
 
+            // Upload area
             uploadTitle: "Upload Image",
-            uploadDescription:
-                "Choose a JPG, PNG, or WebP image to compress locally.",
-            supportedFormats:
-                "Supports JPG, PNG, WebP, and common mobile image formats.",
-
+            uploadDescription: "Choose a JPG, PNG, or WebP image to compress locally.",
+            supportedFormats: "Supports JPG, PNG, WebP, and common mobile image formats.",
             uploadButton: "Choose Image",
             changeImage: "Change Image",
             noFileSelected: "No file selected",
-
             dropTitle: "Drag and drop an image here",
-            dropHint: "Choose an image to compress locally.",
-
+            dropHint: "Or click to choose a file.",
             emptyTitle: "No image selected",
             emptyDescription: "Upload an image to preview and compress it.",
             waitingCompress: "Click Compress to preview the compressed result.",
 
+            // Controls / settings
             settingsTitle: "Compress Settings",
             controlsTitle: "Controls",
             outputTitle: "Compressed Result",
-
             qualityLabel: "Quality",
             formatLabel: "Output Format",
-
             compress: "Compress",
             download: "Download",
-            compare: "Compare",
             compressImage: "Compress Image",
             downloadImage: "Download Image",
-
             processing: "Compressing...",
             ready: "Image compressed successfully.",
 
+            // Image labels and info
             originalImage: "Original Image",
             compressedImage: "Compressed Image",
-
-            originalLabel: "Original",
-            newLabel: "New",
+            originalSize: "Original Size",
+            compressedSize: "Compressed Size",
             saved: "Saved",
 
-            originalSize: "Original Size",
-            compressedSize: "New Size",
-
+            // Compare / Before-After viewer
+            compare: "Compare",
             beforeAfterTitle: "Before After Compare",
-            beforeAfterDescription:
-                "Drag the slider to compare the original and compressed image.",
+            beforeAfterDescription: "Drag the center handle to compare image quality.",
+            close: "Close",
             actionBarHint: "Tap values to preview and compare.",
 
-            readyStatus: "Ready",
-            notReadyStatus: "Not ready",
-
-            close: "Close",
-            preview: "Preview",
-
+            // Errors
             noFileError: "Please upload an image first.",
             loadError: "Could not load this image. Please try another file.",
-            compressError:
-                "Compression failed. Please try a different format or image.",
+            compressError: "Compression failed. Please try a different format or image.",
         },
 
         qrCodeGenerator: {
