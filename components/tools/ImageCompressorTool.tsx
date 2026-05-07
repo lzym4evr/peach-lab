@@ -4,6 +4,7 @@ import {
     type ChangeEvent,
     type DragEvent,
     type PointerEvent,
+    useEffect,
     useMemo,
     useRef,
     useState,
@@ -83,6 +84,18 @@ export default function ImageCompressorTool() {
 
         return Math.max(percent, 0);
     }, [originalFile, compressedBlob]);
+
+    useEffect(() => {
+        return () => {
+            if (originalUrl) {
+                URL.revokeObjectURL(originalUrl);
+            }
+
+            if (compressedUrl) {
+                URL.revokeObjectURL(compressedUrl);
+            }
+        };
+    }, [originalUrl, compressedUrl]);
 
     function clearCompressedResult() {
         if (compressedUrl) {
@@ -279,8 +292,8 @@ export default function ImageCompressorTool() {
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
                                 className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                                        ? "border-[#F28C6F] bg-[#FFF0EA]"
+                                        : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                     }`}
                             >
                                 <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
@@ -293,10 +306,6 @@ export default function ImageCompressorTool() {
 
                                 <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
                                     {text.supportedFormats}
-                                </p>
-
-                                <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-gray-500 md:mt-5">
-                                    {text.dropHint}
                                 </p>
 
                                 <div className="mx-auto mt-4 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:mt-5">
@@ -324,6 +333,7 @@ export default function ImageCompressorTool() {
                                     imageUrl={originalUrl}
                                     size={originalFile ? formatBytes(originalFile.size) : "-"}
                                     info={originalInfo}
+                                    previewText={text.preview}
                                     onPreview={openOriginalPreview}
                                 />
 
@@ -337,6 +347,7 @@ export default function ImageCompressorTool() {
                                             ? text.emptyDescription
                                             : text.waitingCompress
                                     }
+                                    previewText={text.preview}
                                     onPreview={openCompressedPreview}
                                 />
                             </div>
@@ -354,7 +365,7 @@ export default function ImageCompressorTool() {
                     </div>
 
                     <section className="min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                        <SectionTitle title={text.settingsTitle || text.controlsTitle} />
+                        <SectionTitle title={text.settingsTitle} />
 
                         <div className="mt-5 space-y-5">
                             <RangeInput
@@ -408,7 +419,7 @@ export default function ImageCompressorTool() {
                             ) : null}
                         </div>
 
-                        <div className="mt-8 border-t border-[#F1E5DF] pt-6">
+                        <div className="mt-8 hidden border-t border-[#F1E5DF] pt-6 lg:block">
                             <SectionTitle title={text.outputTitle} />
 
                             <div className="mt-4 grid grid-cols-3 gap-3">
@@ -432,7 +443,7 @@ export default function ImageCompressorTool() {
                                     disabled={!compressedUrl}
                                     className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
                                 >
-                                    {text.compare || "Compare"}
+                                    {text.compare}
                                 </button>
 
                                 <button
@@ -464,6 +475,7 @@ export default function ImageCompressorTool() {
                 <ImageViewer
                     title={viewer.title}
                     url={viewer.url}
+                    closeText={text.close}
                     onClose={() => setViewer(null)}
                 />
             ) : null}
@@ -472,8 +484,8 @@ export default function ImageCompressorTool() {
                 <CompareViewer
                     originalUrl={originalUrl}
                     compressedUrl={compressedUrl}
-                    originalLabel={text.originalImage}
-                    compressedLabel={text.compressedImage}
+                    originalLabel={text.originalLabel}
+                    compressedLabel={text.newLabel}
                     title={text.beforeAfterTitle}
                     description={text.beforeAfterDescription}
                     closeText={text.close}
@@ -501,6 +513,7 @@ function ImagePreviewCard({
     size,
     info,
     emptyText,
+    previewText,
     onPreview,
 }: {
     title: string;
@@ -508,6 +521,7 @@ function ImagePreviewCard({
     size: string;
     info: ImageInfo | null;
     emptyText?: string;
+    previewText: string;
     onPreview?: () => void;
 }) {
     return (
@@ -534,7 +548,7 @@ function ImagePreviewCard({
                         />
 
                         <span className="absolute right-2 top-2 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
-                            Preview
+                            {previewText}
                         </span>
                     </div>
                 </button>
@@ -626,14 +640,13 @@ function MobileActionBar({
 }) {
     const actionBarRef = useRef<HTMLDivElement | null>(null);
 
-    useMemo(() => {
-        if (typeof window === "undefined") return;
-
+    useEffect(() => {
         const updateSpace = () => {
             const element = actionBarRef.current;
             if (!element) return;
 
             const rect = element.getBoundingClientRect();
+
             document.documentElement.style.setProperty(
                 "--mobile-action-bar-space",
                 `${Math.ceil(rect.height + 28)}px`
@@ -657,7 +670,7 @@ function MobileActionBar({
                 className="pointer-events-auto mx-auto max-w-md rounded-[30px] border border-[#F4C8BA] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
             >
                 <p className="mb-2 text-center text-xs font-medium text-[#9C7B70]">
-                    {text.actionBarHint || "Tap values to preview and compare."}
+                    {text.actionBarHint}
                 </p>
 
                 <div className="grid grid-cols-4 gap-2">
@@ -667,7 +680,7 @@ function MobileActionBar({
                         className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center"
                     >
                         <span className="block text-xs font-medium text-[#9C7B70]">
-                            Original
+                            {text.originalLabel}
                         </span>
                         <span className="mt-1 block text-sm font-semibold text-[#2A1F1B]">
                             {originalSize}
@@ -681,7 +694,7 @@ function MobileActionBar({
                         className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center disabled:opacity-45"
                     >
                         <span className="block text-xs font-medium text-[#9C7B70]">
-                            Compressed
+                            {text.newLabel}
                         </span>
                         <span className="mt-1 block text-sm font-semibold text-[#2A1F1B]">
                             {compressedSize}
@@ -690,7 +703,7 @@ function MobileActionBar({
 
                     <div className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center">
                         <span className="block text-xs font-medium text-[#9C7B70]">
-                            Saved
+                            {text.saved}
                         </span>
                         <span className="mt-1 block text-sm font-semibold text-[#2A1F1B]">
                             {savedPercent}%
@@ -707,7 +720,7 @@ function MobileActionBar({
                             {text.download}
                         </span>
                         <span className="mt-1 block text-xs text-white/85">
-                            {canDownload ? "Ready" : "Not ready"}
+                            {canDownload ? text.readyStatus : text.notReadyStatus}
                         </span>
                     </button>
                 </div>
@@ -719,10 +732,12 @@ function MobileActionBar({
 function ImageViewer({
     title,
     url,
+    closeText,
     onClose,
 }: {
     title: string;
     url: string;
+    closeText: string;
     onClose: () => void;
 }) {
     return (
@@ -735,7 +750,7 @@ function ImageViewer({
                 onClick={onClose}
                 className="absolute right-4 top-4 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#2A1F1B] shadow-sm"
             >
-                Close
+                {closeText}
             </button>
 
             <div className="flex h-full items-center justify-center">
