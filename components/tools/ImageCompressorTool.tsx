@@ -3,6 +3,7 @@
 import {
     type ChangeEvent,
     type DragEvent,
+    type PointerEvent,
     useEffect,
     useMemo,
     useRef,
@@ -63,6 +64,8 @@ function getShortLabel(label: string) {
 export default function ImageCompressorTool() {
     const text = t.imageCompressor;
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const originalUrlRef = useRef("");
+    const compressedUrlRef = useRef("");
 
     const [originalFile, setOriginalFile] = useState<File | null>(null);
     const [originalUrl, setOriginalUrl] = useState("");
@@ -95,25 +98,26 @@ export default function ImageCompressorTool() {
 
     const originalShort = getShortLabel(text.originalSize);
     const compressedShort = getShortLabel(text.compressedSize);
-    const downloadShort = getShortLabel(text.download ?? text.downloadImage);
+    const downloadShort = getShortLabel(text.downloadImage);
 
     useEffect(() => {
         return () => {
-            if (originalUrl) {
-                URL.revokeObjectURL(originalUrl);
+            if (originalUrlRef.current) {
+                URL.revokeObjectURL(originalUrlRef.current);
             }
 
-            if (compressedUrl) {
-                URL.revokeObjectURL(compressedUrl);
+            if (compressedUrlRef.current) {
+                URL.revokeObjectURL(compressedUrlRef.current);
             }
         };
-    }, [originalUrl, compressedUrl]);
+    }, []);
 
     function clearCompressedResult() {
-        if (compressedUrl) {
-            URL.revokeObjectURL(compressedUrl);
+        if (compressedUrlRef.current) {
+            URL.revokeObjectURL(compressedUrlRef.current);
         }
 
+        compressedUrlRef.current = "";
         setCompressedUrl("");
         setCompressedBlob(null);
         setCompressedInfo(null);
@@ -126,13 +130,14 @@ export default function ImageCompressorTool() {
             return;
         }
 
-        if (originalUrl) {
-            URL.revokeObjectURL(originalUrl);
+        if (originalUrlRef.current) {
+            URL.revokeObjectURL(originalUrlRef.current);
         }
 
         clearCompressedResult();
 
         const nextUrl = URL.createObjectURL(file);
+        originalUrlRef.current = nextUrl;
 
         setOriginalFile(file);
         setOriginalUrl(nextUrl);
@@ -228,6 +233,7 @@ export default function ImageCompressorTool() {
                         clearCompressedResult();
 
                         const nextCompressedUrl = URL.createObjectURL(blob);
+                        compressedUrlRef.current = nextCompressedUrl;
 
                         setCompressedUrl(nextCompressedUrl);
                         setCompressedBlob(blob);
@@ -283,11 +289,9 @@ export default function ImageCompressorTool() {
                                 {text.uploadDescription}
                             </p>
 
-                            {text.supportedFormats ? (
-                                <p className="mt-2 text-xs font-medium leading-6 text-[#A17F74] md:text-sm">
-                                    {text.supportedFormats}
-                                </p>
-                            ) : null}
+                            <p className="mt-2 text-xs font-medium leading-6 text-[#A17F74] md:text-sm">
+                                {text.supportedFormats}
+                            </p>
 
                             <input
                                 ref={fileInputRef}
@@ -310,20 +314,16 @@ export default function ImageCompressorTool() {
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
                                 className={`mt-5 cursor-pointer rounded-3xl border border-dashed px-5 py-6 text-center transition md:px-6 md:py-7 ${isDragging
-                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                                        ? "border-[#F28C6F] bg-[#FFF0EA]"
+                                        : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                     }`}
                             >
                                 <p className="text-lg font-semibold text-[#2A1F1B]">
-                                    {originalFile
-                                        ? text.changeImage
-                                        : text.dropTitle ?? "Drag and drop an image here"}
+                                    {originalFile ? text.changeImage : text.dropTitle}
                                 </p>
 
                                 <p className="mx-auto mt-2 max-w-md break-all text-sm leading-6 text-gray-500">
-                                    {originalFile
-                                        ? originalFile.name
-                                        : text.dropHint}
+                                    {originalFile ? originalFile.name : text.dropHint}
                                 </p>
 
                                 <div className="mt-5 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]">
@@ -356,10 +356,7 @@ export default function ImageCompressorTool() {
                                     imageUrl={compressedUrl}
                                     size={compressedSizeText}
                                     info={compressedInfo}
-                                    emptyText={
-                                        text.waitingCompress ??
-                                        "Click Compress to preview the compressed result."
-                                    }
+                                    emptyText={text.waitingCompress}
                                     onPreview={() => {
                                         if (!compressedUrl) return;
 
@@ -381,11 +378,32 @@ export default function ImageCompressorTool() {
                                 </p>
                             </div>
                         )}
+
+                        {originalUrl && compressedUrl ? (
+                            <BeforeAfterCompare
+                                originalUrl={originalUrl}
+                                compressedUrl={compressedUrl}
+                                originalLabel={text.originalImage}
+                                compressedLabel={text.compressedImage}
+                                onOriginalPreview={() =>
+                                    setViewer({
+                                        title: text.originalImage,
+                                        url: originalUrl,
+                                    })
+                                }
+                                onCompressedPreview={() =>
+                                    setViewer({
+                                        title: text.compressedImage,
+                                        url: compressedUrl,
+                                    })
+                                }
+                            />
+                        ) : null}
                     </div>
 
                     <section className="min-w-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                         <SectionTitle
-                            title={text.settingsTitle ?? text.controlsTitle}
+                            title={text.settingsTitle}
                             titleClassName="text-xl md:text-2xl"
                         />
 
@@ -431,15 +449,15 @@ export default function ImageCompressorTool() {
                                 disabled={isProcessing}
                                 className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                                {isProcessing
-                                    ? text.processing
-                                    : text.compress ?? text.compressImage}
+                                {isProcessing ? text.processing : text.compressImage}
                             </button>
 
                             {(status || error) ? (
                                 <div className="space-y-2">
                                     {status ? (
-                                        <p className="text-sm text-[#7A5A4F]">{status}</p>
+                                        <p className="text-sm text-[#7A5A4F]">
+                                            {status}
+                                        </p>
                                     ) : null}
 
                                     {error ? (
@@ -468,10 +486,7 @@ export default function ImageCompressorTool() {
                                     value={compressedSizeText}
                                 />
 
-                                <InfoBox
-                                    label={text.saved}
-                                    value={savedText}
-                                />
+                                <InfoBox label={text.saved} value={savedText} />
                             </div>
 
                             <button
@@ -480,7 +495,7 @@ export default function ImageCompressorTool() {
                                 disabled={!compressedBlob}
                                 className="mt-5 w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                {text.download ?? text.downloadImage}
+                                {text.downloadImage}
                             </button>
                         </div>
                     </section>
@@ -524,7 +539,9 @@ export default function ImageCompressorTool() {
                 <style jsx global>{`
                     @media (max-width: 767px) {
                         footer {
-                            padding-bottom: calc(118px + env(safe-area-inset-bottom, 0px)) !important;
+                            padding-bottom: calc(
+                                118px + env(safe-area-inset-bottom, 0px)
+                            ) !important;
                         }
                     }
                 `}</style>
@@ -600,6 +617,132 @@ function ImagePreviewCard({
                     {info.width} × {info.height}px
                 </p>
             ) : null}
+        </div>
+    );
+}
+
+function BeforeAfterCompare({
+    originalUrl,
+    compressedUrl,
+    originalLabel,
+    compressedLabel,
+    onOriginalPreview,
+    onCompressedPreview,
+}: {
+    originalUrl: string;
+    compressedUrl: string;
+    originalLabel: string;
+    compressedLabel: string;
+    onOriginalPreview: () => void;
+    onCompressedPreview: () => void;
+}) {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const [position, setPosition] = useState(50);
+
+    function updatePosition(clientX: number) {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const rect = container.getBoundingClientRect();
+        const nextPosition = ((clientX - rect.left) / rect.width) * 100;
+        const clampedPosition = Math.min(Math.max(nextPosition, 8), 92);
+
+        setPosition(clampedPosition);
+    }
+
+    function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
+        event.currentTarget.setPointerCapture(event.pointerId);
+        updatePosition(event.clientX);
+    }
+
+    function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
+        if (event.buttons !== 1) return;
+        updatePosition(event.clientX);
+    }
+
+    return (
+        <div className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm">
+            <div className="mb-3 flex items-center justify-between gap-3">
+                <SectionTitle
+                    title="Before After Compare"
+                    titleClassName="text-lg md:text-lg"
+                />
+
+                <div className="flex shrink-0 gap-2">
+                    <button
+                        type="button"
+                        onClick={onOriginalPreview}
+                        className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]"
+                    >
+                        Original
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={onCompressedPreview}
+                        className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]"
+                    >
+                        Compressed
+                    </button>
+                </div>
+            </div>
+
+            <div
+                ref={containerRef}
+                role="slider"
+                tabIndex={0}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(position)}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                className="relative overflow-hidden rounded-2xl bg-[#FFF7F3] p-3 touch-none"
+            >
+                <div className="relative mx-auto flex max-h-[420px] justify-center overflow-hidden rounded-xl">
+                    <img
+                        src={compressedUrl}
+                        alt={compressedLabel}
+                        className="block max-h-[420px] w-auto max-w-full object-contain"
+                        draggable={false}
+                    />
+
+                    <div
+                        className="absolute inset-y-0 left-0 overflow-hidden"
+                        style={{ width: `${position}%` }}
+                    >
+                        <img
+                            src={originalUrl}
+                            alt={originalLabel}
+                            className="block h-full max-h-[420px] w-auto max-w-none object-contain"
+                            draggable={false}
+                        />
+                    </div>
+
+                    <div
+                        className="absolute inset-y-0 w-[3px] -translate-x-1/2 bg-white shadow-[0_0_0_1px_rgba(42,31,27,0.15)]"
+                        style={{ left: `${position}%` }}
+                    />
+
+                    <div
+                        className="absolute top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-sm font-bold text-[#F28C6F] shadow-md"
+                        style={{ left: `${position}%` }}
+                    >
+                        ↔
+                    </div>
+
+                    <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
+                        Original
+                    </span>
+
+                    <span className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
+                        Compressed
+                    </span>
+                </div>
+            </div>
+
+            <p className="mt-3 text-xs leading-5 text-gray-500">
+                Drag the center handle to compare the original and compressed image.
+            </p>
         </div>
     );
 }
