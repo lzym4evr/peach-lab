@@ -295,10 +295,6 @@ export default function ImageCompressorTool() {
                                     {text.supportedFormats}
                                 </p>
 
-                                <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-gray-500 md:mt-5">
-                                    {text.dropHint}
-                                </p>
-
                                 <div className="mx-auto mt-4 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:mt-5">
                                     {originalFile ? text.changeImage : text.uploadButton}
                                 </div>
@@ -408,7 +404,7 @@ export default function ImageCompressorTool() {
                             ) : null}
                         </div>
 
-                        <div className="mt-8 border-t border-[#F1E5DF] pt-6">
+                        <div className="mt-8 hidden border-t border-[#F1E5DF] pt-6 lg:block">
                             <SectionTitle title={text.outputTitle} />
 
                             <div className="mt-4 grid grid-cols-3 gap-3">
@@ -512,12 +508,8 @@ function ImagePreviewCard({
 }) {
     return (
         <div className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm">
-            <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="mb-3">
                 <SectionTitle title={title} titleClassName="text-lg md:text-xl" />
-
-                <span className="shrink-0 rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
-                    {size}
-                </span>
             </div>
 
             {imageUrl ? (
@@ -547,6 +539,8 @@ function ImagePreviewCard({
             {info ? (
                 <p className="mt-3 text-xs font-semibold text-gray-500">
                     {info.width} × {info.height}px
+                    <span className="mx-2 text-[#D6C3BB]">·</span>
+                    {size}
                 </p>
             ) : null}
         </div>
