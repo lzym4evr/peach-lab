@@ -504,6 +504,11 @@ export const messages = {
             processing: "Compressing...",
             ready: "Image compressed successfully.",
 
+            // Output format labels
+            formatJpg: "JPG",
+            formatPng: "PNG",
+            formatWebp: "WebP",
+
             // Image labels and info
             originalImage: "Original Image",
             compressedImage: "Compressed Image",
@@ -511,11 +516,16 @@ export const messages = {
             compressedSize: "Compressed Size",
             saved: "Saved",
 
+            // Preview / viewer
+            preview: "Preview",
+            close: "Close",
+
             // Compare / Before-After viewer
             compare: "Compare",
             beforeAfterTitle: "Before After Compare",
             beforeAfterDescription: "Drag the center handle to compare image quality.",
-            close: "Close",
+
+            // Mobile action bar
             actionBarHint: "Tap values to preview and compare.",
             actionOriginal: "Original",
             actionNew: "New",
@@ -523,10 +533,16 @@ export const messages = {
             actionReady: "Ready",
             actionNotReady: "Not ready",
 
+            // Download file name
+            defaultFileName: "peach-lab-image",
+            compressedFileSuffix: "compressed",
+
             // Errors
             noFileError: "Please upload an image first.",
             loadError: "Could not load this image. Please try another file.",
             compressError: "Compression failed. Please try a different format or image.",
+            noSavings:
+                "The compressed result is larger than the original. Try lower quality or JPG/WebP.",
         },
 
         qrCodeGenerator: {

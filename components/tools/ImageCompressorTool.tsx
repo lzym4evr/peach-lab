@@ -23,12 +23,6 @@ type ViewerState = {
     url: string;
 } | null;
 
-const formatOptions: { label: string; value: OutputFormat }[] = [
-    { label: "JPG", value: "image/jpeg" },
-    { label: "PNG", value: "image/png" },
-    { label: "WebP", value: "image/webp" },
-];
-
 function formatBytes(bytes: number) {
     if (bytes === 0) return "0 KB";
 
@@ -45,17 +39,27 @@ function getFileExtension(format: OutputFormat) {
     return "png";
 }
 
-function getOutputFileName(originalName: string, format: OutputFormat) {
+function getOutputFileName(
+    originalName: string,
+    format: OutputFormat,
+    defaultFileName: string,
+    compressedFileSuffix: string
+) {
     const nameWithoutExtension = originalName.replace(/\.[^/.]+$/, "");
+    const safeName = nameWithoutExtension || defaultFileName;
 
-    return `${nameWithoutExtension || "peach-lab-image"}-compressed.${getFileExtension(
-        format
-    )}`;
+    return `${safeName}-${compressedFileSuffix}.${getFileExtension(format)}`;
 }
 
 export default function ImageCompressorTool() {
     const text = t.imageCompressor;
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    const formatOptions: { label: string; value: OutputFormat }[] = [
+        { label: text.formatJpg, value: "image/jpeg" },
+        { label: text.formatPng, value: "image/png" },
+        { label: text.formatWebp, value: "image/webp" },
+    ];
 
     const [originalFile, setOriginalFile] = useState<File | null>(null);
     const [originalUrl, setOriginalUrl] = useState("");
@@ -204,6 +208,16 @@ export default function ImageCompressorTool() {
 
                         clearCompressedResult();
 
+                        if (originalFile && blob.size >= originalFile.size) {
+                            setCompressedUrl("");
+                            setCompressedBlob(null);
+                            setCompressedInfo(null);
+                            setStatus("");
+                            setError(text.noSavings);
+                            setIsProcessing(false);
+                            return;
+                        }
+
                         const nextCompressedUrl = URL.createObjectURL(blob);
 
                         setCompressedUrl(nextCompressedUrl);
@@ -237,7 +251,12 @@ export default function ImageCompressorTool() {
 
         const link = document.createElement("a");
         link.href = compressedUrl;
-        link.download = getOutputFileName(originalFile.name, outputFormat);
+        link.download = getOutputFileName(
+            originalFile.name,
+            outputFormat,
+            text.defaultFileName,
+            text.compressedFileSuffix
+        );
         link.click();
     }
 
@@ -279,8 +298,8 @@ export default function ImageCompressorTool() {
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
                                 className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                                        ? "border-[#F28C6F] bg-[#FFF0EA]"
+                                        : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                     }`}
                             >
                                 <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
@@ -320,6 +339,7 @@ export default function ImageCompressorTool() {
                                     imageUrl={originalUrl}
                                     size={originalFile ? formatBytes(originalFile.size) : "-"}
                                     info={originalInfo}
+                                    previewText={text.preview}
                                     onPreview={openOriginalPreview}
                                 />
 
@@ -328,6 +348,7 @@ export default function ImageCompressorTool() {
                                     imageUrl={compressedUrl}
                                     size={compressedBlob ? formatBytes(compressedBlob.size) : "-"}
                                     info={compressedInfo}
+                                    previewText={text.preview}
                                     emptyText={
                                         compressedBlob
                                             ? text.emptyDescription
@@ -428,7 +449,7 @@ export default function ImageCompressorTool() {
                                     disabled={!compressedUrl}
                                     className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
                                 >
-                                    {text.compare || "Compare"}
+                                    {text.compare}
                                 </button>
 
                                 <button
@@ -460,6 +481,7 @@ export default function ImageCompressorTool() {
                 <ImageViewer
                     title={viewer.title}
                     url={viewer.url}
+                    closeText={text.close}
                     onClose={() => setViewer(null)}
                 />
             ) : null}
@@ -487,6 +509,7 @@ function ImagePreviewCard({
     size,
     info,
     emptyText,
+    previewText,
     onPreview,
 }: {
     title: string;
@@ -494,6 +517,7 @@ function ImagePreviewCard({
     size: string;
     info: ImageInfo | null;
     emptyText?: string;
+    previewText: string;
     onPreview?: () => void;
 }) {
     return (
@@ -516,7 +540,7 @@ function ImagePreviewCard({
                         />
 
                         <span className="absolute right-2 top-2 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#7A5A4F] shadow-sm">
-                            Preview
+                            {previewText}
                         </span>
                     </div>
                 </button>
@@ -653,7 +677,7 @@ function MobileActionBar({
                         <span className="block text-xs font-medium text-[#9C7B70]">
                             {text.actionOriginal}
                         </span>
-                        <span className="mt-1 block text-sm font-semibold text-[#2A1F1B]">
+                        <span className="mt-1 block text-[12px] font-semibold leading-5 text-[#2A1F1B]">
                             {originalSize}
                         </span>
                     </button>
@@ -667,7 +691,7 @@ function MobileActionBar({
                         <span className="block text-xs font-medium text-[#9C7B70]">
                             {text.actionNew}
                         </span>
-                        <span className="mt-1 block text-sm font-semibold text-[#2A1F1B]">
+                        <span className="mt-1 block text-[12px] font-semibold leading-5 text-[#2A1F1B]">
                             {compressedSize}
                         </span>
                     </button>
@@ -676,7 +700,7 @@ function MobileActionBar({
                         <span className="block text-xs font-medium text-[#9C7B70]">
                             {text.actionSaved}
                         </span>
-                        <span className="mt-1 block text-sm font-semibold text-[#2A1F1B]">
+                        <span className="mt-1 block text-[12px] font-semibold leading-5 text-[#2A1F1B]">
                             {savedPercent}%
                         </span>
                     </div>
@@ -703,10 +727,12 @@ function MobileActionBar({
 function ImageViewer({
     title,
     url,
+    closeText,
     onClose,
 }: {
     title: string;
     url: string;
+    closeText: string;
     onClose: () => void;
 }) {
     return (
@@ -719,7 +745,7 @@ function ImageViewer({
                 onClick={onClose}
                 className="absolute right-4 top-4 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#2A1F1B] shadow-sm"
             >
-                Close
+                {closeText}
             </button>
 
             <div className="flex h-full items-center justify-center">
