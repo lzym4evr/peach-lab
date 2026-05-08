@@ -325,7 +325,7 @@ export default function QrCodeGeneratorTool() {
 
             {isControlsOpen ? (
                 <MobileControlsSheet
-                    title={text.controlsTitle}
+                    title={text.settingsButton}
                     onClose={() => setIsControlsOpen(false)}
                 >
                     <ControlsPanel

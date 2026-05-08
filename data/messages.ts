@@ -547,10 +547,12 @@ export const messages = {
 
         qrCodeGenerator: {
             previewTitle: "QR Code Preview",
-            controlsTitle: "Controls",
+            controlsTitle: "QR Settings",
+            settingsButton: "Settings",
             outputTitle: "Output",
 
-            previewDescription: "Create custom QR codes for links, text, email, and contact information.",
+            previewDescription:
+                "Create custom QR codes for links, text, email, and contact information.",
 
             contentLabel: "QR Content",
             contentPlaceholder: "Enter a URL or text",
