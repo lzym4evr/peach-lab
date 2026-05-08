@@ -516,9 +516,7 @@ export default function FaviconGeneratorTool() {
             <MobileActionBar
                 text={text}
                 onOpenSettings={() => setIsSettingsOpen(true)}
-                onGenerate={handleGenerate}
                 onDownloadAll={handleDownloadAll}
-                onCopyHtml={handleCopyHtml}
                 canDownloadAll={generatedFavicons.length > 0}
             />
 
@@ -807,16 +805,12 @@ function GeneratedFilesPanel({
 function MobileActionBar({
     text,
     onOpenSettings,
-    onGenerate,
     onDownloadAll,
-    onCopyHtml,
     canDownloadAll,
 }: {
     text: typeof t.faviconGenerator;
     onOpenSettings: () => void;
-    onGenerate: () => void;
     onDownloadAll: () => void;
-    onCopyHtml: () => void;
     canDownloadAll: boolean;
 }) {
     const actionBarRef = useRef<HTMLDivElement | null>(null);
@@ -851,39 +845,23 @@ function MobileActionBar({
         <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
             <div
                 ref={actionBarRef}
-                className="pointer-events-auto mx-auto grid max-w-md grid-cols-4 gap-2 rounded-[30px] border border-[#F4C8BA] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-2 gap-2 rounded-[30px] border border-[#F4C8BA] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
             >
                 <button
                     type="button"
                     onClick={onOpenSettings}
-                    className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center text-xs font-semibold text-[#2A1F1B]"
+                    className="rounded-2xl border border-[#F1E5DF] bg-white px-3 py-3 text-center text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
                 >
                     {text.settingsButton}
                 </button>
 
                 <button
                     type="button"
-                    onClick={onGenerate}
-                    className="rounded-2xl bg-[#F28C6F] px-2 py-3 text-center text-xs font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                >
-                    {text.actionGenerate}
-                </button>
-
-                <button
-                    type="button"
                     onClick={onDownloadAll}
                     disabled={!canDownloadAll}
-                    className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-3 text-center text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:opacity-45"
+                    className="rounded-2xl bg-[#F28C6F] px-3 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
                 >
                     {text.actionDownloadAll}
-                </button>
-
-                <button
-                    type="button"
-                    onClick={onCopyHtml}
-                    className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center text-xs font-semibold text-[#E6765B]"
-                >
-                    {text.actionCopyHtml}
                 </button>
             </div>
         </div>
