@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { t } from "@/data/messages";
 
@@ -72,6 +72,7 @@ export default function QrCodeGeneratorTool() {
     const [svgOutput, setSvgOutput] = useState("");
     const [status, setStatus] = useState("");
     const [error, setError] = useState("");
+    const [isControlsOpen, setIsControlsOpen] = useState(false);
 
     const safeForegroundColor = getSafeHexColor(
         settings.foregroundColor,
@@ -128,6 +129,17 @@ export default function QrCodeGeneratorTool() {
 
         generateQrCode();
     }, [settings, qrOptions, text.generateError]);
+
+    useEffect(() => {
+        if (!isControlsOpen) return;
+
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, [isControlsOpen]);
 
     function updateSetting<K extends keyof QrSettings>(
         key: K,
@@ -208,193 +220,397 @@ export default function QrCodeGeneratorTool() {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-                <div className="min-w-0 space-y-6">
-                    <section>
-                        <div className="mb-5">
-                            <h3 className="font-semibold text-gray-900">
-                                {text.previewTitle}
-                            </h3>
+        <>
+            <div className="space-y-6">
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
+                    <div className="min-w-0 space-y-6">
+                        <section>
+                            <SectionHeader
+                                title={text.previewTitle}
+                                description={text.previewDescription}
+                            />
 
-                            <p className="mt-2 max-w-[420px] text-sm leading-6 text-gray-500">
-                                {text.previewDescription}
-                            </p>
-                        </div>
+                            <div className="mx-auto mt-5 flex aspect-square w-full max-w-[420px] items-center justify-center rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-3 md:max-w-[500px] md:p-4">
+                                {pngUrl ? (
+                                    <div className="rounded-[26px] border border-[#F1E5DF] bg-white p-2 shadow-sm md:p-3">
+                                        <img
+                                            src={pngUrl}
+                                            alt={text.previewTitle}
+                                            className="block h-auto w-full max-w-[280px] object-contain md:max-w-[340px]"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="text-center">
+                                        <h4 className="text-lg font-semibold text-gray-900">
+                                            {text.emptyTitle}
+                                        </h4>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
 
-                        <div className="mx-auto flex aspect-square w-full max-w-[520px] items-center justify-center rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 md:p-5">
-                            {pngUrl ? (
-                                <div className="rounded-[28px] border border-[#F1E5DF] bg-white p-3 shadow-sm md:p-4">
-                                    <img
-                                        src={pngUrl}
-                                        alt="Generated QR code"
-                                        className="block h-auto w-full max-w-[260px] object-contain md:max-w-[320px]"
-                                    />
-                                </div>
-                            ) : (
-                                <div className="text-center">
-                                    <h4 className="text-lg font-semibold text-gray-900">
-                                        {text.emptyTitle}
-                                    </h4>
-                                </div>
-                            )}
-                        </div>
-                    </section>
+                        <section>
+                            <div className="mb-4 flex items-center justify-between gap-4">
+                                <SectionHeader title={text.outputTitle} compact />
 
-                    <section>
-                        <div className="mb-4 flex items-center justify-between gap-4">
-                            <h3 className="font-semibold text-gray-900">
-                                {text.outputTitle}
-                            </h3>
-
-                            <button
-                                type="button"
-                                onClick={handleCopySvg}
-                                className="rounded-xl border border-[#F1E5DF] bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
-                            >
-                                {text.copySvg}
-                            </button>
-                        </div>
-
-                        <textarea
-                            value={svgOutput}
-                            readOnly
-                            placeholder={text.emptyTitle}
-                            className="min-h-[240px] w-full resize-y rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 font-mono text-sm leading-7 text-gray-700 outline-none"
-                        />
-
-                        <div className="mt-4 grid grid-cols-2 gap-3">
-                            <button
-                                type="button"
-                                onClick={handleDownloadPng}
-                                disabled={!pngUrl}
-                                className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                {text.downloadPng}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={handleDownloadSvg}
-                                disabled={!svgOutput}
-                                className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                {text.downloadSvg}
-                            </button>
-                        </div>
-
-                        {status ? (
-                            <p className="mt-3 text-sm text-[#7A5A4F]">{status}</p>
-                        ) : null}
-
-                        {error ? (
-                            <p className="mt-3 text-sm font-medium text-red-500">{error}</p>
-                        ) : null}
-                    </section>
-                </div>
-
-                <section className="min-w-0">
-                    <h3 className="font-semibold text-gray-900">
-                        {text.controlsTitle}
-                    </h3>
-
-                    <div className="mt-5 grid grid-cols-2 gap-3">
-                        <button
-                            type="button"
-                            onClick={handleShuffle}
-                            className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                        >
-                            {text.shuffle}
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={handleRandomAll}
-                            className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                        >
-                            {text.randomAll}
-                        </button>
-                    </div>
-
-                    <div className="mt-5 space-y-5">
-                        <label className="block">
-                            <span className="mb-2 block text-sm font-semibold text-gray-800">
-                                {text.contentLabel}
-                            </span>
+                                <button
+                                    type="button"
+                                    onClick={handleCopySvg}
+                                    className="rounded-xl border border-[#F1E5DF] bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
+                                >
+                                    {text.copySvg}
+                                </button>
+                            </div>
 
                             <textarea
-                                value={settings.content}
-                                onChange={(event) =>
-                                    updateSetting("content", event.target.value)
-                                }
-                                placeholder={text.contentPlaceholder}
-                                className="min-h-[120px] w-full resize-y rounded-2xl border border-[#F1E5DF] px-4 py-3 text-sm leading-6 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                                value={svgOutput}
+                                readOnly
+                                placeholder={text.emptyTitle}
+                                className="min-h-[240px] w-full resize-y rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 font-mono text-sm leading-7 text-gray-700 outline-none"
                             />
-                        </label>
 
-                        <RangeInput
-                            label={text.sizeLabel}
-                            value={settings.size}
-                            min={160}
-                            max={800}
-                            suffix="px"
-                            onChange={(value) => updateSetting("size", value)}
-                        />
+                            <div className="mt-4 grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleDownloadPng}
+                                    disabled={!pngUrl}
+                                    className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {text.downloadPng}
+                                </button>
 
-                        <RangeInput
-                            label={text.marginLabel}
-                            value={settings.margin}
-                            min={0}
-                            max={10}
-                            suffix=""
-                            onChange={(value) => updateSetting("margin", value)}
-                        />
+                                <button
+                                    type="button"
+                                    onClick={handleDownloadSvg}
+                                    disabled={!svgOutput}
+                                    className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {text.downloadSvg}
+                                </button>
+                            </div>
 
-                        <ColorInput
-                            label={text.foregroundColorLabel}
-                            value={settings.foregroundColor}
-                            fallback="#2A1F1B"
-                            onChange={(value) => updateSetting("foregroundColor", value)}
-                        />
+                            {status ? (
+                                <p className="mt-3 text-sm text-[#7A5A4F]">{status}</p>
+                            ) : null}
 
-                        <ColorInput
-                            label={text.backgroundColorLabel}
-                            value={settings.backgroundColor}
-                            fallback="#FFFFFF"
-                            onChange={(value) => updateSetting("backgroundColor", value)}
-                        />
-
-                        <label className="block">
-                            <span className="mb-2 block text-sm font-semibold text-gray-800">
-                                {text.errorCorrectionLabel}
-                            </span>
-
-                            <select
-                                value={settings.errorCorrectionLevel}
-                                onChange={(event) =>
-                                    updateSetting(
-                                        "errorCorrectionLevel",
-                                        event.target.value as ErrorCorrectionLevel,
-                                    )
-                                }
-                                className="h-12 w-full rounded-xl border border-[#F1E5DF] bg-white px-4 text-sm font-semibold text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                            >
-                                <option value="L">{text.low}</option>
-                                <option value="M">{text.medium}</option>
-                                <option value="Q">{text.quartile}</option>
-                                <option value="H">{text.high}</option>
-                            </select>
-                        </label>
-
-                        <button
-                            type="button"
-                            onClick={handleReset}
-                            className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                        >
-                            {text.reset}
-                        </button>
+                            {error ? (
+                                <p className="mt-3 text-sm font-medium text-red-500">
+                                    {error}
+                                </p>
+                            ) : null}
+                        </section>
                     </div>
-                </section>
+
+                    <section className="hidden min-w-0 lg:block">
+                        <ControlsPanel
+                            text={text}
+                            settings={settings}
+                            updateSetting={updateSetting}
+                            handleShuffle={handleShuffle}
+                            handleRandomAll={handleRandomAll}
+                            handleReset={handleReset}
+                            showQuickActions
+                        />
+                    </section>
+                </div>
+            </div>
+
+            <MobileActionBar
+                text={text}
+                canDownloadPng={!!pngUrl}
+                canDownloadSvg={!!svgOutput}
+                onShuffle={handleShuffle}
+                onRandomAll={handleRandomAll}
+                onOpenControls={() => setIsControlsOpen(true)}
+                onDownloadPng={handleDownloadPng}
+            />
+
+            {isControlsOpen ? (
+                <MobileControlsSheet onClose={() => setIsControlsOpen(false)}>
+                    <ControlsPanel
+                        text={text}
+                        settings={settings}
+                        updateSetting={updateSetting}
+                        handleShuffle={handleShuffle}
+                        handleRandomAll={handleRandomAll}
+                        handleReset={handleReset}
+                        showQuickActions={false}
+                    />
+                </MobileControlsSheet>
+            ) : null}
+        </>
+    );
+}
+
+function SectionHeader({
+    title,
+    description,
+    compact = false,
+}: {
+    title: string;
+    description?: string;
+    compact?: boolean;
+}) {
+    return (
+        <div>
+            <div className="flex items-center gap-3">
+                <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
+                <h3
+                    className={`font-semibold text-gray-900 ${compact ? "text-base" : "text-lg"
+                        }`}
+                >
+                    {title}
+                </h3>
+            </div>
+
+            {description ? (
+                <p className="mt-2 max-w-[420px] text-sm leading-6 text-gray-500">
+                    {description}
+                </p>
+            ) : null}
+        </div>
+    );
+}
+
+function ControlsPanel({
+    text,
+    settings,
+    updateSetting,
+    handleShuffle,
+    handleRandomAll,
+    handleReset,
+    showQuickActions,
+}: {
+    text: typeof t.qrCodeGenerator;
+    settings: QrSettings;
+    updateSetting: <K extends keyof QrSettings>(
+        key: K,
+        value: QrSettings[K],
+    ) => void;
+    handleShuffle: () => void;
+    handleRandomAll: () => void;
+    handleReset: () => void;
+    showQuickActions: boolean;
+}) {
+    return (
+        <div className="min-w-0">
+            <SectionHeader title={text.controlsTitle} />
+
+            {showQuickActions ? (
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                    <button
+                        type="button"
+                        onClick={handleShuffle}
+                        className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                    >
+                        {text.shuffle}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handleRandomAll}
+                        className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
+                    >
+                        {text.randomAll}
+                    </button>
+                </div>
+            ) : null}
+
+            <div className="mt-5 space-y-5">
+                <label className="block">
+                    <span className="mb-2 block text-sm font-semibold text-gray-800">
+                        {text.contentLabel}
+                    </span>
+
+                    <textarea
+                        value={settings.content}
+                        onChange={(event) => updateSetting("content", event.target.value)}
+                        placeholder={text.contentPlaceholder}
+                        className="min-h-[120px] w-full resize-y rounded-2xl border border-[#F1E5DF] px-4 py-3 text-sm leading-6 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                    />
+                </label>
+
+                <RangeInput
+                    label={text.sizeLabel}
+                    value={settings.size}
+                    min={160}
+                    max={800}
+                    suffix="px"
+                    onChange={(value) => updateSetting("size", value)}
+                />
+
+                <RangeInput
+                    label={text.marginLabel}
+                    value={settings.margin}
+                    min={0}
+                    max={10}
+                    suffix=""
+                    onChange={(value) => updateSetting("margin", value)}
+                />
+
+                <ColorInput
+                    label={text.foregroundColorLabel}
+                    value={settings.foregroundColor}
+                    fallback="#2A1F1B"
+                    onChange={(value) => updateSetting("foregroundColor", value)}
+                />
+
+                <ColorInput
+                    label={text.backgroundColorLabel}
+                    value={settings.backgroundColor}
+                    fallback="#FFFFFF"
+                    onChange={(value) => updateSetting("backgroundColor", value)}
+                />
+
+                <label className="block">
+                    <span className="mb-2 block text-sm font-semibold text-gray-800">
+                        {text.errorCorrectionLabel}
+                    </span>
+
+                    <select
+                        value={settings.errorCorrectionLevel}
+                        onChange={(event) =>
+                            updateSetting(
+                                "errorCorrectionLevel",
+                                event.target.value as ErrorCorrectionLevel,
+                            )
+                        }
+                        className="h-12 w-full rounded-xl border border-[#F1E5DF] bg-white px-4 text-sm font-semibold text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                    >
+                        <option value="L">{text.low}</option>
+                        <option value="M">{text.medium}</option>
+                        <option value="Q">{text.quartile}</option>
+                        <option value="H">{text.high}</option>
+                    </select>
+                </label>
+
+                <button
+                    type="button"
+                    onClick={handleReset}
+                    className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                >
+                    {text.reset}
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function MobileActionBar({
+    text,
+    canDownloadPng,
+    canDownloadSvg,
+    onShuffle,
+    onRandomAll,
+    onOpenControls,
+    onDownloadPng,
+}: {
+    text: typeof t.qrCodeGenerator;
+    canDownloadPng: boolean;
+    canDownloadSvg: boolean;
+    onShuffle: () => void;
+    onRandomAll: () => void;
+    onOpenControls: () => void;
+    onDownloadPng: () => void;
+}) {
+    const actionBarRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const updateSpace = () => {
+            const element = actionBarRef.current;
+            if (!element) return;
+
+            const rect = element.getBoundingClientRect();
+            document.documentElement.style.setProperty(
+                "--mobile-action-bar-space",
+                `${Math.ceil(rect.height + 28)}px`,
+            );
+        };
+
+        const timer = window.setTimeout(updateSpace, 0);
+        window.addEventListener("resize", updateSpace);
+
+        return () => {
+            window.clearTimeout(timer);
+            window.removeEventListener("resize", updateSpace);
+            document.documentElement.style.removeProperty(
+                "--mobile-action-bar-space",
+            );
+        };
+    }, []);
+
+    return (
+        <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
+            <div
+                ref={actionBarRef}
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-4 gap-2 rounded-[30px] border border-[#F4C8BA] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+            >
+                <button
+                    type="button"
+                    onClick={onShuffle}
+                    className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center text-xs font-semibold text-[#E6765B]"
+                >
+                    {text.shuffle}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onRandomAll}
+                    className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-3 text-center text-xs font-semibold text-[#E6765B]"
+                >
+                    {text.randomAll}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onOpenControls}
+                    className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center text-xs font-semibold text-[#2A1F1B]"
+                >
+                    {text.controlsTitle}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onDownloadPng}
+                    disabled={!canDownloadPng || !canDownloadSvg}
+                    className="rounded-2xl bg-[#F28C6F] px-2 py-3 text-center text-xs font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
+                >
+                    PNG
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function MobileControlsSheet({
+    children,
+    onClose,
+}: {
+    children: React.ReactNode;
+    onClose: () => void;
+}) {
+    return (
+        <div
+            className="fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-20 backdrop-blur-sm lg:hidden"
+            onClick={onClose}
+        >
+            <div
+                className="ml-auto flex h-full max-h-[82vh] w-full max-w-md flex-col overflow-hidden rounded-[30px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)]"
+                onClick={(event) => event.stopPropagation()}
+            >
+                <div className="flex items-center justify-end border-b border-[#F1E5DF] px-4 py-3">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="flex h-9 w-9 items-center justify-center rounded-full border border-[#F1E5DF] bg-white text-lg font-semibold text-[#7A5A4F] transition hover:bg-[#FFF7F3]"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <div className="overflow-y-auto px-4 py-5">{children}</div>
             </div>
         </div>
     );
