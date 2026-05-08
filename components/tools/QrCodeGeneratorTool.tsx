@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+    type ReactNode,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import QRCode from "qrcode";
 import { t } from "@/data/messages";
 
@@ -158,10 +164,6 @@ export default function QrCodeGeneratorTool() {
 
         setSettings((current) => ({
             ...current,
-
-            // Shuffle:
-            // Keep user content and colors.
-            // Randomize size, margin, and error correction.
             size: getRandomNumber(220, 520),
             margin: getRandomNumber(1, 5),
             errorCorrectionLevel: levels[Math.floor(Math.random() * levels.length)],
@@ -175,10 +177,6 @@ export default function QrCodeGeneratorTool() {
 
         setSettings((current) => ({
             ...current,
-
-            // Random All:
-            // Keep user content, randomize colors and visual settings.
-            // Content is kept to avoid replacing the user's QR data.
             size: getRandomNumber(220, 520),
             margin: getRandomNumber(1, 5),
             foregroundColor: getRandomHexColor(),
@@ -326,7 +324,10 @@ export default function QrCodeGeneratorTool() {
             />
 
             {isControlsOpen ? (
-                <MobileControlsSheet onClose={() => setIsControlsOpen(false)}>
+                <MobileControlsSheet
+                    title={text.controlsTitle}
+                    onClose={() => setIsControlsOpen(false)}
+                >
                     <ControlsPanel
                         text={text}
                         settings={settings}
@@ -335,6 +336,8 @@ export default function QrCodeGeneratorTool() {
                         handleRandomAll={handleRandomAll}
                         handleReset={handleReset}
                         showQuickActions={false}
+                        compact
+                        hideHeader
                     />
                 </MobileControlsSheet>
             ) : null}
@@ -354,7 +357,10 @@ function SectionHeader({
     return (
         <div>
             <div className="flex items-center gap-3">
-                <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
+                <span
+                    className={`w-1.5 rounded-full bg-[#F28C6F] ${compact ? "h-6" : "h-7"
+                        }`}
+                />
                 <h3
                     className={`font-semibold text-gray-900 ${compact ? "text-base" : "text-lg"
                         }`}
@@ -380,6 +386,8 @@ function ControlsPanel({
     handleRandomAll,
     handleReset,
     showQuickActions,
+    compact = false,
+    hideHeader = false,
 }: {
     text: typeof t.qrCodeGenerator;
     settings: QrSettings;
@@ -391,10 +399,14 @@ function ControlsPanel({
     handleRandomAll: () => void;
     handleReset: () => void;
     showQuickActions: boolean;
+    compact?: boolean;
+    hideHeader?: boolean;
 }) {
     return (
         <div className="min-w-0">
-            <SectionHeader title={text.controlsTitle} />
+            {!hideHeader ? (
+                <SectionHeader title={text.controlsTitle} compact={compact} />
+            ) : null}
 
             {showQuickActions ? (
                 <div className="mt-5 grid grid-cols-2 gap-3">
@@ -416,9 +428,12 @@ function ControlsPanel({
                 </div>
             ) : null}
 
-            <div className="mt-5 space-y-5">
+            <div className={`${compact ? "space-y-3" : "mt-5 space-y-5"}`}>
                 <label className="block">
-                    <span className="mb-2 block text-sm font-semibold text-gray-800">
+                    <span
+                        className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                            }`}
+                    >
                         {text.contentLabel}
                     </span>
 
@@ -426,7 +441,8 @@ function ControlsPanel({
                         value={settings.content}
                         onChange={(event) => updateSetting("content", event.target.value)}
                         placeholder={text.contentPlaceholder}
-                        className="min-h-[120px] w-full resize-y rounded-2xl border border-[#F1E5DF] px-4 py-3 text-sm leading-6 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                        className={`w-full resize-y rounded-2xl border border-[#F1E5DF] px-4 py-3 text-sm leading-6 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "min-h-[86px]" : "min-h-[120px]"
+                            }`}
                     />
                 </label>
 
@@ -436,6 +452,7 @@ function ControlsPanel({
                     min={160}
                     max={800}
                     suffix="px"
+                    compact={compact}
                     onChange={(value) => updateSetting("size", value)}
                 />
 
@@ -445,25 +462,33 @@ function ControlsPanel({
                     min={0}
                     max={10}
                     suffix=""
+                    compact={compact}
                     onChange={(value) => updateSetting("margin", value)}
                 />
 
-                <ColorInput
-                    label={text.foregroundColorLabel}
-                    value={settings.foregroundColor}
-                    fallback="#2A1F1B"
-                    onChange={(value) => updateSetting("foregroundColor", value)}
-                />
+                <div className={compact ? "grid grid-cols-2 gap-3" : "space-y-5"}>
+                    <ColorInput
+                        label={text.foregroundColorLabel}
+                        value={settings.foregroundColor}
+                        fallback="#2A1F1B"
+                        compact={compact}
+                        onChange={(value) => updateSetting("foregroundColor", value)}
+                    />
 
-                <ColorInput
-                    label={text.backgroundColorLabel}
-                    value={settings.backgroundColor}
-                    fallback="#FFFFFF"
-                    onChange={(value) => updateSetting("backgroundColor", value)}
-                />
+                    <ColorInput
+                        label={text.backgroundColorLabel}
+                        value={settings.backgroundColor}
+                        fallback="#FFFFFF"
+                        compact={compact}
+                        onChange={(value) => updateSetting("backgroundColor", value)}
+                    />
+                </div>
 
                 <label className="block">
-                    <span className="mb-2 block text-sm font-semibold text-gray-800">
+                    <span
+                        className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                            }`}
+                    >
                         {text.errorCorrectionLabel}
                     </span>
 
@@ -475,7 +500,8 @@ function ControlsPanel({
                                 event.target.value as ErrorCorrectionLevel,
                             )
                         }
-                        className="h-12 w-full rounded-xl border border-[#F1E5DF] bg-white px-4 text-sm font-semibold text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                        className={`w-full rounded-xl border border-[#F1E5DF] bg-white px-4 text-sm font-semibold text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-11" : "h-12"
+                            }`}
                     >
                         <option value="L">{text.low}</option>
                         <option value="M">{text.medium}</option>
@@ -487,7 +513,8 @@ function ControlsPanel({
                 <button
                     type="button"
                     onClick={handleReset}
-                    className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                    className={`w-full rounded-2xl border border-[#F4C8BA] bg-white text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] ${compact ? "px-4 py-2.5" : "px-4 py-3"
+                        }`}
                 >
                     {text.reset}
                 </button>
@@ -585,32 +612,41 @@ function MobileActionBar({
 }
 
 function MobileControlsSheet({
+    title,
     children,
     onClose,
 }: {
-    children: React.ReactNode;
+    title: string;
+    children: ReactNode;
     onClose: () => void;
 }) {
     return (
         <div
-            className="fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-20 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm lg:hidden"
             onClick={onClose}
         >
             <div
-                className="ml-auto flex h-full max-h-[82vh] w-full max-w-md flex-col overflow-hidden rounded-[30px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)]"
+                className="ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)]"
                 onClick={(event) => event.stopPropagation()}
             >
-                <div className="flex items-center justify-end border-b border-[#F1E5DF] px-4 py-3">
+                <div className="flex items-center justify-between gap-4 px-4 pb-2 pt-4">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
+                        <h3 className="truncate text-lg font-semibold text-gray-900">
+                            {title}
+                        </h3>
+                    </div>
+
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex h-9 w-9 items-center justify-center rounded-full border border-[#F1E5DF] bg-white text-lg font-semibold text-[#7A5A4F] transition hover:bg-[#FFF7F3]"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
                     >
                         ×
                     </button>
                 </div>
 
-                <div className="overflow-y-auto px-4 py-5">{children}</div>
+                <div className="overflow-y-auto px-4 pb-4 pt-2">{children}</div>
             </div>
         </div>
     );
@@ -620,33 +656,46 @@ function ColorInput({
     label,
     value,
     fallback,
+    compact = false,
     onChange,
 }: {
     label: string;
     value: string;
     fallback: string;
+    compact?: boolean;
     onChange: (value: string) => void;
 }) {
     const colorPickerValue = isValidHexColor(value) ? value : fallback;
 
     return (
-        <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-gray-800">
+        <label className="block min-w-0">
+            <span
+                className={`mb-2 block truncate font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                    }`}
+            >
                 {label}
             </span>
 
-            <div className="grid grid-cols-[58px_1fr] gap-3">
+            <div
+                className={
+                    compact
+                        ? "grid grid-cols-[42px_1fr] gap-2"
+                        : "grid grid-cols-[58px_1fr] gap-3"
+                }
+            >
                 <input
                     type="color"
                     value={colorPickerValue}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-12 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
+                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-11" : "h-12"
+                        }`}
                 />
 
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                    className={`w-full min-w-0 rounded-xl border border-[#F1E5DF] px-2 text-xs font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-11" : "h-12 md:px-4 md:text-sm"
+                        }`}
                 />
             </div>
         </label>
@@ -659,6 +708,7 @@ function RangeInput({
     min,
     max,
     suffix,
+    compact = false,
     onChange,
 }: {
     label: string;
@@ -666,12 +716,21 @@ function RangeInput({
     min: number;
     max: number;
     suffix: string;
+    compact?: boolean;
     onChange: (value: number) => void;
 }) {
     return (
         <label className="block">
-            <div className="mb-2 flex items-center justify-between gap-4">
-                <span className="text-sm font-semibold text-gray-800">{label}</span>
+            <div
+                className={`flex items-center justify-between gap-4 ${compact ? "mb-1.5" : "mb-2"
+                    }`}
+            >
+                <span
+                    className={`font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                        }`}
+                >
+                    {label}
+                </span>
 
                 <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
                     {value}
