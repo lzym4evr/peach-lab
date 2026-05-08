@@ -3,6 +3,15 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { t } from "@/data/messages";
 
+type BackgroundStyle = "softBlob" | "mesh" | "aurora" | "spotlight";
+
+const backgroundStyles: BackgroundStyle[] = [
+    "softBlob",
+    "mesh",
+    "aurora",
+    "spotlight",
+];
+
 function getRandomHexColor() {
     const value = Math.floor(Math.random() * 16777215)
         .toString(16)
@@ -10,6 +19,10 @@ function getRandomHexColor() {
         .toUpperCase();
 
     return `#${value}`;
+}
+
+function getRandomNumber(min: number, max: number) {
+    return Math.floor(min + Math.random() * (max - min + 1));
 }
 
 function hexToRgb(hex: string) {
@@ -20,6 +33,27 @@ function hexToRgb(hex: string) {
         g: parseInt(cleanHex.slice(2, 4), 16),
         b: parseInt(cleanHex.slice(4, 6), 16),
     };
+}
+
+function hexToRgba(hex: string, alpha: number) {
+    const rgb = hexToRgb(hex);
+
+    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+}
+
+function getStyleLabel(text: typeof t.backgroundGenerator, style: BackgroundStyle) {
+    const labels = text as {
+        styleSoftBlob?: string;
+        styleMesh?: string;
+        styleAurora?: string;
+        styleSpotlight?: string;
+    };
+
+    if (style === "mesh") return labels.styleMesh ?? "Mesh";
+    if (style === "aurora") return labels.styleAurora ?? "Aurora";
+    if (style === "spotlight") return labels.styleSpotlight ?? "Spotlight";
+
+    return labels.styleSoftBlob ?? "Soft Blob";
 }
 
 export default function BackgroundGeneratorTool() {
@@ -42,6 +76,10 @@ export default function BackgroundGeneratorTool() {
     const [baseColor, setBaseColor] = useState("#FFF7F3");
     const [accentColor1, setAccentColor1] = useState("#F28C6F");
     const [accentColor2, setAccentColor2] = useState("#FFD6C8");
+    const [backgroundStyle, setBackgroundStyle] =
+        useState<BackgroundStyle>("softBlob");
+    const [intensity, setIntensity] = useState(75);
+    const [grain, setGrain] = useState(0);
     const [blobSize, setBlobSize] = useState(55);
     const [blur, setBlur] = useState(70);
     const [offsetX, setOffsetX] = useState(28);
@@ -59,19 +97,8 @@ export default function BackgroundGeneratorTool() {
         };
     }, []);
 
-    function drawBackground() {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight;
-
-        const context = canvas.getContext("2d");
-        if (!context) return;
-
-        context.fillStyle = baseColor;
-        context.fillRect(0, 0, canvasWidth, canvasHeight);
-
+    function drawSoftBlobBackground(context: CanvasRenderingContext2D) {
+        const alpha = intensity / 100;
         const size = Math.round(
             (Math.min(canvasWidth, canvasHeight) * blobSize) / 100,
         );
@@ -91,7 +118,7 @@ export default function BackgroundGeneratorTool() {
 
         firstGradient.addColorStop(
             0,
-            `rgba(${rgb1.r}, ${rgb1.g}, ${rgb1.b}, 0.9)`,
+            `rgba(${rgb1.r}, ${rgb1.g}, ${rgb1.b}, ${0.9 * alpha})`,
         );
         firstGradient.addColorStop(
             1,
@@ -114,7 +141,7 @@ export default function BackgroundGeneratorTool() {
 
         secondGradient.addColorStop(
             0,
-            `rgba(${rgb2.r}, ${rgb2.g}, ${rgb2.b}, 0.85)`,
+            `rgba(${rgb2.r}, ${rgb2.g}, ${rgb2.b}, ${0.85 * alpha})`,
         );
         secondGradient.addColorStop(
             1,
@@ -127,8 +154,193 @@ export default function BackgroundGeneratorTool() {
         context.filter = "none";
     }
 
+    function drawMeshBackground(context: CanvasRenderingContext2D) {
+        const alpha = intensity / 100;
+        const size = Math.round(
+            (Math.min(canvasWidth, canvasHeight) * blobSize) / 100,
+        );
+
+        context.filter = `blur(${blur}px)`;
+
+        const points = [
+            {
+                x: offsetX,
+                y: offsetY,
+                color: accentColor1,
+                alpha: 0.85 * alpha,
+            },
+            {
+                x: 100 - offsetX,
+                y: 100 - offsetY,
+                color: accentColor2,
+                alpha: 0.8 * alpha,
+            },
+            {
+                x: 50,
+                y: 18,
+                color: accentColor2,
+                alpha: 0.55 * alpha,
+            },
+            {
+                x: 18,
+                y: 82,
+                color: accentColor1,
+                alpha: 0.45 * alpha,
+            },
+        ];
+
+        points.forEach((point) => {
+            const gradient = context.createRadialGradient(
+                (canvasWidth * point.x) / 100,
+                (canvasHeight * point.y) / 100,
+                0,
+                (canvasWidth * point.x) / 100,
+                (canvasHeight * point.y) / 100,
+                size,
+            );
+
+            const rgb = hexToRgb(point.color);
+
+            gradient.addColorStop(
+                0,
+                `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${point.alpha})`,
+            );
+            gradient.addColorStop(
+                1,
+                `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`,
+            );
+
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, canvasWidth, canvasHeight);
+        });
+
+        context.filter = "none";
+    }
+
+    function drawAuroraBackground(context: CanvasRenderingContext2D) {
+        const alpha = intensity / 100;
+
+        context.filter = `blur(${blur}px)`;
+
+        const first = context.createLinearGradient(0, 0, canvasWidth, canvasHeight);
+        first.addColorStop(0, hexToRgba(accentColor1, 0));
+        first.addColorStop(0.45, hexToRgba(accentColor1, 0.75 * alpha));
+        first.addColorStop(1, hexToRgba(accentColor1, 0));
+
+        context.fillStyle = first;
+        context.fillRect(0, 0, canvasWidth, canvasHeight);
+
+        const second = context.createLinearGradient(canvasWidth, 0, 0, canvasHeight);
+        second.addColorStop(0, hexToRgba(accentColor2, 0));
+        second.addColorStop(0.5, hexToRgba(accentColor2, 0.7 * alpha));
+        second.addColorStop(1, hexToRgba(accentColor2, 0));
+
+        context.fillStyle = second;
+        context.fillRect(0, 0, canvasWidth, canvasHeight);
+
+        context.filter = "none";
+    }
+
+    function drawSpotlightBackground(context: CanvasRenderingContext2D) {
+        const alpha = intensity / 100;
+        const size = Math.round(
+            (Math.min(canvasWidth, canvasHeight) * (blobSize + 20)) / 100,
+        );
+
+        const center = context.createRadialGradient(
+            canvasWidth / 2,
+            canvasHeight * 0.42,
+            0,
+            canvasWidth / 2,
+            canvasHeight * 0.42,
+            size,
+        );
+
+        center.addColorStop(0, hexToRgba(accentColor1, 0.85 * alpha));
+        center.addColorStop(0.55, hexToRgba(accentColor2, 0.35 * alpha));
+        center.addColorStop(1, hexToRgba(accentColor2, 0));
+
+        context.fillStyle = center;
+        context.fillRect(0, 0, canvasWidth, canvasHeight);
+
+        const edge = context.createRadialGradient(
+            canvasWidth / 2,
+            canvasHeight / 2,
+            Math.min(canvasWidth, canvasHeight) * 0.15,
+            canvasWidth / 2,
+            canvasHeight / 2,
+            Math.max(canvasWidth, canvasHeight) * 0.7,
+        );
+
+        edge.addColorStop(0, "rgba(255,255,255,0)");
+        edge.addColorStop(1, hexToRgba(accentColor2, 0.32 * alpha));
+
+        context.fillStyle = edge;
+        context.fillRect(0, 0, canvasWidth, canvasHeight);
+    }
+
+    function drawGrain(context: CanvasRenderingContext2D) {
+        if (grain <= 0) return;
+
+        const noiseSize = 180;
+        const noiseCanvas = document.createElement("canvas");
+        noiseCanvas.width = noiseSize;
+        noiseCanvas.height = noiseSize;
+
+        const noiseContext = noiseCanvas.getContext("2d");
+        if (!noiseContext) return;
+
+        const imageData = noiseContext.createImageData(noiseSize, noiseSize);
+        const data = imageData.data;
+        const alpha = Math.round((grain / 100) * 42);
+
+        for (let i = 0; i < data.length; i += 4) {
+            const value = Math.floor(Math.random() * 255);
+
+            data[i] = value;
+            data[i + 1] = value;
+            data[i + 2] = value;
+            data[i + 3] = alpha;
+        }
+
+        noiseContext.putImageData(imageData, 0, 0);
+
+        const pattern = context.createPattern(noiseCanvas, "repeat");
+        if (!pattern) return;
+
+        context.fillStyle = pattern;
+        context.fillRect(0, 0, canvasWidth, canvasHeight);
+    }
+
+    function drawBackground() {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+
+        const context = canvas.getContext("2d");
+        if (!context) return;
+
+        context.fillStyle = baseColor;
+        context.fillRect(0, 0, canvasWidth, canvasHeight);
+
+        if (backgroundStyle === "mesh") {
+            drawMeshBackground(context);
+        } else if (backgroundStyle === "aurora") {
+            drawAuroraBackground(context);
+        } else if (backgroundStyle === "spotlight") {
+            drawSpotlightBackground(context);
+        } else {
+            drawSoftBlobBackground(context);
+        }
+
+        drawGrain(context);
+    }
+
     useEffect(() => {
         if (!hasPreview) return;
+
         drawBackground();
     }, [
         canvasWidth,
@@ -136,6 +348,9 @@ export default function BackgroundGeneratorTool() {
         baseColor,
         accentColor1,
         accentColor2,
+        backgroundStyle,
+        intensity,
+        grain,
         blobSize,
         blur,
         offsetX,
@@ -150,34 +365,82 @@ export default function BackgroundGeneratorTool() {
     }
 
     function shuffleBackground() {
-        setBlobSize(Math.floor(35 + Math.random() * 45));
-        setBlur(Math.floor(40 + Math.random() * 80));
-        setOffsetX(Math.floor(15 + Math.random() * 70));
-        setOffsetY(Math.floor(15 + Math.random() * 70));
+        const nextStyle =
+            backgroundStyles[Math.floor(Math.random() * backgroundStyles.length)];
+
+        setBackgroundStyle(nextStyle);
+        setIntensity(getRandomNumber(45, 100));
+        setGrain(getRandomNumber(0, 18));
+        setBlobSize(getRandomNumber(35, 80));
+        setBlur(getRandomNumber(40, 120));
+        setOffsetX(getRandomNumber(15, 70));
+        setOffsetY(getRandomNumber(15, 70));
         setHasPreview(true);
         setCopied(false);
         setCopyError("");
     }
 
     function randomAll() {
+        const sizes = [
+            { width: 1200, height: 800 },
+            { width: 1600, height: 900 },
+            { width: 1080, height: 1080 },
+            { width: 1080, height: 1920 },
+            { width: 1920, height: 1080 },
+        ];
+        const nextSize = sizes[Math.floor(Math.random() * sizes.length)];
+        const nextStyle =
+            backgroundStyles[Math.floor(Math.random() * backgroundStyles.length)];
+
+        setCanvasWidth(nextSize.width);
+        setCanvasHeight(nextSize.height);
         setBaseColor(getRandomHexColor());
         setAccentColor1(getRandomHexColor());
         setAccentColor2(getRandomHexColor());
-        setBlobSize(Math.floor(35 + Math.random() * 45));
-        setBlur(Math.floor(40 + Math.random() * 80));
-        setOffsetX(Math.floor(15 + Math.random() * 70));
-        setOffsetY(Math.floor(15 + Math.random() * 70));
+        setBackgroundStyle(nextStyle);
+        setIntensity(getRandomNumber(45, 100));
+        setGrain(getRandomNumber(0, 18));
+        setBlobSize(getRandomNumber(35, 80));
+        setBlur(getRandomNumber(40, 120));
+        setOffsetX(getRandomNumber(15, 70));
+        setOffsetY(getRandomNumber(15, 70));
         setHasPreview(true);
         setCopied(false);
         setCopyError("");
     }
 
     function getCssOutput() {
+        const alpha = intensity / 100;
+        const grainComment =
+            grain > 0 ? "\n/* Grain is included in PNG export only. */" : "";
+
+        if (backgroundStyle === "mesh") {
+            return `background:
+  radial-gradient(circle at ${offsetX}% ${offsetY}%, ${hexToRgba(accentColor1, 0.85 * alpha)} 0%, transparent ${blobSize}%),
+  radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${hexToRgba(accentColor2, 0.8 * alpha)} 0%, transparent ${blobSize}%),
+  radial-gradient(circle at 50% 18%, ${hexToRgba(accentColor2, 0.55 * alpha)} 0%, transparent ${blobSize}%),
+  radial-gradient(circle at 18% 82%, ${hexToRgba(accentColor1, 0.45 * alpha)} 0%, transparent ${blobSize}%),
+  ${baseColor};${grainComment}`;
+        }
+
+        if (backgroundStyle === "aurora") {
+            return `background:
+  linear-gradient(135deg, transparent 0%, ${hexToRgba(accentColor1, 0.75 * alpha)} 45%, transparent 100%),
+  linear-gradient(45deg, transparent 0%, ${hexToRgba(accentColor2, 0.7 * alpha)} 50%, transparent 100%),
+  ${baseColor};${grainComment}`;
+        }
+
+        if (backgroundStyle === "spotlight") {
+            return `background:
+  radial-gradient(circle at 50% 42%, ${hexToRgba(accentColor1, 0.85 * alpha)} 0%, ${hexToRgba(accentColor2, 0.35 * alpha)} 55%, transparent ${blobSize + 20}%),
+  radial-gradient(circle at 50% 50%, transparent 15%, ${hexToRgba(accentColor2, 0.32 * alpha)} 100%),
+  ${baseColor};${grainComment}`;
+        }
+
         return `background:
-  radial-gradient(circle at ${offsetX}% ${offsetY}%, ${accentColor1} 0%, transparent ${blobSize}%),
-  radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${accentColor2} 0%, transparent ${blobSize}%),
-  ${baseColor};
-filter: blur(0px);`;
+  radial-gradient(circle at ${offsetX}% ${offsetY}%, ${hexToRgba(accentColor1, 0.9 * alpha)} 0%, transparent ${blobSize}%),
+  radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${hexToRgba(accentColor2, 0.85 * alpha)} 0%, transparent ${blobSize}%),
+  ${baseColor};${grainComment}`;
     }
 
     async function copyCss() {
@@ -224,6 +487,9 @@ filter: blur(0px);`;
             baseColor={baseColor}
             accentColor1={accentColor1}
             accentColor2={accentColor2}
+            backgroundStyle={backgroundStyle}
+            intensity={intensity}
+            grain={grain}
             blobSize={blobSize}
             blur={blur}
             offsetX={offsetX}
@@ -233,9 +499,14 @@ filter: blur(0px);`;
             setBaseColor={setBaseColor}
             setAccentColor1={setAccentColor1}
             setAccentColor2={setAccentColor2}
+            setBackgroundStyle={setBackgroundStyle}
+            setIntensity={setIntensity}
+            setGrain={setGrain}
             setBlobSize={setBlobSize}
             setBlur={setBlur}
             showPreview={showPreview}
+            onShuffle={shuffleBackground}
+            onRandom={randomAll}
             compact={false}
         />
     );
@@ -248,6 +519,9 @@ filter: blur(0px);`;
             baseColor={baseColor}
             accentColor1={accentColor1}
             accentColor2={accentColor2}
+            backgroundStyle={backgroundStyle}
+            intensity={intensity}
+            grain={grain}
             blobSize={blobSize}
             blur={blur}
             offsetX={offsetX}
@@ -257,9 +531,14 @@ filter: blur(0px);`;
             setBaseColor={setBaseColor}
             setAccentColor1={setAccentColor1}
             setAccentColor2={setAccentColor2}
+            setBackgroundStyle={setBackgroundStyle}
+            setIntensity={setIntensity}
+            setGrain={setGrain}
             setBlobSize={setBlobSize}
             setBlur={setBlur}
             showPreview={showPreview}
+            onShuffle={shuffleBackground}
+            onRandom={randomAll}
             compact
         />
     );
@@ -269,32 +548,12 @@ filter: blur(0px);`;
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
                 <div className="min-w-0 space-y-6">
                     <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(128px,160px)] lg:items-start">
-                            <div className="min-w-0">
-                                <SectionHeader title={text.previewTitle} />
+                        <div className="min-w-0">
+                            <SectionHeader title={text.previewTitle} />
 
-                                <p className="mt-2 max-w-[320px] text-sm leading-6 text-gray-500">
-                                    {text.previewDescription}
-                                </p>
-                            </div>
-
-                            <div className="hidden gap-2 lg:grid">
-                                <button
-                                    type="button"
-                                    onClick={shuffleBackground}
-                                    className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                                >
-                                    {text.shuffle}
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={randomAll}
-                                    className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                                >
-                                    {text.randomAll}
-                                </button>
-                            </div>
+                            <p className="mt-2 max-w-[320px] text-sm leading-6 text-gray-500">
+                                {text.previewDescription}
+                            </p>
                         </div>
 
                         <div className="relative mt-5 overflow-hidden rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
@@ -386,6 +645,9 @@ function SettingsPanel({
     baseColor,
     accentColor1,
     accentColor2,
+    backgroundStyle,
+    intensity,
+    grain,
     blobSize,
     blur,
     offsetX,
@@ -395,9 +657,14 @@ function SettingsPanel({
     setBaseColor,
     setAccentColor1,
     setAccentColor2,
+    setBackgroundStyle,
+    setIntensity,
+    setGrain,
     setBlobSize,
     setBlur,
     showPreview,
+    onShuffle,
+    onRandom,
     compact = false,
 }: {
     text: typeof t.backgroundGenerator;
@@ -406,6 +673,9 @@ function SettingsPanel({
     baseColor: string;
     accentColor1: string;
     accentColor2: string;
+    backgroundStyle: BackgroundStyle;
+    intensity: number;
+    grain: number;
     blobSize: number;
     blur: number;
     offsetX: number;
@@ -415,11 +685,23 @@ function SettingsPanel({
     setBaseColor: (value: string) => void;
     setAccentColor1: (value: string) => void;
     setAccentColor2: (value: string) => void;
+    setBackgroundStyle: (value: BackgroundStyle) => void;
+    setIntensity: (value: number) => void;
+    setGrain: (value: number) => void;
     setBlobSize: (value: number) => void;
     setBlur: (value: number) => void;
     showPreview: () => void;
+    onShuffle: () => void;
+    onRandom: () => void;
     compact?: boolean;
 }) {
+    const backgroundStyleLabel =
+        (text as { backgroundStyle?: string }).backgroundStyle ??
+        "Background Style";
+    const intensityLabel =
+        (text as { intensity?: string }).intensity ?? "Intensity";
+    const grainLabel = (text as { grain?: string }).grain ?? "Grain";
+
     return (
         <div className={compact ? "space-y-3" : "space-y-5"}>
             {compact ? (
@@ -429,11 +711,73 @@ function SettingsPanel({
                     baseColor={baseColor}
                     accentColor1={accentColor1}
                     accentColor2={accentColor2}
+                    backgroundStyle={backgroundStyle}
+                    intensity={intensity}
+                    grain={grain}
                     blobSize={blobSize}
                     offsetX={offsetX}
                     offsetY={offsetY}
                 />
             ) : null}
+
+            {!compact ? (
+                <div className="grid grid-cols-2 gap-3">
+                    <button
+                        type="button"
+                        onClick={onShuffle}
+                        className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                    >
+                        {text.shuffle}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={onRandom}
+                        className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
+                    >
+                        {text.randomAll}
+                    </button>
+                </div>
+            ) : null}
+
+            <div>
+                <span
+                    className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                        }`}
+                >
+                    {backgroundStyleLabel}
+                </span>
+
+                <div
+                    className={
+                        compact
+                            ? "grid grid-cols-2 gap-2"
+                            : "grid grid-cols-2 gap-3"
+                    }
+                >
+                    {backgroundStyles.map((style) => {
+                        const isActive = backgroundStyle === style;
+
+                        return (
+                            <button
+                                key={style}
+                                type="button"
+                                onClick={() => {
+                                    setBackgroundStyle(style);
+                                    showPreview();
+                                }}
+                                className={`rounded-2xl border px-3 font-semibold transition ${compact ? "py-2 text-xs" : "py-3 text-sm"
+                                    } ${isActive
+                                        ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                                        : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                                    }`}
+                            >
+                                {getStyleLabel(text, style)}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
 
             <div
                 className={
@@ -530,6 +874,32 @@ function SettingsPanel({
             )}
 
             <RangeInput
+                label={intensityLabel}
+                value={intensity}
+                min={0}
+                max={100}
+                suffix="%"
+                compact={compact}
+                onChange={(value) => {
+                    setIntensity(value);
+                    showPreview();
+                }}
+            />
+
+            <RangeInput
+                label={grainLabel}
+                value={grain}
+                min={0}
+                max={30}
+                suffix="%"
+                compact={compact}
+                onChange={(value) => {
+                    setGrain(value);
+                    showPreview();
+                }}
+            />
+
+            <RangeInput
                 label={text.blobSize}
                 value={blobSize}
                 min={10}
@@ -558,12 +928,69 @@ function SettingsPanel({
     );
 }
 
+function getCssBackgroundValue({
+    baseColor,
+    accentColor1,
+    accentColor2,
+    backgroundStyle,
+    intensity,
+    blobSize,
+    offsetX,
+    offsetY,
+}: {
+    baseColor: string;
+    accentColor1: string;
+    accentColor2: string;
+    backgroundStyle: BackgroundStyle;
+    intensity: number;
+    blobSize: number;
+    offsetX: number;
+    offsetY: number;
+}) {
+    const alpha = intensity / 100;
+
+    if (backgroundStyle === "mesh") {
+        return `
+            radial-gradient(circle at ${offsetX}% ${offsetY}%, ${hexToRgba(accentColor1, 0.85 * alpha)} 0%, transparent ${blobSize}%),
+            radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${hexToRgba(accentColor2, 0.8 * alpha)} 0%, transparent ${blobSize}%),
+            radial-gradient(circle at 50% 18%, ${hexToRgba(accentColor2, 0.55 * alpha)} 0%, transparent ${blobSize}%),
+            radial-gradient(circle at 18% 82%, ${hexToRgba(accentColor1, 0.45 * alpha)} 0%, transparent ${blobSize}%),
+            ${baseColor}
+        `;
+    }
+
+    if (backgroundStyle === "aurora") {
+        return `
+            linear-gradient(135deg, transparent 0%, ${hexToRgba(accentColor1, 0.75 * alpha)} 45%, transparent 100%),
+            linear-gradient(45deg, transparent 0%, ${hexToRgba(accentColor2, 0.7 * alpha)} 50%, transparent 100%),
+            ${baseColor}
+        `;
+    }
+
+    if (backgroundStyle === "spotlight") {
+        return `
+            radial-gradient(circle at 50% 42%, ${hexToRgba(accentColor1, 0.85 * alpha)} 0%, ${hexToRgba(accentColor2, 0.35 * alpha)} 55%, transparent ${blobSize + 20}%),
+            radial-gradient(circle at 50% 50%, transparent 15%, ${hexToRgba(accentColor2, 0.32 * alpha)} 100%),
+            ${baseColor}
+        `;
+    }
+
+    return `
+        radial-gradient(circle at ${offsetX}% ${offsetY}%, ${hexToRgba(accentColor1, 0.9 * alpha)} 0%, transparent ${blobSize}%),
+        radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${hexToRgba(accentColor2, 0.85 * alpha)} 0%, transparent ${blobSize}%),
+        ${baseColor}
+    `;
+}
+
 function BackgroundMiniPreview({
     canvasWidth,
     canvasHeight,
     baseColor,
     accentColor1,
     accentColor2,
+    backgroundStyle,
+    intensity,
+    grain,
     blobSize,
     offsetX,
     offsetY,
@@ -573,6 +1000,9 @@ function BackgroundMiniPreview({
     baseColor: string;
     accentColor1: string;
     accentColor2: string;
+    backgroundStyle: BackgroundStyle;
+    intensity: number;
+    grain: number;
     blobSize: number;
     offsetX: number;
     offsetY: number;
@@ -586,20 +1016,37 @@ function BackgroundMiniPreview({
     return (
         <div className="flex h-36 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5">
             <div
-                className="overflow-hidden rounded-xl border border-[#F1E5DF] shadow-sm"
+                className="relative overflow-hidden rounded-xl border border-[#F1E5DF] shadow-sm"
                 style={{
                     aspectRatio: `${safeWidth} / ${safeHeight}`,
                     width: fillWidth ? "100%" : "auto",
                     height: fillWidth ? "auto" : "100%",
                     maxWidth: "100%",
                     maxHeight: "100%",
-                    background: `
-                        radial-gradient(circle at ${offsetX}% ${offsetY}%, ${accentColor1} 0%, transparent ${blobSize}%),
-                        radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${accentColor2} 0%, transparent ${blobSize}%),
-                        ${baseColor}
-                    `,
+                    background: getCssBackgroundValue({
+                        baseColor,
+                        accentColor1,
+                        accentColor2,
+                        backgroundStyle,
+                        intensity,
+                        blobSize,
+                        offsetX,
+                        offsetY,
+                    }),
                 }}
-            />
+            >
+                {grain > 0 ? (
+                    <div
+                        className="pointer-events-none absolute inset-0"
+                        style={{
+                            opacity: Math.min(grain / 35, 0.65),
+                            backgroundImage:
+                                "radial-gradient(circle, rgba(42,31,27,0.24) 1px, transparent 1px)",
+                            backgroundSize: "5px 5px",
+                        }}
+                    />
+                ) : null}
+            </div>
         </div>
     );
 }
