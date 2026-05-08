@@ -66,6 +66,7 @@ export default function FaviconGeneratorTool() {
     const [generatedFavicons, setGeneratedFavicons] = useState<
         GeneratedFavicon[]
     >([]);
+    const [livePreviewUrl, setLivePreviewUrl] = useState("");
 
     const [backgroundColor, setBackgroundColor] = useState("#FFFFFF");
     const [transparentBackground, setTransparentBackground] = useState(true);
@@ -91,6 +92,48 @@ export default function FaviconGeneratorTool() {
             document.body.style.overflow = originalOverflow;
         };
     }, [isSettingsOpen]);
+
+    useEffect(() => {
+        if (!originalUrl) {
+            setLivePreviewUrl("");
+            return;
+        }
+
+        let isCancelled = false;
+        const image = new Image();
+
+        image.onload = async () => {
+            try {
+                const preview = await generateFaviconBySize(image, 192);
+
+                if (!isCancelled) {
+                    setLivePreviewUrl(preview.dataUrl);
+                }
+            } catch {
+                if (!isCancelled) {
+                    setLivePreviewUrl("");
+                }
+            }
+        };
+
+        image.onerror = () => {
+            if (!isCancelled) {
+                setLivePreviewUrl("");
+            }
+        };
+
+        image.src = originalUrl;
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [
+        originalUrl,
+        backgroundColor,
+        transparentBackground,
+        padding,
+        cornerRadius,
+    ]);
 
     function clearGenerated() {
         setGeneratedFavicons([]);
@@ -392,23 +435,21 @@ export default function FaviconGeneratorTool() {
                         </section>
 
                         <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                            <div className="mb-4">
+                            <div className="mb-4 flex items-center justify-between gap-4">
                                 <SectionHeader title={text.outputTitle} />
+
+                                <button
+                                    type="button"
+                                    onClick={handleCopyHtml}
+                                    className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                >
+                                    {copied ? text.copied : text.copyHtml}
+                                </button>
                             </div>
 
                             <pre className="overflow-x-auto rounded-2xl bg-[#FFF7F3] p-4 text-sm leading-7 text-gray-700">
                                 <code>{htmlOutput}</code>
                             </pre>
-
-                            <div className="mt-4 flex flex-wrap gap-3">
-                                <button
-                                    type="button"
-                                    onClick={handleCopyHtml}
-                                    className="rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                                >
-                                    {copied ? text.copied : text.copyHtml}
-                                </button>
-                            </div>
 
                             {copyError ? (
                                 <p className="mt-3 text-sm font-medium text-red-500">
@@ -431,6 +472,7 @@ export default function FaviconGeneratorTool() {
                     <section className="hidden min-w-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm lg:block">
                         <FaviconSettingsPanel
                             text={text}
+                            livePreviewUrl={livePreviewUrl}
                             transparentBackground={transparentBackground}
                             backgroundColor={backgroundColor}
                             padding={padding}
@@ -472,6 +514,7 @@ export default function FaviconGeneratorTool() {
                 >
                     <FaviconSettingsPanel
                         text={text}
+                        livePreviewUrl={livePreviewUrl}
                         transparentBackground={transparentBackground}
                         backgroundColor={backgroundColor}
                         padding={padding}
@@ -494,6 +537,7 @@ export default function FaviconGeneratorTool() {
 
 function FaviconSettingsPanel({
     text,
+    livePreviewUrl,
     transparentBackground,
     backgroundColor,
     padding,
@@ -509,6 +553,7 @@ function FaviconSettingsPanel({
     hideHeader = false,
 }: {
     text: typeof t.faviconGenerator;
+    livePreviewUrl: string;
     transparentBackground: boolean;
     backgroundColor: string;
     padding: number;
@@ -527,7 +572,13 @@ function FaviconSettingsPanel({
         <div>
             {!hideHeader ? <SectionHeader title={text.controlsTitle} /> : null}
 
-            <div className={`${compact ? "space-y-3" : "mt-5 space-y-5"}`}>
+            <div className={compact ? "mt-0 space-y-3" : "mt-5 space-y-5"}>
+                <FaviconLivePreview
+                    imageUrl={livePreviewUrl}
+                    emptyText={text.emptyDescription}
+                    compact={compact}
+                />
+
                 <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] px-4 py-3 transition hover:bg-[#FFF7F3]">
                     <span className="text-sm font-semibold text-gray-800">
                         {text.transparentBackgroundLabel}
@@ -583,24 +634,63 @@ function FaviconSettingsPanel({
                     }}
                 />
 
-                <button
-                    type="button"
-                    onClick={handleGenerate}
-                    className={`w-full rounded-2xl bg-[#F28C6F] text-sm font-semibold text-white transition hover:bg-[#E6765B] ${compact ? "px-4 py-2.5" : "px-4 py-3"
-                        }`}
+                <div
+                    className={
+                        compact
+                            ? "grid grid-cols-2 gap-3"
+                            : "space-y-3"
+                    }
                 >
-                    {text.generateFavicons}
-                </button>
+                    <button
+                        type="button"
+                        onClick={handleGenerate}
+                        className={`w-full rounded-2xl bg-[#F28C6F] text-sm font-semibold text-white transition hover:bg-[#E6765B] ${compact ? "px-4 py-2.5" : "px-4 py-3"
+                            }`}
+                    >
+                        {text.generateFavicons}
+                    </button>
 
-                <button
-                    type="button"
-                    onClick={handleReset}
-                    className={`w-full rounded-2xl border border-[#F4C8BA] bg-white text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] ${compact ? "px-4 py-2.5" : "px-4 py-3"
-                        }`}
-                >
-                    {text.reset}
-                </button>
+                    <button
+                        type="button"
+                        onClick={handleReset}
+                        className={`w-full rounded-2xl border border-[#F4C8BA] bg-white text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] ${compact ? "px-4 py-2.5" : "px-4 py-3"
+                            }`}
+                    >
+                        {text.reset}
+                    </button>
+                </div>
             </div>
+        </div>
+    );
+}
+
+function FaviconLivePreview({
+    imageUrl,
+    emptyText,
+    compact = false,
+}: {
+    imageUrl: string;
+    emptyText: string;
+    compact?: boolean;
+}) {
+    return (
+        <div
+            className={`flex items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] ${compact ? "h-24 p-2" : "h-32 p-3"
+                }`}
+        >
+            {imageUrl ? (
+                <div className="flex h-full aspect-square items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white p-2 shadow-sm">
+                    <img
+                        src={imageUrl}
+                        alt={emptyText}
+                        className="h-full w-full object-contain"
+                    />
+                </div>
+            ) : (
+                <p className="px-4 text-center text-xs leading-5 text-gray-500">
+                    {emptyText}
+                </p>
+            )}
         </div>
     );
 }
