@@ -9,6 +9,10 @@ import {
 } from "react";
 import { t } from "@/data/messages";
 
+type GlassStyle = "frosted" | "clear" | "tinted" | "dark" | "neon";
+
+const glassStyles: GlassStyle[] = ["frosted", "clear", "tinted", "dark", "neon"];
+
 function isValidHexColor(value: string) {
     return /^#[0-9A-Fa-f]{6}$/.test(value);
 }
@@ -28,6 +32,12 @@ function hexToRgb(hex: string) {
     };
 }
 
+function hexToRgba(hex: string, alpha: number) {
+    const rgb = hexToRgb(hex);
+
+    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+}
+
 function getRandomHexColor() {
     const value = Math.floor(Math.random() * 16777215)
         .toString(16)
@@ -41,6 +51,26 @@ function getRandomNumber(min: number, max: number) {
     return Math.floor(min + Math.random() * (max - min + 1));
 }
 
+function getGlassStyleLabel(
+    text: typeof t.glassmorphismGenerator,
+    style: GlassStyle,
+) {
+    const labels = text as {
+        styleFrosted?: string;
+        styleClear?: string;
+        styleTinted?: string;
+        styleDark?: string;
+        styleNeon?: string;
+    };
+
+    if (style === "clear") return labels.styleClear ?? "Clear";
+    if (style === "tinted") return labels.styleTinted ?? "Tinted";
+    if (style === "dark") return labels.styleDark ?? "Dark";
+    if (style === "neon") return labels.styleNeon ?? "Neon";
+
+    return labels.styleFrosted ?? "Frosted";
+}
+
 export default function GlassmorphismGeneratorTool() {
     const text = t.glassmorphismGenerator;
     const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -48,11 +78,23 @@ export default function GlassmorphismGeneratorTool() {
     const settingsButtonText =
         (text as { settingsButton?: string }).settingsButton ?? "Settings";
 
+    const glassStyleLabel =
+        (text as { glassStyle?: string }).glassStyle ?? "Glass Style";
+
+    const saturationLabel =
+        (text as { saturation?: string }).saturation ?? "Saturation";
+
+    const highlightLabel =
+        (text as { highlight?: string }).highlight ?? "Highlight";
+
     const [backgroundColor1, setBackgroundColor1] = useState("#F28C6F");
     const [backgroundColor2, setBackgroundColor2] = useState("#FFD6C8");
     const [glassColor, setGlassColor] = useState("#FFFFFF");
+    const [glassStyle, setGlassStyle] = useState<GlassStyle>("frosted");
     const [opacity, setOpacity] = useState(28);
     const [blur, setBlur] = useState(18);
+    const [saturation, setSaturation] = useState(140);
+    const [highlight, setHighlight] = useState(35);
     const [borderRadius, setBorderRadius] = useState(28);
     const [borderOpacity, setBorderOpacity] = useState(35);
     const [shadowIntensity, setShadowIntensity] = useState(20);
@@ -68,30 +110,59 @@ export default function GlassmorphismGeneratorTool() {
         return hexToRgb(safeGlassColor);
     }, [safeGlassColor]);
 
+    const isDarkGlass = glassStyle === "dark";
+    const isNeonGlass = glassStyle === "neon";
+
+    const borderColor = isNeonGlass
+        ? hexToRgba(safeBackgroundColor2, 0.85)
+        : `rgba(255, 255, 255, ${borderOpacity / 100})`;
+
+    const shadowValue = isNeonGlass
+        ? `0 0 40px ${hexToRgba(
+            safeBackgroundColor2,
+            shadowIntensity / 100,
+        )}, 0 18px 60px rgba(17, 24, 39, ${shadowIntensity / 180})`
+        : `0 18px 60px rgba(17, 24, 39, ${shadowIntensity / 100})`;
+
+    const highlightGradient = `linear-gradient(135deg, rgba(255, 255, 255, ${highlight / 100
+        }) 0%, rgba(255, 255, 255, ${highlight / 300}) 38%, transparent 72%)`;
+
     const cssOutput = useMemo(() => {
         return `.glass-background {
   background: linear-gradient(${gradientAngle}deg, ${safeBackgroundColor1}, ${safeBackgroundColor2});
 }
 
 .glass-card {
+  position: relative;
+  overflow: hidden;
   background: rgba(${glassRgb.r}, ${glassRgb.g}, ${glassRgb.b}, ${opacity / 100
             });
-  backdrop-filter: blur(${blur}px);
-  -webkit-backdrop-filter: blur(${blur}px);
+  backdrop-filter: blur(${blur}px) saturate(${saturation}%);
+  -webkit-backdrop-filter: blur(${blur}px) saturate(${saturation}%);
   border-radius: ${borderRadius}px;
-  border: 1px solid rgba(255, 255, 255, ${borderOpacity / 100});
-  box-shadow: 0 18px 60px rgba(17, 24, 39, ${shadowIntensity / 100});
+  border: 1px solid ${borderColor};
+  box-shadow: ${shadowValue};
+}
+
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: ${highlightGradient};
 }`;
     }, [
+        gradientAngle,
         safeBackgroundColor1,
         safeBackgroundColor2,
-        gradientAngle,
         glassRgb,
         opacity,
         blur,
+        saturation,
         borderRadius,
-        borderOpacity,
-        shadowIntensity,
+        borderColor,
+        shadowValue,
+        highlightGradient,
     ]);
 
     useEffect(() => {
@@ -102,9 +173,69 @@ export default function GlassmorphismGeneratorTool() {
         };
     }, []);
 
+    function applyGlassStyle(nextStyle: GlassStyle) {
+        setGlassStyle(nextStyle);
+
+        if (nextStyle === "clear") {
+            setOpacity(16);
+            setBlur(14);
+            setSaturation(125);
+            setHighlight(28);
+            setBorderOpacity(28);
+            setShadowIntensity(12);
+            setGlassColor("#FFFFFF");
+        }
+
+        if (nextStyle === "frosted") {
+            setOpacity(28);
+            setBlur(18);
+            setSaturation(140);
+            setHighlight(35);
+            setBorderOpacity(35);
+            setShadowIntensity(20);
+            setGlassColor("#FFFFFF");
+        }
+
+        if (nextStyle === "tinted") {
+            setOpacity(34);
+            setBlur(24);
+            setSaturation(160);
+            setHighlight(42);
+            setBorderOpacity(45);
+            setShadowIntensity(24);
+            setGlassColor("#FFF7F3");
+        }
+
+        if (nextStyle === "dark") {
+            setOpacity(32);
+            setBlur(22);
+            setSaturation(130);
+            setHighlight(16);
+            setBorderOpacity(20);
+            setShadowIntensity(36);
+            setGlassColor("#111827");
+        }
+
+        if (nextStyle === "neon") {
+            setOpacity(22);
+            setBlur(28);
+            setSaturation(185);
+            setHighlight(50);
+            setBorderOpacity(70);
+            setShadowIntensity(48);
+            setGlassColor("#FFFFFF");
+        }
+    }
+
     function shuffleGlass() {
+        const nextStyle =
+            glassStyles[Math.floor(Math.random() * glassStyles.length)];
+
+        setGlassStyle(nextStyle);
         setOpacity(getRandomNumber(18, 52));
         setBlur(getRandomNumber(8, 35));
+        setSaturation(getRandomNumber(115, 210));
+        setHighlight(getRandomNumber(12, 70));
         setBorderRadius(getRandomNumber(16, 50));
         setBorderOpacity(getRandomNumber(15, 60));
         setShadowIntensity(getRandomNumber(8, 38));
@@ -112,11 +243,17 @@ export default function GlassmorphismGeneratorTool() {
     }
 
     function randomAll() {
+        const nextStyle =
+            glassStyles[Math.floor(Math.random() * glassStyles.length)];
+
+        setGlassStyle(nextStyle);
         setBackgroundColor1(getRandomHexColor());
         setBackgroundColor2(getRandomHexColor());
         setGlassColor(getRandomHexColor());
         setOpacity(getRandomNumber(18, 52));
         setBlur(getRandomNumber(8, 35));
+        setSaturation(getRandomNumber(115, 210));
+        setHighlight(getRandomNumber(12, 70));
         setBorderRadius(getRandomNumber(16, 50));
         setBorderOpacity(getRandomNumber(15, 60));
         setShadowIntensity(getRandomNumber(8, 38));
@@ -148,51 +285,74 @@ export default function GlassmorphismGeneratorTool() {
             glassRgb={glassRgb}
             opacity={opacity}
             blur={blur}
+            saturation={saturation}
             borderRadius={borderRadius}
-            borderOpacity={borderOpacity}
-            shadowIntensity={shadowIntensity}
+            borderColor={borderColor}
+            shadowValue={shadowValue}
+            highlightGradient={highlightGradient}
             gradientAngle={gradientAngle}
+            isDarkGlass={isDarkGlass}
         />
     );
 
     const desktopSettingsPanel = (
         <GlassSettingsPanel
             text={text}
+            glassStyleLabel={glassStyleLabel}
+            saturationLabel={saturationLabel}
+            highlightLabel={highlightLabel}
             backgroundColor1={backgroundColor1}
             backgroundColor2={backgroundColor2}
             glassColor={glassColor}
+            glassStyle={glassStyle}
             opacity={opacity}
             blur={blur}
+            saturation={saturation}
+            highlight={highlight}
             borderRadius={borderRadius}
             borderOpacity={borderOpacity}
             shadowIntensity={shadowIntensity}
             setBackgroundColor1={setBackgroundColor1}
             setBackgroundColor2={setBackgroundColor2}
             setGlassColor={setGlassColor}
+            applyGlassStyle={applyGlassStyle}
             setOpacity={setOpacity}
             setBlur={setBlur}
+            setSaturation={setSaturation}
+            setHighlight={setHighlight}
             setBorderRadius={setBorderRadius}
             setBorderOpacity={setBorderOpacity}
             setShadowIntensity={setShadowIntensity}
+            onShuffle={shuffleGlass}
+            onRandom={randomAll}
         />
     );
 
     const mobileSettingsPanel = (
         <GlassSettingsPanel
             text={text}
+            glassStyleLabel={glassStyleLabel}
+            saturationLabel={saturationLabel}
+            highlightLabel={highlightLabel}
             backgroundColor1={backgroundColor1}
             backgroundColor2={backgroundColor2}
             glassColor={glassColor}
+            glassStyle={glassStyle}
             opacity={opacity}
             blur={blur}
+            saturation={saturation}
+            highlight={highlight}
             borderRadius={borderRadius}
             borderOpacity={borderOpacity}
             shadowIntensity={shadowIntensity}
             setBackgroundColor1={setBackgroundColor1}
             setBackgroundColor2={setBackgroundColor2}
             setGlassColor={setGlassColor}
+            applyGlassStyle={applyGlassStyle}
             setOpacity={setOpacity}
             setBlur={setBlur}
+            setSaturation={setSaturation}
+            setHighlight={setHighlight}
             setBorderRadius={setBorderRadius}
             setBorderOpacity={setBorderOpacity}
             setShadowIntensity={setShadowIntensity}
@@ -241,24 +401,6 @@ export default function GlassmorphismGeneratorTool() {
                     <section className="hidden min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm lg:block">
                         <SectionHeader title={text.controls} />
 
-                        <div className="mt-5 grid grid-cols-2 gap-3">
-                            <button
-                                type="button"
-                                onClick={shuffleGlass}
-                                className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                            >
-                                {text.shuffle}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={randomAll}
-                                className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                            >
-                                {text.randomAll}
-                            </button>
-                        </div>
-
                         <div className="mt-5">{desktopSettingsPanel}</div>
                     </section>
                 </div>
@@ -291,10 +433,13 @@ function GlassPreview({
     glassRgb,
     opacity,
     blur,
+    saturation,
     borderRadius,
-    borderOpacity,
-    shadowIntensity,
+    borderColor,
+    shadowValue,
+    highlightGradient,
     gradientAngle,
+    isDarkGlass,
 }: {
     text: typeof t.glassmorphismGenerator;
     safeBackgroundColor1: string;
@@ -302,10 +447,13 @@ function GlassPreview({
     glassRgb: { r: number; g: number; b: number };
     opacity: number;
     blur: number;
+    saturation: number;
     borderRadius: number;
-    borderOpacity: number;
-    shadowIntensity: number;
+    borderColor: string;
+    shadowValue: string;
+    highlightGradient: string;
     gradientAngle: number;
+    isDarkGlass: boolean;
 }) {
     return (
         <div
@@ -315,30 +463,43 @@ function GlassPreview({
             }}
         >
             <div
-                className="w-full max-w-sm p-6 text-center md:p-8"
+                className="relative w-full max-w-sm overflow-hidden p-6 text-center md:p-8"
                 style={{
                     background: `rgba(${glassRgb.r}, ${glassRgb.g}, ${glassRgb.b
                         }, ${opacity / 100})`,
-                    backdropFilter: `blur(${blur}px)`,
-                    WebkitBackdropFilter: `blur(${blur}px)`,
+                    backdropFilter: `blur(${blur}px) saturate(${saturation}%)`,
+                    WebkitBackdropFilter: `blur(${blur}px) saturate(${saturation}%)`,
                     borderRadius: `${borderRadius}px`,
-                    border: `1px solid rgba(255, 255, 255, ${borderOpacity / 100
-                        })`,
-                    boxShadow: `0 18px 60px rgba(17, 24, 39, ${shadowIntensity / 100
-                        })`,
+                    border: `1px solid ${borderColor}`,
+                    boxShadow: shadowValue,
                 }}
             >
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/50 text-3xl md:mb-5 md:h-16 md:w-16">
-                    ◫
+                <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                        background: highlightGradient,
+                    }}
+                />
+
+                <div className="relative z-10">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/50 text-3xl md:mb-5 md:h-16 md:w-16">
+                        ◫
+                    </div>
+
+                    <h4
+                        className={`text-xl font-bold md:text-2xl ${isDarkGlass ? "text-white" : "text-gray-900"
+                            }`}
+                    >
+                        {text.cardText}
+                    </h4>
+
+                    <p
+                        className={`mt-3 text-sm leading-6 ${isDarkGlass ? "text-white/80" : "text-gray-700"
+                            }`}
+                    >
+                        {text.cardDescription}
+                    </p>
                 </div>
-
-                <h4 className="text-xl font-bold text-gray-900 md:text-2xl">
-                    {text.cardText}
-                </h4>
-
-                <p className="mt-3 text-sm leading-6 text-gray-700">
-                    {text.cardDescription}
-                </p>
             </div>
         </div>
     );
@@ -346,19 +507,28 @@ function GlassPreview({
 
 function GlassSettingsPanel({
     text,
+    glassStyleLabel,
+    saturationLabel,
+    highlightLabel,
     backgroundColor1,
     backgroundColor2,
     glassColor,
+    glassStyle,
     opacity,
     blur,
+    saturation,
+    highlight,
     borderRadius,
     borderOpacity,
     shadowIntensity,
     setBackgroundColor1,
     setBackgroundColor2,
     setGlassColor,
+    applyGlassStyle,
     setOpacity,
     setBlur,
+    setSaturation,
+    setHighlight,
     setBorderRadius,
     setBorderOpacity,
     setShadowIntensity,
@@ -367,19 +537,28 @@ function GlassSettingsPanel({
     onRandom,
 }: {
     text: typeof t.glassmorphismGenerator;
+    glassStyleLabel: string;
+    saturationLabel: string;
+    highlightLabel: string;
     backgroundColor1: string;
     backgroundColor2: string;
     glassColor: string;
+    glassStyle: GlassStyle;
     opacity: number;
     blur: number;
+    saturation: number;
+    highlight: number;
     borderRadius: number;
     borderOpacity: number;
     shadowIntensity: number;
     setBackgroundColor1: (value: string) => void;
     setBackgroundColor2: (value: string) => void;
     setGlassColor: (value: string) => void;
+    applyGlassStyle: (value: GlassStyle) => void;
     setOpacity: (value: number) => void;
     setBlur: (value: number) => void;
+    setSaturation: (value: number) => void;
+    setHighlight: (value: number) => void;
     setBorderRadius: (value: number) => void;
     setBorderOpacity: (value: number) => void;
     setShadowIntensity: (value: number) => void;
@@ -389,31 +568,84 @@ function GlassSettingsPanel({
 }) {
     return (
         <div className={compact ? "space-y-3" : "space-y-5"}>
-            {compact ? (
-                <div className="flex flex-nowrap items-center justify-between gap-2">
-                    <span className="min-w-0 truncate text-xs font-semibold text-gray-800">
-                        {text.glassColor}
-                    </span>
+            <div>
+                {compact ? (
+                    <div className="mb-2 flex flex-nowrap items-center justify-between gap-2">
+                        <span className="min-w-0 truncate text-xs font-semibold text-gray-800">
+                            {glassStyleLabel}
+                        </span>
 
-                    <div className="grid shrink-0 grid-cols-2 gap-1.5">
-                        <button
-                            type="button"
-                            onClick={onShuffle}
-                            className="h-8 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 text-[11px] font-semibold leading-none text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                        >
-                            {text.shuffle}
-                        </button>
+                        <div className="grid shrink-0 grid-cols-2 gap-1.5">
+                            <button
+                                type="button"
+                                onClick={onShuffle}
+                                className="h-8 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 text-[11px] font-semibold leading-none text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                            >
+                                {text.shuffle}
+                            </button>
 
-                        <button
-                            type="button"
-                            onClick={onRandom}
-                            className="h-8 rounded-xl bg-[#F28C6F] px-2 text-[11px] font-semibold leading-none text-white shadow-sm transition hover:bg-[#E6765B]"
-                        >
-                            {text.randomAll}
-                        </button>
+                            <button
+                                type="button"
+                                onClick={onRandom}
+                                className="h-8 rounded-xl bg-[#F28C6F] px-2 text-[11px] font-semibold leading-none text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                {text.randomAll}
+                            </button>
+                        </div>
                     </div>
+                ) : (
+                    <>
+                        <div className="mb-3 grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={onShuffle}
+                                className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                            >
+                                {text.shuffle}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={onRandom}
+                                className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
+                            >
+                                {text.randomAll}
+                            </button>
+                        </div>
+
+                        <span className="mb-2 block text-sm font-semibold text-gray-800">
+                            {glassStyleLabel}
+                        </span>
+                    </>
+                )}
+
+                <div
+                    className={
+                        compact
+                            ? "grid grid-cols-2 gap-2"
+                            : "grid grid-cols-2 gap-3"
+                    }
+                >
+                    {glassStyles.map((style) => {
+                        const isActive = glassStyle === style;
+
+                        return (
+                            <button
+                                key={style}
+                                type="button"
+                                onClick={() => applyGlassStyle(style)}
+                                className={`rounded-2xl border px-3 font-semibold transition ${compact ? "py-2 text-xs" : "py-3 text-sm"
+                                    } ${isActive
+                                        ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                                        : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                                    }`}
+                            >
+                                {getGlassStyleLabel(text, style)}
+                            </button>
+                        );
+                    })}
                 </div>
-            ) : null}
+            </div>
 
             {compact ? (
                 <div className="grid grid-cols-3 gap-2">
@@ -483,6 +715,26 @@ function GlassSettingsPanel({
                 suffix="px"
                 compact={compact}
                 onChange={setBlur}
+            />
+
+            <RangeInput
+                label={saturationLabel}
+                value={saturation}
+                min={100}
+                max={220}
+                suffix="%"
+                compact={compact}
+                onChange={setSaturation}
+            />
+
+            <RangeInput
+                label={highlightLabel}
+                value={highlight}
+                min={0}
+                max={100}
+                suffix="%"
+                compact={compact}
+                onChange={setHighlight}
             />
 
             <RangeInput

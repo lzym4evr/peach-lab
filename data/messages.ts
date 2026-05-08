@@ -676,16 +676,29 @@ export const messages = {
                 "Create frosted glass effects for cards, panels, and modern UI layouts.",
             controls: "Glass Settings",
             settingsButton: "Settings",
+
             cardText: "Glass Card",
             cardDescription: "Soft, clean, and modern UI effect.",
+
+            glassStyle: "Glass Style",
+            styleFrosted: "Frosted",
+            styleClear: "Clear",
+            styleTinted: "Tinted",
+            styleDark: "Dark",
+            styleNeon: "Neon",
+
             opacity: "Opacity",
             blur: "Blur",
+            saturation: "Saturation",
+            highlight: "Highlight",
             borderRadius: "Border Radius",
             borderOpacity: "Border Opacity",
             shadowIntensity: "Shadow Intensity",
+
             backgroundColor1: "Background Color 1",
             backgroundColor2: "Background Color 2",
             glassColor: "Glass Color",
+
             shuffle: "Shuffle",
             randomAll: "Random",
             copyCss: "Copy CSS",
