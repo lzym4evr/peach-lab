@@ -641,14 +641,17 @@ export const messages = {
 
             canvasWidth: "Canvas Width",
             canvasHeight: "Canvas Height",
-            baseColor: "Base Color",
-            accentColor1: "Accent Color 1",
-            accentColor2: "Accent Color 2",
+
             backgroundStyle: "Background Style",
             styleSoftBlob: "Soft Blob",
             styleMesh: "Mesh",
             styleAurora: "Aurora",
             styleSpotlight: "Spotlight",
+
+            baseColor: "Base Color",
+            accentColor1: "Accent Color 1",
+            accentColor2: "Accent Color 2",
+
             intensity: "Intensity",
             grain: "Grain",
             blobSize: "Blob Size",
@@ -662,8 +665,11 @@ export const messages = {
             actionDownload: "Download",
 
             cssTitle: "CSS Background",
+
             copyError: "Copy failed. Please copy the CSS manually.",
+            grainCssComment: "Grain is included in PNG export only.",
         },
+
         glassmorphismGenerator: {
             previewTitle: "Glass Preview",
             previewDescription:
