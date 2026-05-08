@@ -292,7 +292,7 @@ export default function ImageCompressorTool() {
 
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
                     <div className="min-w-0 space-y-5">
-                        <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                        <section>
                             <label
                                 onDragOver={handleDragOver}
                                 onDragLeave={handleDragLeave}
