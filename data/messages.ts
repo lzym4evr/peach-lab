@@ -566,7 +566,7 @@ export const messages = {
             high: "High",
 
             shuffle: "Shuffle",
-            randomAll: "Random All",
+            randomAll: "Random",
             downloadPng: "Download PNG",
             downloadSvg: "Download SVG",
             copySvg: "Copy SVG",
