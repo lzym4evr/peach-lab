@@ -32,10 +32,10 @@ export default function BackgroundGeneratorTool() {
         "Copy failed. Please copy the CSS manually.";
 
     const settingsButtonText =
-        (text as { settingsButton?: string }).settingsButton ?? text.controls;
+        (text as { settingsButton?: string }).settingsButton ?? "Settings";
 
-    const downloadButtonText =
-        (text as { actionDownload?: string }).actionDownload ?? text.downloadPng;
+    const actionDownloadText =
+        (text as { actionDownload?: string }).actionDownload ?? "Download";
 
     const [canvasWidth, setCanvasWidth] = useState(1200);
     const [canvasHeight, setCanvasHeight] = useState(800);
@@ -49,7 +49,15 @@ export default function BackgroundGeneratorTool() {
     const [hasPreview, setHasPreview] = useState(false);
     const [copied, setCopied] = useState(false);
     const [copyError, setCopyError] = useState("");
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            if (copyTimerRef.current) {
+                clearTimeout(copyTimerRef.current);
+            }
+        };
+    }, []);
 
     function drawBackground() {
         const canvas = canvasRef.current;
@@ -121,7 +129,6 @@ export default function BackgroundGeneratorTool() {
 
     useEffect(() => {
         if (!hasPreview) return;
-
         drawBackground();
     }, [
         canvasWidth,
@@ -135,17 +142,6 @@ export default function BackgroundGeneratorTool() {
         offsetY,
         hasPreview,
     ]);
-
-    useEffect(() => {
-        if (!isSettingsOpen) return;
-
-        const originalOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-
-        return () => {
-            document.body.style.overflow = originalOverflow;
-        };
-    }, [isSettingsOpen]);
 
     function showPreview() {
         setHasPreview(true);
@@ -220,7 +216,7 @@ filter: blur(0px);`;
         }, 0);
     }
 
-    const settingsPanel = (
+    const desktopSettingsPanel = (
         <SettingsPanel
             text={text}
             canvasWidth={canvasWidth}
@@ -238,12 +234,35 @@ filter: blur(0px);`;
             setBlobSize={setBlobSize}
             setBlur={setBlur}
             showPreview={showPreview}
+            compact={false}
+        />
+    );
+
+    const mobileSettingsPanel = (
+        <SettingsPanel
+            text={text}
+            canvasWidth={canvasWidth}
+            canvasHeight={canvasHeight}
+            baseColor={baseColor}
+            accentColor1={accentColor1}
+            accentColor2={accentColor2}
+            blobSize={blobSize}
+            blur={blur}
+            setCanvasWidth={setCanvasWidth}
+            setCanvasHeight={setCanvasHeight}
+            setBaseColor={setBaseColor}
+            setAccentColor1={setAccentColor1}
+            setAccentColor2={setAccentColor2}
+            setBlobSize={setBlobSize}
+            setBlur={setBlur}
+            showPreview={showPreview}
+            compact
         />
     );
 
     return (
         <>
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
                 <div className="min-w-0 space-y-6">
                     <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(128px,160px)] lg:items-start">
@@ -274,25 +293,25 @@ filter: blur(0px);`;
                             </div>
                         </div>
 
-                        <div className="relative mt-5 overflow-hidden rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-3 md:p-4">
+                        <div className="relative mt-5 overflow-hidden rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
                             <canvas
                                 ref={canvasRef}
                                 className={`h-auto max-h-[520px] w-full rounded-2xl object-contain ${hasPreview ? "block" : "hidden"
                                     }`}
                             />
 
-                            {!hasPreview ? (
+                            {!hasPreview && (
                                 <div className="flex min-h-64 items-center justify-center rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center">
                                     <p className="max-w-xs text-sm leading-6 text-gray-500">
                                         {text.emptyHint}
                                     </p>
                                 </div>
-                            ) : null}
+                            )}
                         </div>
                     </section>
 
                     <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                        <div className="mb-4 flex items-center justify-between gap-4">
+                        <div className="mb-3 flex items-center justify-between gap-4">
                             <SectionHeader title={text.cssTitle} />
 
                             <button
@@ -319,13 +338,13 @@ filter: blur(0px);`;
                 <section className="hidden min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm lg:block">
                     <SectionHeader title={text.controls} />
 
-                    <div className="mt-5">
-                        {settingsPanel}
+                    <div className="mt-5 space-y-5">
+                        {desktopSettingsPanel}
 
                         <button
                             type="button"
                             onClick={downloadPng}
-                            className="mt-5 w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
+                            className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
                         >
                             {text.downloadPng}
                         </button>
@@ -337,19 +356,19 @@ filter: blur(0px);`;
                 settingsButtonText={settingsButtonText}
                 shuffleText={text.shuffle}
                 randomText={text.randomAll}
-                downloadText={downloadButtonText}
-                onOpenSettings={() => setIsSettingsOpen(true)}
+                downloadText={actionDownloadText}
+                onOpenSettings={() => setIsMobileSettingsOpen(true)}
                 onShuffle={shuffleBackground}
                 onRandom={randomAll}
                 onDownload={downloadPng}
             />
 
-            {isSettingsOpen ? (
+            {isMobileSettingsOpen ? (
                 <MobileSettingsSheet
                     title={text.controls}
-                    onClose={() => setIsSettingsOpen(false)}
+                    onClose={() => setIsMobileSettingsOpen(false)}
                 >
-                    {settingsPanel}
+                    {mobileSettingsPanel}
                 </MobileSettingsSheet>
             ) : null}
         </>
@@ -373,6 +392,7 @@ function SettingsPanel({
     setBlobSize,
     setBlur,
     showPreview,
+    compact = false,
 }: {
     text: typeof t.backgroundGenerator;
     canvasWidth: number;
@@ -390,15 +410,17 @@ function SettingsPanel({
     setBlobSize: (value: number) => void;
     setBlur: (value: number) => void;
     showPreview: () => void;
+    compact?: boolean;
 }) {
     return (
-        <div className="space-y-5">
-            <div className="grid gap-4 sm:grid-cols-2">
+        <div className={compact ? "space-y-3" : "space-y-5"}>
+            <div className={compact ? "grid grid-cols-2 gap-3" : "grid gap-4 sm:grid-cols-2"}>
                 <NumberInput
                     label={text.canvasWidth}
                     value={canvasWidth}
                     min={100}
                     max={4000}
+                    compact={compact}
                     onChange={(value) => {
                         setCanvasWidth(value);
                         showPreview();
@@ -410,6 +432,7 @@ function SettingsPanel({
                     value={canvasHeight}
                     min={100}
                     max={4000}
+                    compact={compact}
                     onChange={(value) => {
                         setCanvasHeight(value);
                         showPreview();
@@ -417,34 +440,67 @@ function SettingsPanel({
                 />
             </div>
 
-            <ColorInput
-                label={text.baseColor}
-                value={baseColor}
-                onChange={(value) => {
-                    setBaseColor(value);
-                    showPreview();
-                }}
-            />
+            {compact ? (
+                <div className="grid grid-cols-3 gap-2">
+                    <CompactColorInput
+                        label={text.baseColor}
+                        value={baseColor}
+                        onChange={(value) => {
+                            setBaseColor(value);
+                            showPreview();
+                        }}
+                    />
 
-            <div className="grid gap-4 sm:grid-cols-2">
-                <ColorInput
-                    label={text.accentColor1}
-                    value={accentColor1}
-                    onChange={(value) => {
-                        setAccentColor1(value);
-                        showPreview();
-                    }}
-                />
+                    <CompactColorInput
+                        label={text.accentColor1}
+                        value={accentColor1}
+                        onChange={(value) => {
+                            setAccentColor1(value);
+                            showPreview();
+                        }}
+                    />
 
-                <ColorInput
-                    label={text.accentColor2}
-                    value={accentColor2}
-                    onChange={(value) => {
-                        setAccentColor2(value);
-                        showPreview();
-                    }}
-                />
-            </div>
+                    <CompactColorInput
+                        label={text.accentColor2}
+                        value={accentColor2}
+                        onChange={(value) => {
+                            setAccentColor2(value);
+                            showPreview();
+                        }}
+                    />
+                </div>
+            ) : (
+                <>
+                    <ColorInput
+                        label={text.baseColor}
+                        value={baseColor}
+                        onChange={(value) => {
+                            setBaseColor(value);
+                            showPreview();
+                        }}
+                    />
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <ColorInput
+                            label={text.accentColor1}
+                            value={accentColor1}
+                            onChange={(value) => {
+                                setAccentColor1(value);
+                                showPreview();
+                            }}
+                        />
+
+                        <ColorInput
+                            label={text.accentColor2}
+                            value={accentColor2}
+                            onChange={(value) => {
+                                setAccentColor2(value);
+                                showPreview();
+                            }}
+                        />
+                    </div>
+                </>
+            )}
 
             <RangeInput
                 label={text.blobSize}
@@ -452,6 +508,7 @@ function SettingsPanel({
                 min={10}
                 max={90}
                 suffix="%"
+                compact={compact}
                 onChange={(value) => {
                     setBlobSize(value);
                     showPreview();
@@ -464,162 +521,12 @@ function SettingsPanel({
                 min={0}
                 max={160}
                 suffix="px"
+                compact={compact}
                 onChange={(value) => {
                     setBlur(value);
                     showPreview();
                 }}
             />
-        </div>
-    );
-}
-
-function MobileActionBar({
-    settingsButtonText,
-    shuffleText,
-    randomText,
-    downloadText,
-    onOpenSettings,
-    onShuffle,
-    onRandom,
-    onDownload,
-}: {
-    settingsButtonText: string;
-    shuffleText: string;
-    randomText: string;
-    downloadText: string;
-    onOpenSettings: () => void;
-    onShuffle: () => void;
-    onRandom: () => void;
-    onDownload: () => void;
-}) {
-    const actionBarRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-
-        const updateSpace = () => {
-            const element = actionBarRef.current;
-            if (!element) return;
-
-            const rect = element.getBoundingClientRect();
-
-            document.documentElement.style.setProperty(
-                "--mobile-action-bar-space",
-                `${Math.ceil(rect.height + 28)}px`,
-            );
-        };
-
-        const timer = window.setTimeout(updateSpace, 0);
-        window.addEventListener("resize", updateSpace);
-
-        return () => {
-            window.clearTimeout(timer);
-            window.removeEventListener("resize", updateSpace);
-            document.documentElement.style.removeProperty(
-                "--mobile-action-bar-space",
-            );
-        };
-    }, []);
-
-    return (
-        <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
-            <div
-                ref={actionBarRef}
-                className="pointer-events-auto mx-auto grid max-w-md grid-cols-4 gap-2 rounded-[30px] border border-[#F4C8BA] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
-            >
-                <button
-                    type="button"
-                    onClick={onShuffle}
-                    className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3]"
-                >
-                    {shuffleText}
-                </button>
-
-                <button
-                    type="button"
-                    onClick={onRandom}
-                    className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-3 text-center text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                >
-                    {randomText}
-                </button>
-
-                <button
-                    type="button"
-                    onClick={onOpenSettings}
-                    className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center text-xs font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
-                >
-                    {settingsButtonText}
-                </button>
-
-                <button
-                    type="button"
-                    onClick={onDownload}
-                    className="rounded-2xl bg-[#F28C6F] px-2 py-3 text-center text-xs font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                >
-                    {downloadText}
-                </button>
-            </div>
-        </div>
-    );
-}
-
-function MobileSettingsSheet({
-    title,
-    children,
-    onClose,
-}: {
-    title: string;
-    children: ReactNode;
-    onClose: () => void;
-}) {
-    const [isVisible, setIsVisible] = useState(false);
-
-    useEffect(() => {
-        const frame = requestAnimationFrame(() => {
-            setIsVisible(true);
-        });
-
-        return () => cancelAnimationFrame(frame);
-    }, []);
-
-    function handleClose() {
-        setIsVisible(false);
-
-        window.setTimeout(() => {
-            onClose();
-        }, 180);
-    }
-
-    return (
-        <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
-                }`}
-            onClick={handleClose}
-        >
-            <div
-                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
-                    }`}
-                onClick={(event) => event.stopPropagation()}
-            >
-                <div className="flex items-center justify-between gap-4 px-4 pb-2 pt-4">
-                    <div className="flex min-w-0 items-center gap-3">
-                        <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
-                        <h3 className="truncate text-lg font-semibold text-gray-900">
-                            {title}
-                        </h3>
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={handleClose}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
-                    >
-                        ×
-                    </button>
-                </div>
-
-                <div className="overflow-y-auto px-4 pb-4 pt-2">{children}</div>
-            </div>
         </div>
     );
 }
@@ -638,17 +545,22 @@ function NumberInput({
     value,
     min,
     max,
+    compact = false,
     onChange,
 }: {
     label: string;
     value: number;
     min: number;
     max: number;
+    compact?: boolean;
     onChange: (value: number) => void;
 }) {
     return (
-        <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-gray-800">
+        <label className="block min-w-0">
+            <span
+                className={`mb-2 block truncate font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                    }`}
+            >
                 {label}
             </span>
 
@@ -658,7 +570,8 @@ function NumberInput({
                 max={max}
                 value={value}
                 onChange={(event) => onChange(Number(event.target.value))}
-                className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                className={`w-full rounded-xl border border-[#F1E5DF] px-3 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-10" : "h-12"
+                    }`}
             />
         </label>
     );
@@ -697,12 +610,46 @@ function ColorInput({
     );
 }
 
+function CompactColorInput({
+    label,
+    value,
+    onChange,
+}: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+}) {
+    return (
+        <label className="block min-w-0">
+            <span className="mb-1.5 block truncate text-[10px] font-semibold text-gray-800">
+                {label}
+            </span>
+
+            <div className="grid grid-cols-[34px_1fr] gap-1.5">
+                <input
+                    type="color"
+                    value={value}
+                    onChange={(event) => onChange(event.target.value)}
+                    className="h-10 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
+                />
+
+                <input
+                    value={value}
+                    onChange={(event) => onChange(event.target.value)}
+                    className="h-10 min-w-0 rounded-xl border border-[#F1E5DF] px-2 text-[10px] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                />
+            </div>
+        </label>
+    );
+}
+
 function RangeInput({
     label,
     value,
     min,
     max,
     suffix,
+    compact = false,
     onChange,
 }: {
     label: string;
@@ -710,16 +657,23 @@ function RangeInput({
     min: number;
     max: number;
     suffix: string;
+    compact?: boolean;
     onChange: (value: number) => void;
 }) {
     return (
         <label className="block">
-            <div className="mb-2 flex items-center justify-between">
-                <span className="block text-sm font-semibold text-gray-800">
+            <div
+                className={`flex items-center justify-between gap-4 ${compact ? "mb-1.5" : "mb-2"
+                    }`}
+            >
+                <span
+                    className={`block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                        }`}
+                >
                     {label}
                 </span>
 
-                <span className="text-sm text-gray-500">
+                <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
                     {value}
                     {suffix}
                 </span>
@@ -734,5 +688,156 @@ function RangeInput({
                 className="w-full accent-[#F28C6F]"
             />
         </label>
+    );
+}
+
+function MobileActionBar({
+    settingsButtonText,
+    shuffleText,
+    randomText,
+    downloadText,
+    onOpenSettings,
+    onShuffle,
+    onRandom,
+    onDownload,
+}: {
+    settingsButtonText: string;
+    shuffleText: string;
+    randomText: string;
+    downloadText: string;
+    onOpenSettings: () => void;
+    onShuffle: () => void;
+    onRandom: () => void;
+    onDownload: () => void;
+}) {
+    const actionBarRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const updateSpace = () => {
+            const element = actionBarRef.current;
+            if (!element) return;
+
+            const rect = element.getBoundingClientRect();
+
+            document.documentElement.style.setProperty(
+                "--mobile-action-bar-space",
+                `${Math.ceil(rect.height + 24)}px`,
+            );
+        };
+
+        const timer = window.setTimeout(updateSpace, 0);
+        window.addEventListener("resize", updateSpace);
+
+        return () => {
+            window.clearTimeout(timer);
+            window.removeEventListener("resize", updateSpace);
+            document.documentElement.style.removeProperty(
+                "--mobile-action-bar-space",
+            );
+        };
+    }, []);
+
+    return (
+        <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
+            <div
+                ref={actionBarRef}
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-4 gap-1.5 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+            >
+                <button
+                    type="button"
+                    onClick={onShuffle}
+                    className="rounded-2xl border border-[#F1E5DF] bg-white px-1.5 py-2.5 text-center text-[11px] font-semibold leading-tight text-[#E6765B] transition hover:bg-[#FFF7F3]"
+                >
+                    {shuffleText}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onRandom}
+                    className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-1.5 py-2.5 text-center text-[11px] font-semibold leading-tight text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                >
+                    {randomText}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onOpenSettings}
+                    className="rounded-2xl border border-[#F1E5DF] bg-white px-1.5 py-2.5 text-center text-[11px] font-semibold leading-tight text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
+                >
+                    {settingsButtonText}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onDownload}
+                    className="rounded-2xl bg-[#F28C6F] px-1.5 py-2.5 text-center text-[11px] font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B]"
+                >
+                    {downloadText}
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function MobileSettingsSheet({
+    title,
+    children,
+    onClose,
+}: {
+    title: string;
+    children: ReactNode;
+    onClose: () => void;
+}) {
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const frame = requestAnimationFrame(() => {
+            setIsVisible(true);
+        });
+
+        return () => cancelAnimationFrame(frame);
+    }, []);
+
+    function handleClose() {
+        setIsVisible(false);
+
+        window.setTimeout(() => {
+            onClose();
+        }, 180);
+    }
+
+    return (
+        <div
+            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-28 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+                }`}
+            onClick={handleClose}
+        >
+            <div
+                className={`ml-auto flex h-full max-h-[72vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                    }`}
+                onClick={(event) => event.stopPropagation()}
+            >
+                <div className="flex items-center justify-between gap-4 px-4 pb-1.5 pt-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <span className="h-6 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
+                        <h3 className="truncate text-base font-semibold text-gray-900">
+                            {title}
+                        </h3>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <div className="overflow-y-auto px-3 pb-3 pt-2">{children}</div>
+            </div>
+        </div>
     );
 }
