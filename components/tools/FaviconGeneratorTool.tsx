@@ -342,7 +342,7 @@ export default function FaviconGeneratorTool() {
                         </p>
                     </label>
 
-                    <section>
+                    <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                         <div className="mb-4 flex items-center justify-between gap-4">
                             <SectionHeader title={text.previewTitle} />
 
@@ -376,7 +376,7 @@ export default function FaviconGeneratorTool() {
                         </div>
                     </section>
 
-                    <section>
+                    <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                         <div className="mb-4">
                             <SectionHeader title={text.outputTitle} />
                         </div>
@@ -403,7 +403,7 @@ export default function FaviconGeneratorTool() {
                     </section>
                 </div>
 
-                <section className="min-w-0">
+                <section className="min-w-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                     <SectionHeader title={text.controlsTitle} />
 
                     <div className="mt-5 space-y-5">
