@@ -589,8 +589,12 @@ export const messages = {
             dropHint: "Drag and drop an image here, or click to choose a file.",
 
             previewTitle: "Favicon Preview",
-            controlsTitle: "Controls",
+            controlsTitle: "Favicon Settings",
             outputTitle: "HTML Output",
+            settingsButton: "Settings",
+            actionGenerate: "Generate",
+            actionDownloadAll: "Download",
+            actionCopyHtml: "Copy",
 
             emptyTitle: "No image selected",
             emptyDescription: "Upload a logo or image to generate favicon files.",
