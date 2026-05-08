@@ -209,11 +209,10 @@ export default function FaviconGeneratorTool() {
         loadImageFile(file);
     }
 
-    function drawRoundedBackground(
+    function drawRoundedPath(
         context: CanvasRenderingContext2D,
         size: number,
         radiusPercent: number,
-        color: string,
     ) {
         const radius = (size * radiusPercent) / 100;
 
@@ -228,6 +227,15 @@ export default function FaviconGeneratorTool() {
         context.lineTo(0, radius);
         context.quadraticCurveTo(0, 0, radius, 0);
         context.closePath();
+    }
+
+    function drawRoundedBackground(
+        context: CanvasRenderingContext2D,
+        size: number,
+        radiusPercent: number,
+        color: string,
+    ) {
+        drawRoundedPath(context, size, radiusPercent);
 
         context.fillStyle = color;
         context.fill();
@@ -268,7 +276,14 @@ export default function FaviconGeneratorTool() {
         const x = (size - drawWidth) / 2;
         const y = (size - drawHeight) / 2;
 
+        context.save();
+
+        drawRoundedPath(context, size, cornerRadius);
+        context.clip();
+
         context.drawImage(image, x, y, drawWidth, drawHeight);
+
+        context.restore();
 
         return {
             size,
@@ -411,13 +426,13 @@ export default function FaviconGeneratorTool() {
                                 ) : null}
                             </div>
 
-                            <div className="mx-auto flex aspect-square w-full max-w-[420px] items-center justify-center rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-3 md:max-w-[500px] md:p-4">
+                            <div className="mx-auto flex aspect-square w-full max-w-none items-center justify-center rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-3 md:max-w-[500px] md:p-4">
                                 {originalUrl ? (
-                                    <div className="flex max-h-full max-w-full items-center justify-center rounded-[26px] border border-[#F1E5DF] bg-white p-2 shadow-sm md:p-3">
+                                    <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-[26px] border border-[#F1E5DF] bg-white p-2 shadow-sm md:p-3">
                                         <img
                                             src={livePreviewUrl || originalUrl}
                                             alt={text.previewTitle}
-                                            className="block max-h-[280px] max-w-full rounded-xl object-contain md:max-h-[340px]"
+                                            className="block h-full w-full rounded-xl object-contain"
                                         />
                                     </div>
                                 ) : (
@@ -676,12 +691,9 @@ function FaviconLivePreview({
     compact?: boolean;
 }) {
     return (
-        <div
-            className={`flex items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] ${compact ? "h-32 p-3" : "h-32 p-3"
-                }`}
-        >
+        <div className="flex aspect-square w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-3">
             {imageUrl ? (
-                <div className="flex h-full aspect-square items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white p-2.5 shadow-sm">
+                <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border border-[#F1E5DF] bg-white p-2.5 shadow-sm">
                     <img
                         src={imageUrl}
                         alt={emptyText}
@@ -689,9 +701,11 @@ function FaviconLivePreview({
                     />
                 </div>
             ) : (
-                <p className="px-4 text-center text-xs leading-5 text-gray-500">
-                    {emptyText}
-                </p>
+                <div className="flex h-full w-full items-center justify-center px-4 text-center">
+                    <p className="text-xs leading-5 text-gray-500">
+                        {emptyText}
+                    </p>
+                </div>
             )}
         </div>
     );
