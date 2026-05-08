@@ -226,6 +226,8 @@ filter: blur(0px);`;
             accentColor2={accentColor2}
             blobSize={blobSize}
             blur={blur}
+            offsetX={offsetX}
+            offsetY={offsetY}
             setCanvasWidth={setCanvasWidth}
             setCanvasHeight={setCanvasHeight}
             setBaseColor={setBaseColor}
@@ -248,6 +250,8 @@ filter: blur(0px);`;
             accentColor2={accentColor2}
             blobSize={blobSize}
             blur={blur}
+            offsetX={offsetX}
+            offsetY={offsetY}
             setCanvasWidth={setCanvasWidth}
             setCanvasHeight={setCanvasHeight}
             setBaseColor={setBaseColor}
@@ -384,6 +388,8 @@ function SettingsPanel({
     accentColor2,
     blobSize,
     blur,
+    offsetX,
+    offsetY,
     setCanvasWidth,
     setCanvasHeight,
     setBaseColor,
@@ -402,6 +408,8 @@ function SettingsPanel({
     accentColor2: string;
     blobSize: number;
     blur: number;
+    offsetX: number;
+    offsetY: number;
     setCanvasWidth: (value: number) => void;
     setCanvasHeight: (value: number) => void;
     setBaseColor: (value: string) => void;
@@ -414,7 +422,26 @@ function SettingsPanel({
 }) {
     return (
         <div className={compact ? "space-y-3" : "space-y-5"}>
-            <div className={compact ? "grid grid-cols-2 gap-3" : "grid gap-4 sm:grid-cols-2"}>
+            {compact ? (
+                <BackgroundMiniPreview
+                    canvasWidth={canvasWidth}
+                    canvasHeight={canvasHeight}
+                    baseColor={baseColor}
+                    accentColor1={accentColor1}
+                    accentColor2={accentColor2}
+                    blobSize={blobSize}
+                    offsetX={offsetX}
+                    offsetY={offsetY}
+                />
+            ) : null}
+
+            <div
+                className={
+                    compact
+                        ? "grid grid-cols-2 gap-3"
+                        : "grid gap-4 sm:grid-cols-2"
+                }
+            >
                 <NumberInput
                     label={text.canvasWidth}
                     value={canvasWidth}
@@ -525,6 +552,52 @@ function SettingsPanel({
                 onChange={(value) => {
                     setBlur(value);
                     showPreview();
+                }}
+            />
+        </div>
+    );
+}
+
+function BackgroundMiniPreview({
+    canvasWidth,
+    canvasHeight,
+    baseColor,
+    accentColor1,
+    accentColor2,
+    blobSize,
+    offsetX,
+    offsetY,
+}: {
+    canvasWidth: number;
+    canvasHeight: number;
+    baseColor: string;
+    accentColor1: string;
+    accentColor2: string;
+    blobSize: number;
+    offsetX: number;
+    offsetY: number;
+}) {
+    const safeWidth = Math.max(canvasWidth, 1);
+    const safeHeight = Math.max(canvasHeight, 1);
+    const previewRatio = safeWidth / safeHeight;
+    const containerRatio = 3.4;
+    const fillWidth = previewRatio >= containerRatio;
+
+    return (
+        <div className="flex h-24 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5">
+            <div
+                className="overflow-hidden rounded-xl border border-[#F1E5DF] shadow-sm"
+                style={{
+                    aspectRatio: `${safeWidth} / ${safeHeight}`,
+                    width: fillWidth ? "100%" : "auto",
+                    height: fillWidth ? "auto" : "100%",
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    background: `
+                        radial-gradient(circle at ${offsetX}% ${offsetY}%, ${accentColor1} 0%, transparent ${blobSize}%),
+                        radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${accentColor2} 0%, transparent ${blobSize}%),
+                        ${baseColor}
+                    `,
                 }}
             />
         </div>
