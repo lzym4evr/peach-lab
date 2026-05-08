@@ -674,7 +674,8 @@ export const messages = {
             previewTitle: "Glass Preview",
             previewDescription:
                 "Create frosted glass effects for cards, panels, and modern UI layouts.",
-            controls: "Controls",
+            controls: "Glass Settings",
+            settingsButton: "Settings",
             cardText: "Glass Card",
             cardDescription: "Soft, clean, and modern UI effect.",
             opacity: "Opacity",
@@ -686,7 +687,7 @@ export const messages = {
             backgroundColor2: "Background Color 2",
             glassColor: "Glass Color",
             shuffle: "Shuffle",
-            randomAll: "Random All",
+            randomAll: "Random",
             copyCss: "Copy CSS",
             cssTitle: "CSS Glass Effect",
         },
