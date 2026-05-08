@@ -581,11 +581,16 @@ export const messages = {
         },
 
         faviconGenerator: {
-            localProcessing: "Local processing: your favicon is generated in your browser. No files are uploaded.",
+            localProcessing:
+                "Local processing: your favicon is generated in your browser. No files are uploaded.",
+
             uploadTitle: "Upload Image",
-            uploadDescription: "Choose or drag a PNG, JPG, WebP, or SVG image to generate favicon files locally.",
+            uploadDescription:
+                "Choose or drag a PNG, JPG, WebP, or SVG image to generate favicon files locally.",
+            supportedFormats: "Supports PNG, JPG, WebP, SVG, and common image formats.",
             uploadButton: "Choose Image",
             changeImage: "Change Image",
+            noFileSelected: "No file selected",
             dropHint: "Drag and drop an image here, or click to choose a file.",
 
             previewTitle: "Favicon Preview",

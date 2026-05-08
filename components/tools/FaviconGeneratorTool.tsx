@@ -411,7 +411,7 @@ export default function FaviconGeneratorTool() {
                             />
 
                             <p className="mx-auto mt-3 max-w-xl break-all text-sm font-medium text-gray-500">
-                                {originalFile?.name || text.emptyTitle}
+                                {originalFile?.name || text.noFileSelected}
                             </p>
                         </label>
 
