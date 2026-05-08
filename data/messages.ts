@@ -421,7 +421,7 @@ export const messages = {
             noFileSelected: "No file selected",
 
             preview: "Image Preview",
-            imageInformation: "Image Information",
+            imageInformation: "Image Info",
 
             width: "Width",
             height: "Height",
@@ -434,7 +434,7 @@ export const messages = {
             yes: "Yes",
             no: "No",
 
-            copyResult: "Copy result",
+            copyResult: "Copy",
             tapValueToCopy: "Tap a value to copy.",
 
             localProcessingDescription:

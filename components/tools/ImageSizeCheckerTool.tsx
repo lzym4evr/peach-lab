@@ -286,19 +286,19 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
 
                         <p className="mt-2 text-xs text-gray-500">{t.imageSizeChecker.tapValueToCopy}</p>
 
-                        <div className="mt-5 grid grid-cols-2 gap-3">
+                        <div className="mt-4 grid grid-cols-2 gap-2.5 md:mt-5 md:gap-3">
                             {infoCards.map((item) => (
                                 <button
                                     key={item.key}
                                     type="button"
                                     onClick={() => copySingleItem(item.key, item.value)}
-                                    className="min-w-0 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-3 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] active:scale-[0.99] md:p-4"
+                                    className="min-w-0 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-2.5 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] active:scale-[0.99] md:p-4"
                                 >
-                                    <p className="truncate text-[11px] font-medium uppercase tracking-wide text-gray-500 md:text-xs">
+                                    <p className="truncate text-[10px] font-medium uppercase tracking-wide text-gray-500 md:text-xs">
                                         {item.label}
                                     </p>
 
-                                    <p className="mt-2 break-all text-lg font-semibold text-[#2A1F1B] md:text-2xl md:font-bold">
+                                    <p className="mt-1.5 break-all text-base font-semibold text-[#2A1F1B] md:mt-2 md:text-2xl md:font-bold">
                                         {copiedItem === item.key ? t.common.copied : item.value}
                                     </p>
                                 </button>
