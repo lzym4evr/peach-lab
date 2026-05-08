@@ -635,7 +635,10 @@ export const messages = {
             previewDescription:
                 "Create soft gradient backgrounds for websites, cards, and visual assets.",
             emptyHint: "Adjust the settings to generate a background preview.",
-            controls: "Controls",
+
+            controls: "Background Settings",
+            settingsButton: "Settings",
+
             canvasWidth: "Canvas Width",
             canvasHeight: "Canvas Height",
             baseColor: "Base Color",
@@ -643,11 +646,16 @@ export const messages = {
             accentColor2: "Accent Color 2",
             blobSize: "Blob Size",
             blur: "Blur",
+
             shuffle: "Shuffle",
-            randomAll: "Random All",
+            randomAll: "Random",
+
             copyCss: "Copy CSS",
             downloadPng: "Download PNG",
+            actionDownload: "Download",
+
             cssTitle: "CSS Background",
+            copyError: "Copy failed. Please copy the CSS manually.",
         },
         glassmorphismGenerator: {
             previewTitle: "Glass Preview",
