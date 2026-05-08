@@ -367,8 +367,8 @@ export default function FaviconGeneratorTool() {
                             onDragLeave={handleDragLeave}
                             onDrop={handleDrop}
                             className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                                ? "border-[#F28C6F] bg-[#FFF0EA]"
+                                : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                 }`}
                         >
                             <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
