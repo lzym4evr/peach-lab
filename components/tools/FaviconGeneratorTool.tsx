@@ -1,8 +1,8 @@
 "use client";
 
 import {
-    ChangeEvent,
-    DragEvent,
+    type ChangeEvent,
+    type DragEvent,
     useMemo,
     useRef,
     useState,
@@ -132,17 +132,17 @@ export default function FaviconGeneratorTool() {
         event.target.value = "";
     }
 
-    function handleDragOver(event: DragEvent<HTMLDivElement>) {
+    function handleDragOver(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(true);
     }
 
-    function handleDragLeave(event: DragEvent<HTMLDivElement>) {
+    function handleDragLeave(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
     }
 
-    function handleDrop(event: DragEvent<HTMLDivElement>) {
+    function handleDrop(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
 
@@ -302,88 +302,68 @@ export default function FaviconGeneratorTool() {
                 {text.localProcessing}
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
                 <div className="min-w-0 space-y-6">
-                    <section className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                        <div className="mb-5 flex items-start justify-between gap-4">
-                            <div>
-                                <h3 className="font-semibold text-gray-900">
-                                    {text.uploadTitle}
-                                </h3>
-
-                                <p className="mt-2 max-w-[360px] text-sm leading-6 text-gray-500">
-                                    {text.uploadDescription}
-                                </p>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="shrink-0 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                            >
-                                {originalFile ? text.changeImage : text.uploadButton}
-                            </button>
-
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg"
-                                onChange={handleChooseFile}
-                                className="hidden"
-                            />
-                        </div>
-
-                        <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => fileInputRef.current?.click()}
-                            onKeyDown={(event) => {
-                                if (event.key === "Enter" || event.key === " ") {
-                                    fileInputRef.current?.click();
-                                }
-                            }}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onDrop={handleDrop}
-                            className={`mb-5 cursor-pointer rounded-3xl border border-dashed p-6 text-center transition ${isDragging
+                    <label
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
                                 ? "border-[#F28C6F] bg-[#FFF0EA]"
                                 : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
-                                }`}
-                        >
-                            <p className="text-sm font-semibold text-[#E6765B]">
-                                {originalFile ? text.changeImage : text.uploadButton}
-                            </p>
+                            }`}
+                    >
+                        <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
+                            {text.uploadTitle}
+                        </h2>
 
-                            <p className="mt-2 text-sm leading-6 text-gray-500">
-                                {text.dropHint}
-                            </p>
+                        <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-gray-500 md:mt-3 md:text-base md:leading-7">
+                            {text.uploadDescription}
+                        </p>
+
+                        <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
+                            {text.dropHint}
+                        </p>
+
+                        <div className="mx-auto mt-4 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:mt-5">
+                            {originalFile ? text.changeImage : text.uploadButton}
                         </div>
 
-                        {originalUrl ? (
-                            <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                                <div className="mb-3 flex items-center justify-between gap-3">
-                                    <h4 className="text-sm font-semibold text-gray-900">
-                                        {text.previewTitle}
-                                    </h4>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg"
+                            onChange={handleChooseFile}
+                            className="hidden"
+                        />
 
-                                    <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
-                                        {imageInfo
-                                            ? `${imageInfo.width} × ${imageInfo.height}px`
-                                            : "-"}
-                                    </span>
-                                </div>
+                        <p className="mx-auto mt-3 max-w-xl break-all text-sm font-medium text-gray-500">
+                            {originalFile?.name || text.emptyTitle}
+                        </p>
+                    </label>
 
-                                <div className="flex min-h-[300px] items-center justify-center overflow-hidden rounded-2xl bg-[#FFF7F3] p-8">
+                    <section>
+                        <div className="mb-4 flex items-center justify-between gap-4">
+                            <SectionHeader title={text.previewTitle} />
+
+                            {imageInfo ? (
+                                <span className="shrink-0 rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
+                                    {imageInfo.width} × {imageInfo.height}px
+                                </span>
+                            ) : null}
+                        </div>
+
+                        <div className="mx-auto flex aspect-square w-full max-w-[420px] items-center justify-center rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-3 md:max-w-[500px] md:p-4">
+                            {originalUrl ? (
+                                <div className="flex max-h-full max-w-full items-center justify-center rounded-[26px] border border-[#F1E5DF] bg-white p-2 shadow-sm md:p-3">
                                     <img
                                         src={originalUrl}
-                                        alt="Uploaded favicon source"
-                                        className="max-h-[260px] w-full object-contain"
+                                        alt={text.previewTitle}
+                                        className="block max-h-[280px] max-w-full rounded-xl object-contain md:max-h-[340px]"
                                     />
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="flex min-h-[300px] items-center justify-center rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-8 text-center">
-                                <div>
+                            ) : (
+                                <div className="px-5 text-center">
                                     <h4 className="text-lg font-semibold text-gray-900">
                                         {text.emptyTitle}
                                     </h4>
@@ -392,15 +372,13 @@ export default function FaviconGeneratorTool() {
                                         {text.emptyDescription}
                                     </p>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </section>
 
-                    <section className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                    <section>
                         <div className="mb-4">
-                            <h3 className="font-semibold text-gray-900">
-                                {text.outputTitle}
-                            </h3>
+                            <SectionHeader title={text.outputTitle} />
                         </div>
 
                         <pre className="overflow-x-auto rounded-2xl bg-[#FFF7F3] p-4 text-sm leading-7 text-gray-700">
@@ -425,10 +403,8 @@ export default function FaviconGeneratorTool() {
                     </section>
                 </div>
 
-                <section className="min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                    <h3 className="font-semibold text-gray-900">
-                        {text.controlsTitle}
-                    </h3>
+                <section className="min-w-0">
+                    <SectionHeader title={text.controlsTitle} />
 
                     <div className="mt-5 space-y-5">
                         <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] px-4 py-3 transition hover:bg-[#FFF7F3]">
@@ -576,6 +552,15 @@ export default function FaviconGeneratorTool() {
                     </div>
                 </section>
             </div>
+        </div>
+    );
+}
+
+function SectionHeader({ title }: { title: string }) {
+    return (
+        <div className="flex items-center gap-3">
+            <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
+            <h3 className="font-semibold text-gray-900">{title}</h3>
         </div>
     );
 }
