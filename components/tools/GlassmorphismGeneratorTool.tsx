@@ -155,7 +155,7 @@ export default function GlassmorphismGeneratorTool() {
         />
     );
 
-    const settingsPanel = (
+    const desktopSettingsPanel = (
         <GlassSettingsPanel
             text={text}
             backgroundColor1={backgroundColor1}
@@ -174,6 +174,31 @@ export default function GlassmorphismGeneratorTool() {
             setBorderRadius={setBorderRadius}
             setBorderOpacity={setBorderOpacity}
             setShadowIntensity={setShadowIntensity}
+        />
+    );
+
+    const mobileSettingsPanel = (
+        <GlassSettingsPanel
+            text={text}
+            backgroundColor1={backgroundColor1}
+            backgroundColor2={backgroundColor2}
+            glassColor={glassColor}
+            opacity={opacity}
+            blur={blur}
+            borderRadius={borderRadius}
+            borderOpacity={borderOpacity}
+            shadowIntensity={shadowIntensity}
+            setBackgroundColor1={setBackgroundColor1}
+            setBackgroundColor2={setBackgroundColor2}
+            setGlassColor={setGlassColor}
+            setOpacity={setOpacity}
+            setBlur={setBlur}
+            setBorderRadius={setBorderRadius}
+            setBorderOpacity={setBorderOpacity}
+            setShadowIntensity={setShadowIntensity}
+            compact
+            onShuffle={shuffleGlass}
+            onRandom={randomAll}
         />
     );
 
@@ -234,7 +259,7 @@ export default function GlassmorphismGeneratorTool() {
                             </button>
                         </div>
 
-                        <div className="mt-5">{settingsPanel}</div>
+                        <div className="mt-5">{desktopSettingsPanel}</div>
                     </section>
                 </div>
             </div>
@@ -248,29 +273,10 @@ export default function GlassmorphismGeneratorTool() {
                 <MobileSettingsSheet
                     title={text.controls}
                     onClose={() => setIsMobileSettingsOpen(false)}
-                    headerActions={
-                        <div className="grid shrink-0 grid-cols-2 gap-1.5">
-                            <button
-                                type="button"
-                                onClick={shuffleGlass}
-                                className="h-8 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 text-[11px] font-semibold leading-none text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                            >
-                                {text.shuffle}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={randomAll}
-                                className="h-8 rounded-xl bg-[#F28C6F] px-2 text-[11px] font-semibold leading-none text-white shadow-sm transition hover:bg-[#E6765B]"
-                            >
-                                {text.randomAll}
-                            </button>
-                        </div>
-                    }
                 >
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         {previewPanel}
-                        {settingsPanel}
+                        {mobileSettingsPanel}
                     </div>
                 </MobileSettingsSheet>
             ) : null}
@@ -311,8 +317,8 @@ function GlassPreview({
             <div
                 className="w-full max-w-sm p-6 text-center md:p-8"
                 style={{
-                    background: `rgba(${glassRgb.r}, ${glassRgb.g}, ${glassRgb.b}, ${opacity / 100
-                        })`,
+                    background: `rgba(${glassRgb.r}, ${glassRgb.g}, ${glassRgb.b
+                        }, ${opacity / 100})`,
                     backdropFilter: `blur(${blur}px)`,
                     WebkitBackdropFilter: `blur(${blur}px)`,
                     borderRadius: `${borderRadius}px`,
@@ -356,6 +362,9 @@ function GlassSettingsPanel({
     setBorderRadius,
     setBorderOpacity,
     setShadowIntensity,
+    compact = false,
+    onShuffle,
+    onRandom,
 }: {
     text: typeof t.glassmorphismGenerator;
     backgroundColor1: string;
@@ -374,31 +383,87 @@ function GlassSettingsPanel({
     setBorderRadius: (value: number) => void;
     setBorderOpacity: (value: number) => void;
     setShadowIntensity: (value: number) => void;
+    compact?: boolean;
+    onShuffle?: () => void;
+    onRandom?: () => void;
 }) {
     return (
-        <div className="space-y-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-                <ColorInput
-                    label={text.backgroundColor1}
-                    value={backgroundColor1}
-                    fallback="#F28C6F"
-                    onChange={setBackgroundColor1}
-                />
+        <div className={compact ? "space-y-3" : "space-y-5"}>
+            {compact ? (
+                <div className="flex flex-nowrap items-center justify-between gap-2">
+                    <span className="min-w-0 truncate text-xs font-semibold text-gray-800">
+                        {text.glassColor}
+                    </span>
 
-                <ColorInput
-                    label={text.backgroundColor2}
-                    value={backgroundColor2}
-                    fallback="#FFD6C8"
-                    onChange={setBackgroundColor2}
-                />
-            </div>
+                    <div className="grid shrink-0 grid-cols-2 gap-1.5">
+                        <button
+                            type="button"
+                            onClick={onShuffle}
+                            className="h-8 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 text-[11px] font-semibold leading-none text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                        >
+                            {text.shuffle}
+                        </button>
 
-            <ColorInput
-                label={text.glassColor}
-                value={glassColor}
-                fallback="#FFFFFF"
-                onChange={setGlassColor}
-            />
+                        <button
+                            type="button"
+                            onClick={onRandom}
+                            className="h-8 rounded-xl bg-[#F28C6F] px-2 text-[11px] font-semibold leading-none text-white shadow-sm transition hover:bg-[#E6765B]"
+                        >
+                            {text.randomAll}
+                        </button>
+                    </div>
+                </div>
+            ) : null}
+
+            {compact ? (
+                <div className="grid grid-cols-3 gap-2">
+                    <CompactColorInput
+                        label={text.backgroundColor1}
+                        value={backgroundColor1}
+                        fallback="#F28C6F"
+                        onChange={setBackgroundColor1}
+                    />
+
+                    <CompactColorInput
+                        label={text.backgroundColor2}
+                        value={backgroundColor2}
+                        fallback="#FFD6C8"
+                        onChange={setBackgroundColor2}
+                    />
+
+                    <CompactColorInput
+                        label={text.glassColor}
+                        value={glassColor}
+                        fallback="#FFFFFF"
+                        onChange={setGlassColor}
+                    />
+                </div>
+            ) : (
+                <>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <ColorInput
+                            label={text.backgroundColor1}
+                            value={backgroundColor1}
+                            fallback="#F28C6F"
+                            onChange={setBackgroundColor1}
+                        />
+
+                        <ColorInput
+                            label={text.backgroundColor2}
+                            value={backgroundColor2}
+                            fallback="#FFD6C8"
+                            onChange={setBackgroundColor2}
+                        />
+                    </div>
+
+                    <ColorInput
+                        label={text.glassColor}
+                        value={glassColor}
+                        fallback="#FFFFFF"
+                        onChange={setGlassColor}
+                    />
+                </>
+            )}
 
             <RangeInput
                 label={text.opacity}
@@ -406,6 +471,7 @@ function GlassSettingsPanel({
                 min={5}
                 max={80}
                 suffix="%"
+                compact={compact}
                 onChange={setOpacity}
             />
 
@@ -415,6 +481,7 @@ function GlassSettingsPanel({
                 min={0}
                 max={60}
                 suffix="px"
+                compact={compact}
                 onChange={setBlur}
             />
 
@@ -424,6 +491,7 @@ function GlassSettingsPanel({
                 min={0}
                 max={80}
                 suffix="px"
+                compact={compact}
                 onChange={setBorderRadius}
             />
 
@@ -433,6 +501,7 @@ function GlassSettingsPanel({
                 min={0}
                 max={100}
                 suffix="%"
+                compact={compact}
                 onChange={setBorderOpacity}
             />
 
@@ -442,6 +511,7 @@ function GlassSettingsPanel({
                 min={0}
                 max={80}
                 suffix="%"
+                compact={compact}
                 onChange={setShadowIntensity}
             />
         </div>
@@ -504,12 +574,10 @@ function MobileActionBar({
 
 function MobileSettingsSheet({
     title,
-    headerActions,
     children,
     onClose,
 }: {
     title: string;
-    headerActions?: ReactNode;
     children: ReactNode;
     onClose: () => void;
 }) {
@@ -542,7 +610,7 @@ function MobileSettingsSheet({
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
-                <div className="flex items-center justify-between gap-3 px-4 pb-2 pt-4">
+                <div className="flex items-center justify-between gap-4 px-4 pb-2 pt-4">
                     <div className="flex min-w-0 items-center gap-3">
                         <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
                         <h3 className="truncate text-lg font-semibold text-gray-900">
@@ -550,17 +618,13 @@ function MobileSettingsSheet({
                         </h3>
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-2">
-                        {headerActions}
-
-                        <button
-                            type="button"
-                            onClick={handleClose}
-                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
-                        >
-                            ×
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
+                    >
+                        ×
+                    </button>
                 </div>
 
                 <div className="overflow-y-auto px-4 pb-4 pt-2">{children}</div>
@@ -615,12 +679,50 @@ function ColorInput({
     );
 }
 
+function CompactColorInput({
+    label,
+    value,
+    fallback,
+    onChange,
+}: {
+    label: string;
+    value: string;
+    fallback: string;
+    onChange: (value: string) => void;
+}) {
+    const colorPickerValue = isValidHexColor(value) ? value : fallback;
+
+    return (
+        <label className="block min-w-0">
+            <span className="mb-1.5 block truncate text-[10px] font-semibold text-gray-800">
+                {label}
+            </span>
+
+            <div className="grid grid-cols-[34px_1fr] gap-1.5">
+                <input
+                    type="color"
+                    value={colorPickerValue}
+                    onChange={(event) => onChange(event.target.value.toUpperCase())}
+                    className="h-10 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
+                />
+
+                <input
+                    value={value}
+                    onChange={(event) => onChange(event.target.value.toUpperCase())}
+                    className="h-10 min-w-0 rounded-xl border border-[#F1E5DF] px-2 text-[10px] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                />
+            </div>
+        </label>
+    );
+}
+
 function RangeInput({
     label,
     value,
     min,
     max,
     suffix,
+    compact = false,
     onChange,
 }: {
     label: string;
@@ -628,12 +730,21 @@ function RangeInput({
     min: number;
     max: number;
     suffix: string;
+    compact?: boolean;
     onChange: (value: number) => void;
 }) {
     return (
         <label className="block">
-            <div className="mb-2 flex items-center justify-between gap-4">
-                <span className="text-sm font-semibold text-gray-800">{label}</span>
+            <div
+                className={`flex items-center justify-between gap-4 ${compact ? "mb-1.5" : "mb-2"
+                    }`}
+            >
+                <span
+                    className={`font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                        }`}
+                >
+                    {label}
+                </span>
 
                 <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
                     {value}
