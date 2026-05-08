@@ -9,9 +9,16 @@ import {
 } from "react";
 import { t } from "@/data/messages";
 
-type GlassStyle = "frosted" | "clear" | "tinted" | "dark" | "neon";
+type GlassStyle = "frosted" | "clear" | "tinted" | "dark" | "neon" | "crystal";
 
-const glassStyles: GlassStyle[] = ["frosted", "clear", "tinted", "dark", "neon"];
+const glassStyles: GlassStyle[] = [
+    "frosted",
+    "clear",
+    "tinted",
+    "dark",
+    "neon",
+    "crystal",
+];
 
 function isValidHexColor(value: string) {
     return /^#[0-9A-Fa-f]{6}$/.test(value);
@@ -61,12 +68,14 @@ function getGlassStyleLabel(
         styleTinted?: string;
         styleDark?: string;
         styleNeon?: string;
+        styleCrystal?: string;
     };
 
     if (style === "clear") return labels.styleClear ?? "Clear";
     if (style === "tinted") return labels.styleTinted ?? "Tinted";
     if (style === "dark") return labels.styleDark ?? "Dark";
     if (style === "neon") return labels.styleNeon ?? "Neon";
+    if (style === "crystal") return labels.styleCrystal ?? "Crystal";
 
     return labels.styleFrosted ?? "Frosted";
 }
@@ -112,20 +121,31 @@ export default function GlassmorphismGeneratorTool() {
 
     const isDarkGlass = glassStyle === "dark";
     const isNeonGlass = glassStyle === "neon";
+    const isCrystalGlass = glassStyle === "crystal";
 
     const borderColor = isNeonGlass
         ? hexToRgba(safeBackgroundColor2, 0.85)
-        : `rgba(255, 255, 255, ${borderOpacity / 100})`;
+        : isCrystalGlass
+            ? "rgba(255, 255, 255, 0.72)"
+            : `rgba(255, 255, 255, ${borderOpacity / 100})`;
 
     const shadowValue = isNeonGlass
         ? `0 0 40px ${hexToRgba(
             safeBackgroundColor2,
             shadowIntensity / 100,
         )}, 0 18px 60px rgba(17, 24, 39, ${shadowIntensity / 180})`
-        : `0 18px 60px rgba(17, 24, 39, ${shadowIntensity / 100})`;
+        : isCrystalGlass
+            ? `0 24px 70px rgba(255, 255, 255, ${shadowIntensity / 160
+            }), 0 18px 60px rgba(17, 24, 39, ${shadowIntensity / 130})`
+            : `0 18px 60px rgba(17, 24, 39, ${shadowIntensity / 100})`;
 
-    const highlightGradient = `linear-gradient(135deg, rgba(255, 255, 255, ${highlight / 100
-        }) 0%, rgba(255, 255, 255, ${highlight / 300}) 38%, transparent 72%)`;
+    const highlightGradient = isCrystalGlass
+        ? `linear-gradient(135deg, rgba(255, 255, 255, ${highlight / 85
+        }) 0%, rgba(255, 255, 255, ${highlight / 260
+        }) 34%, transparent 68%)`
+        : `linear-gradient(135deg, rgba(255, 255, 255, ${highlight / 100
+        }) 0%, rgba(255, 255, 255, ${highlight / 300
+        }) 38%, transparent 72%)`;
 
     const cssOutput = useMemo(() => {
         return `.glass-background {
@@ -181,9 +201,11 @@ export default function GlassmorphismGeneratorTool() {
             setBlur(14);
             setSaturation(125);
             setHighlight(28);
+            setBorderRadius(24);
             setBorderOpacity(28);
             setShadowIntensity(12);
             setGlassColor("#FFFFFF");
+            setGradientAngle(135);
         }
 
         if (nextStyle === "frosted") {
@@ -191,9 +213,11 @@ export default function GlassmorphismGeneratorTool() {
             setBlur(18);
             setSaturation(140);
             setHighlight(35);
+            setBorderRadius(28);
             setBorderOpacity(35);
             setShadowIntensity(20);
             setGlassColor("#FFFFFF");
+            setGradientAngle(135);
         }
 
         if (nextStyle === "tinted") {
@@ -201,9 +225,11 @@ export default function GlassmorphismGeneratorTool() {
             setBlur(24);
             setSaturation(160);
             setHighlight(42);
+            setBorderRadius(30);
             setBorderOpacity(45);
             setShadowIntensity(24);
             setGlassColor("#FFF7F3");
+            setGradientAngle(145);
         }
 
         if (nextStyle === "dark") {
@@ -211,9 +237,11 @@ export default function GlassmorphismGeneratorTool() {
             setBlur(22);
             setSaturation(130);
             setHighlight(16);
+            setBorderRadius(26);
             setBorderOpacity(20);
             setShadowIntensity(36);
             setGlassColor("#111827");
+            setGradientAngle(135);
         }
 
         if (nextStyle === "neon") {
@@ -221,9 +249,23 @@ export default function GlassmorphismGeneratorTool() {
             setBlur(28);
             setSaturation(185);
             setHighlight(50);
+            setBorderRadius(30);
             setBorderOpacity(70);
             setShadowIntensity(48);
             setGlassColor("#FFFFFF");
+            setGradientAngle(160);
+        }
+
+        if (nextStyle === "crystal") {
+            setOpacity(20);
+            setBlur(32);
+            setSaturation(170);
+            setHighlight(68);
+            setBorderRadius(30);
+            setBorderOpacity(55);
+            setShadowIntensity(26);
+            setGlassColor("#FFFFFF");
+            setGradientAngle(145);
         }
     }
 

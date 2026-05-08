@@ -686,6 +686,7 @@ export const messages = {
             styleTinted: "Tinted",
             styleDark: "Dark",
             styleNeon: "Neon",
+            styleCrystal: "Crystal",
 
             opacity: "Opacity",
             blur: "Blur",
