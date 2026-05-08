@@ -415,7 +415,7 @@ export default function FaviconGeneratorTool() {
                                 {originalUrl ? (
                                     <div className="flex max-h-full max-w-full items-center justify-center rounded-[26px] border border-[#F1E5DF] bg-white p-2 shadow-sm md:p-3">
                                         <img
-                                            src={originalUrl}
+                                            src={livePreviewUrl || originalUrl}
                                             alt={text.previewTitle}
                                             className="block max-h-[280px] max-w-full rounded-xl object-contain md:max-h-[340px]"
                                         />
@@ -573,11 +573,13 @@ function FaviconSettingsPanel({
             {!hideHeader ? <SectionHeader title={text.controlsTitle} /> : null}
 
             <div className={compact ? "mt-0 space-y-3" : "mt-5 space-y-5"}>
-                <FaviconLivePreview
-                    imageUrl={livePreviewUrl}
-                    emptyText={text.emptyDescription}
-                    compact={compact}
-                />
+                {compact ? (
+                    <FaviconLivePreview
+                        imageUrl={livePreviewUrl}
+                        emptyText={text.emptyDescription}
+                        compact
+                    />
+                ) : null}
 
                 <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] px-4 py-3 transition hover:bg-[#FFF7F3]">
                     <span className="text-sm font-semibold text-gray-800">
@@ -675,11 +677,11 @@ function FaviconLivePreview({
 }) {
     return (
         <div
-            className={`flex items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] ${compact ? "h-24 p-2" : "h-32 p-3"
+            className={`flex items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] ${compact ? "h-32 p-3" : "h-32 p-3"
                 }`}
         >
             {imageUrl ? (
-                <div className="flex h-full aspect-square items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white p-2 shadow-sm">
+                <div className="flex h-full aspect-square items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white p-2.5 shadow-sm">
                     <img
                         src={imageUrl}
                         alt={emptyText}
