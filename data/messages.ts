@@ -714,23 +714,31 @@ export const messages = {
             previewDescription:
                 "Create repeating patterns for backgrounds, cards, and visual assets.",
             emptyHint: "Adjust the settings to generate a pattern preview.",
-            controls: "Controls",
+
+            controls: "Pattern Settings",
+            settingsButton: "Settings",
+
             patternType: "Pattern Type",
             dots: "Dots",
             grid: "Grid",
             diagonalLines: "Diagonal Lines",
             checkerboard: "Checkerboard",
+
             canvasWidth: "Width",
             canvasHeight: "Height",
             patternSize: "Pattern Size",
             spacing: "Spacing",
             foregroundColor: "Foreground Color",
             backgroundColor: "Background Color",
+
             generatePreview: "Generate Preview",
             shufflePattern: "Shuffle",
-            randomAll: "Random All",
+            randomAll: "Random",
+
             copyCss: "Copy CSS",
             downloadPng: "Download PNG",
+            actionDownload: "Download",
+
             cssTitle: "CSS Pattern Background",
         },
 
