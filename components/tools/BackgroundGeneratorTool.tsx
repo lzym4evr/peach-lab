@@ -584,7 +584,7 @@ function BackgroundMiniPreview({
     const fillWidth = previewRatio >= containerRatio;
 
     return (
-        <div className="flex h-24 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5">
+        <div className="flex h-36 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5">
             <div
                 className="overflow-hidden rounded-xl border border-[#F1E5DF] shadow-sm"
                 style={{
@@ -628,6 +628,26 @@ function NumberInput({
     compact?: boolean;
     onChange: (value: number) => void;
 }) {
+    const [inputValue, setInputValue] = useState(String(value));
+
+    useEffect(() => {
+        setInputValue(String(value));
+    }, [value]);
+
+    function handleChange(nextValue: string) {
+        setInputValue(nextValue);
+
+        if (nextValue.trim() === "") {
+            return;
+        }
+
+        const parsedValue = Number(nextValue);
+
+        if (!Number.isNaN(parsedValue)) {
+            onChange(parsedValue);
+        }
+    }
+
     return (
         <label className="block min-w-0">
             <span
@@ -641,8 +661,13 @@ function NumberInput({
                 type="number"
                 min={min}
                 max={max}
-                value={value}
-                onChange={(event) => onChange(Number(event.target.value))}
+                value={inputValue}
+                onChange={(event) => handleChange(event.target.value)}
+                onBlur={() => {
+                    if (inputValue.trim() === "") {
+                        setInputValue(String(value));
+                    }
+                }}
                 className={`w-full rounded-xl border border-[#F1E5DF] px-3 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-10" : "h-12"
                     }`}
             />
