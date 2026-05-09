@@ -602,31 +602,61 @@ function BoxShadowSettingsPanel({
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-                <button
-                    type="button"
-                    onClick={onShuffle}
-                    className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                >
-                    {text.shuffle}
-                </button>
+            {compact ? (
+                <div className="grid grid-cols-3 gap-2">
+                    <button
+                        type="button"
+                        onClick={onShuffle}
+                        className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2 text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3]"
+                    >
+                        {text.shuffle}
+                    </button>
 
-                <button
-                    type="button"
-                    onClick={onRandom}
-                    className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                >
-                    {text.randomAll}
-                </button>
-            </div>
+                    <button
+                        type="button"
+                        onClick={onRandom}
+                        className="rounded-2xl border border-[#F28C6F] bg-[#F28C6F] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                    >
+                        {text.randomAll}
+                    </button>
 
-            <button
-                type="button"
-                onClick={onReset}
-                className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-            >
-                {text.reset}
-            </button>
+                    <button
+                        type="button"
+                        onClick={onReset}
+                        className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2 text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3]"
+                    >
+                        {text.reset}
+                    </button>
+                </div>
+            ) : (
+                <>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            onClick={onShuffle}
+                            className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                        >
+                            {text.shuffle}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={onRandom}
+                            className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
+                        >
+                            {text.randomAll}
+                        </button>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={onReset}
+                        className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                    >
+                        {text.reset}
+                    </button>
+                </>
+            )}
 
             {compact ? (
                 <>
