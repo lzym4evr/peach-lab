@@ -537,7 +537,9 @@ function RadiusSettingsPanel({
                                 key={style}
                                 type="button"
                                 onClick={() => onApplyStyle(style)}
-                                className={`rounded-2xl border font-semibold transition ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
+                                className={`rounded-2xl border font-semibold transition ${compact
+                                    ? "px-3 py-2 text-xs"
+                                    : "px-4 py-3 text-sm"
                                     } ${isActive
                                         ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
                                         : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
@@ -585,7 +587,13 @@ function RadiusSettingsPanel({
                 </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div
+                className={
+                    compact
+                        ? "grid grid-cols-2 gap-2"
+                        : "grid gap-3 sm:grid-cols-2"
+                }
+            >
                 <ColorInput
                     label={text.boxColorLabel}
                     value={settings.boxColor}
@@ -605,7 +613,13 @@ function RadiusSettingsPanel({
                 />
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div
+                className={
+                    compact
+                        ? "grid grid-cols-2 gap-3"
+                        : "grid gap-3 sm:grid-cols-2"
+                }
+            >
                 <NumberInput
                     label={text.boxWidthLabel}
                     value={settings.boxWidth}
@@ -625,55 +639,63 @@ function RadiusSettingsPanel({
                 />
             </div>
 
-            <RangeInput
-                label={allCornersLabel}
-                value={allCornersValue}
-                min={0}
-                max={160}
-                suffix="px"
-                compact={compact}
-                onChange={onAllCornersChange}
-            />
+            <div
+                className={
+                    compact
+                        ? "grid grid-cols-2 gap-3"
+                        : "space-y-5"
+                }
+            >
+                <RangeInput
+                    label={allCornersLabel}
+                    value={allCornersValue}
+                    min={0}
+                    max={160}
+                    suffix="px"
+                    compact={compact}
+                    onChange={onAllCornersChange}
+                />
 
-            <RangeInput
-                label={text.topLeftLabel}
-                value={settings.topLeft}
-                min={0}
-                max={160}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => onUpdateSetting("topLeft", value)}
-            />
+                <RangeInput
+                    label={text.topLeftLabel}
+                    value={settings.topLeft}
+                    min={0}
+                    max={160}
+                    suffix="px"
+                    compact={compact}
+                    onChange={(value) => onUpdateSetting("topLeft", value)}
+                />
 
-            <RangeInput
-                label={text.topRightLabel}
-                value={settings.topRight}
-                min={0}
-                max={160}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => onUpdateSetting("topRight", value)}
-            />
+                <RangeInput
+                    label={text.topRightLabel}
+                    value={settings.topRight}
+                    min={0}
+                    max={160}
+                    suffix="px"
+                    compact={compact}
+                    onChange={(value) => onUpdateSetting("topRight", value)}
+                />
 
-            <RangeInput
-                label={text.bottomRightLabel}
-                value={settings.bottomRight}
-                min={0}
-                max={160}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => onUpdateSetting("bottomRight", value)}
-            />
+                <RangeInput
+                    label={text.bottomRightLabel}
+                    value={settings.bottomRight}
+                    min={0}
+                    max={160}
+                    suffix="px"
+                    compact={compact}
+                    onChange={(value) => onUpdateSetting("bottomRight", value)}
+                />
 
-            <RangeInput
-                label={text.bottomLeftLabel}
-                value={settings.bottomLeft}
-                min={0}
-                max={160}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => onUpdateSetting("bottomLeft", value)}
-            />
+                <RangeInput
+                    label={text.bottomLeftLabel}
+                    value={settings.bottomLeft}
+                    min={0}
+                    max={160}
+                    suffix="px"
+                    compact={compact}
+                    onChange={(value) => onUpdateSetting("bottomLeft", value)}
+                />
+            </div>
         </div>
     );
 }
@@ -906,8 +928,8 @@ function ColorInput({
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
                     className={`w-full rounded-xl border border-[#F1E5DF] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
-                            ? "h-10 px-2 text-[11px]"
-                            : "h-12 px-4 text-sm"
+                        ? "h-10 px-2 text-[11px]"
+                        : "h-12 px-4 text-sm"
                         }`}
                 />
             </div>
