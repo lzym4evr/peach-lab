@@ -454,6 +454,24 @@ export default function BlobGeneratorTool() {
         />
     );
 
+    const mobilePreviewPanel = (
+        <BlobMiniPreview
+            path={visiblePath}
+            fill={blobFill}
+            fillType={fillType}
+            gradientColor1={gradientColor1}
+            gradientColor2={gradientColor2}
+            gradientCoordinates={gradientCoordinates}
+            customPointsDraft={customPointsDraft}
+            isCustomPoints={isCustomPoints}
+            clickToAddPointText={clickToAddPointText}
+            onPointerDown={handlePreviewPointerDown}
+            onPointerMove={handlePreviewPointerMove}
+            onPointerUp={handlePreviewPointerUp}
+            onRemovePoint={removePoint}
+        />
+    );
+
     const desktopSettingsPanel = (
         <BlobSettingsPanel
             text={text}
@@ -606,24 +624,14 @@ export default function BlobGeneratorTool() {
                     title={text.controls}
                     onClose={() => setIsMobileSettingsOpen(false)}
                 >
-                    <div className="space-y-3">
-                        <BlobMiniPreview
-                            path={visiblePath}
-                            fill={blobFill}
-                            fillType={fillType}
-                            gradientColor1={gradientColor1}
-                            gradientColor2={gradientColor2}
-                            gradientCoordinates={gradientCoordinates}
-                            customPointsDraft={customPointsDraft}
-                            isCustomPoints={isCustomPoints}
-                            clickToAddPointText={clickToAddPointText}
-                            onPointerDown={handlePreviewPointerDown}
-                            onPointerMove={handlePreviewPointerMove}
-                            onPointerUp={handlePreviewPointerUp}
-                            onRemovePoint={removePoint}
-                        />
+                    <div className="flex h-full min-h-0 flex-col">
+                        <div className="shrink-0 bg-white pb-3">
+                            {mobilePreviewPanel}
+                        </div>
 
-                        {mobileSettingsPanel}
+                        <div className="min-h-0 flex-1 overflow-y-auto pt-1">
+                            {mobileSettingsPanel}
+                        </div>
                     </div>
                 </MobileSettingsSheet>
             ) : null}
@@ -673,82 +681,23 @@ function BlobPreview({
                 </p>
             ) : null}
 
-            <svg
-                width="300"
-                height="300"
-                viewBox="0 0 300 300"
-                xmlns="http://www.w3.org/2000/svg"
-                className={`h-full max-h-[320px] w-full max-w-[320px] drop-shadow-sm ${isCustomPoints ? "cursor-crosshair touch-none" : ""
-                    }`}
-                onPointerDown={(event) => {
-                    if (!isCustomPoints) return;
-
-                    event.currentTarget.setPointerCapture(event.pointerId);
-                    onPointerDown();
-                }}
+            <BlobSvg
+                path={path}
+                fill={fill}
+                fillType={fillType}
+                gradientId="blobPreviewGradient"
+                gradientColor1={gradientColor1}
+                gradientColor2={gradientColor2}
+                gradientCoordinates={gradientCoordinates}
+                customPointsDraft={customPointsDraft}
+                isCustomPoints={isCustomPoints}
+                onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
-            >
-                {fillType === "gradient" ? (
-                    <defs>
-                        <linearGradient
-                            id="blobPreviewGradient"
-                            x1={gradientCoordinates.x1}
-                            y1={gradientCoordinates.y1}
-                            x2={gradientCoordinates.x2}
-                            y2={gradientCoordinates.y2}
-                        >
-                            <stop offset="0%" stopColor={gradientColor1} />
-                            <stop offset="100%" stopColor={gradientColor2} />
-                        </linearGradient>
-                    </defs>
-                ) : null}
-
-                {path ? <path d={path} fill={fillType === "gradient" ? "url(#blobPreviewGradient)" : fill} /> : null}
-
-                {isCustomPoints
-                    ? customPointsDraft.map((point, index) => (
-                        <g key={`${point.x}-${point.y}-${index}`}>
-                            <circle
-                                cx={point.x}
-                                cy={point.y}
-                                r="12"
-                                fill="#FFFFFF"
-                                stroke="#F28C6F"
-                                strokeWidth="3"
-                                className="cursor-grab"
-                                onPointerDown={(event) => {
-                                    event.stopPropagation();
-
-                                    const svg = event.currentTarget.ownerSVGElement;
-
-                                    if (svg) {
-                                        svg.setPointerCapture(event.pointerId);
-                                    }
-
-                                    onPointerDown(index);
-                                }}
-                                onDoubleClick={(event) => {
-                                    event.stopPropagation();
-                                    onRemovePoint(index);
-                                }}
-                            />
-
-                            <text
-                                x={point.x}
-                                y={point.y}
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                className="select-none text-[10px] font-bold"
-                                fill="#E6765B"
-                                pointerEvents="none"
-                            >
-                                {index + 1}
-                            </text>
-                        </g>
-                    ))
-                    : null}
-            </svg>
+                onRemovePoint={onRemovePoint}
+                className={`h-full max-h-[320px] w-full max-w-[320px] drop-shadow-sm ${isCustomPoints ? "cursor-crosshair touch-none" : ""
+                    }`}
+            />
         </div>
     );
 }
@@ -795,83 +744,144 @@ function BlobMiniPreview({
                 </p>
             ) : null}
 
-            <svg
-                width="300"
-                height="300"
-                viewBox="0 0 300 300"
-                xmlns="http://www.w3.org/2000/svg"
-                className={`h-full max-h-60 w-full max-w-60 drop-shadow-sm ${isCustomPoints ? "cursor-crosshair touch-none" : ""
-                    }`}
-                onPointerDown={(event) => {
-                    if (!isCustomPoints) return;
-
-                    event.currentTarget.setPointerCapture(event.pointerId);
-                    onPointerDown();
-                }}
+            <BlobSvg
+                path={path}
+                fill={fill}
+                fillType={fillType}
+                gradientId="blobMiniPreviewGradient"
+                gradientColor1={gradientColor1}
+                gradientColor2={gradientColor2}
+                gradientCoordinates={gradientCoordinates}
+                customPointsDraft={customPointsDraft}
+                isCustomPoints={isCustomPoints}
+                onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
-            >
-                {fillType === "gradient" ? (
-                    <defs>
-                        <linearGradient
-                            id="blobMiniPreviewGradient"
-                            x1={gradientCoordinates.x1}
-                            y1={gradientCoordinates.y1}
-                            x2={gradientCoordinates.x2}
-                            y2={gradientCoordinates.y2}
-                        >
-                            <stop offset="0%" stopColor={gradientColor1} />
-                            <stop offset="100%" stopColor={gradientColor2} />
-                        </linearGradient>
-                    </defs>
-                ) : null}
-
-                {path ? <path d={path} fill={fillType === "gradient" ? "url(#blobMiniPreviewGradient)" : fill} /> : null}
-
-                {isCustomPoints
-                    ? customPointsDraft.map((point, index) => (
-                        <g key={`${point.x}-${point.y}-${index}`}>
-                            <circle
-                                cx={point.x}
-                                cy={point.y}
-                                r="12"
-                                fill="#FFFFFF"
-                                stroke="#F28C6F"
-                                strokeWidth="3"
-                                className="cursor-grab"
-                                onPointerDown={(event) => {
-                                    event.stopPropagation();
-
-                                    const svg = event.currentTarget.ownerSVGElement;
-
-                                    if (svg) {
-                                        svg.setPointerCapture(event.pointerId);
-                                    }
-
-                                    onPointerDown(index);
-                                }}
-                                onDoubleClick={(event) => {
-                                    event.stopPropagation();
-                                    onRemovePoint(index);
-                                }}
-                            />
-
-                            <text
-                                x={point.x}
-                                y={point.y}
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                className="select-none text-[10px] font-bold"
-                                fill="#E6765B"
-                                pointerEvents="none"
-                            >
-                                {index + 1}
-                            </text>
-                        </g>
-                    ))
-                    : null}
-            </svg>
+                onRemovePoint={onRemovePoint}
+                className={`h-full max-h-60 w-full max-w-60 drop-shadow-sm ${isCustomPoints ? "cursor-crosshair touch-none" : ""
+                    }`}
+            />
         </div>
+    );
+}
+
+function BlobSvg({
+    path,
+    fill,
+    fillType,
+    gradientId,
+    gradientColor1,
+    gradientColor2,
+    gradientCoordinates,
+    customPointsDraft,
+    isCustomPoints,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+    onRemovePoint,
+    className,
+}: {
+    path: string;
+    fill: string;
+    fillType: FillType;
+    gradientId: string;
+    gradientColor1: string;
+    gradientColor2: string;
+    gradientCoordinates: {
+        x1: string;
+        y1: string;
+        x2: string;
+        y2: string;
+    };
+    customPointsDraft: Point[];
+    isCustomPoints: boolean;
+    onPointerDown: (pointIndex?: number) => void;
+    onPointerMove: (event: ReactPointerEvent<SVGSVGElement>) => void;
+    onPointerUp: (event: ReactPointerEvent<SVGSVGElement>) => void;
+    onRemovePoint: (pointIndex: number) => void;
+    className: string;
+}) {
+    return (
+        <svg
+            width="300"
+            height="300"
+            viewBox="0 0 300 300"
+            xmlns="http://www.w3.org/2000/svg"
+            className={className}
+            onPointerDown={(event) => {
+                if (!isCustomPoints) return;
+
+                event.currentTarget.setPointerCapture(event.pointerId);
+                onPointerDown();
+            }}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+        >
+            {fillType === "gradient" ? (
+                <defs>
+                    <linearGradient
+                        id={gradientId}
+                        x1={gradientCoordinates.x1}
+                        y1={gradientCoordinates.y1}
+                        x2={gradientCoordinates.x2}
+                        y2={gradientCoordinates.y2}
+                    >
+                        <stop offset="0%" stopColor={gradientColor1} />
+                        <stop offset="100%" stopColor={gradientColor2} />
+                    </linearGradient>
+                </defs>
+            ) : null}
+
+            {path ? (
+                <path
+                    d={path}
+                    fill={fillType === "gradient" ? `url(#${gradientId})` : fill}
+                />
+            ) : null}
+
+            {isCustomPoints
+                ? customPointsDraft.map((point, index) => (
+                    <g key={`${point.x}-${point.y}-${index}`}>
+                        <circle
+                            cx={point.x}
+                            cy={point.y}
+                            r="12"
+                            fill="#FFFFFF"
+                            stroke="#F28C6F"
+                            strokeWidth="3"
+                            className="cursor-grab"
+                            onPointerDown={(event) => {
+                                event.stopPropagation();
+
+                                const svg = event.currentTarget.ownerSVGElement;
+
+                                if (svg) {
+                                    svg.setPointerCapture(event.pointerId);
+                                }
+
+                                onPointerDown(index);
+                            }}
+                            onDoubleClick={(event) => {
+                                event.stopPropagation();
+                                onRemovePoint(index);
+                            }}
+                        />
+
+                        <text
+                            x={point.x}
+                            y={point.y}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            className="select-none text-[10px] font-bold"
+                            fill="#E6765B"
+                            pointerEvents="none"
+                        >
+                            {index + 1}
+                        </text>
+                    </g>
+                ))
+                : null}
+        </svg>
     );
 }
 
@@ -956,7 +966,8 @@ function BlobSettingsPanel({
                 <button
                     type="button"
                     onClick={onGenerateBlob}
-                    className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
+                    className={`w-full rounded-2xl bg-[#F28C6F] font-semibold text-white transition hover:bg-[#E6765B] ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
+                        }`}
                 >
                     {text.generate}
                 </button>
@@ -965,7 +976,8 @@ function BlobSettingsPanel({
                     type="button"
                     onClick={onClearCustomPoints}
                     disabled={!isCustomPoints}
-                    className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+                    className={`w-full rounded-2xl border border-[#F4C8BA] bg-white font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50 ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
+                        }`}
                 >
                     {clearPointsText}
                 </button>
@@ -977,7 +989,8 @@ function BlobSettingsPanel({
                         type="button"
                         onClick={onUndo}
                         disabled={!canUndo}
-                        className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+                        className={`w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50 ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
+                            }`}
                     >
                         {undoText}
                     </button>
@@ -986,14 +999,18 @@ function BlobSettingsPanel({
                         type="button"
                         onClick={onRedo}
                         disabled={!canRedo}
-                        className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+                        className={`w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50 ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
+                            }`}
                     >
                         {redoText}
                     </button>
                 </div>
             ) : null}
 
-            <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] px-4 py-3 transition hover:bg-[#FFF7F3]">
+            <label
+                className={`flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] transition hover:bg-[#FFF7F3] ${compact ? "px-3 py-2.5" : "px-4 py-3"
+                    }`}
+            >
                 <span
                     className={`font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
                         }`}
@@ -1024,7 +1041,8 @@ function BlobSettingsPanel({
                             setFillType("solid");
                             clearCopyState();
                         }}
-                        className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${fillType === "solid"
+                        className={`rounded-2xl border font-semibold transition ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
+                            } ${fillType === "solid"
                                 ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
                                 : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
                             }`}
@@ -1038,7 +1056,8 @@ function BlobSettingsPanel({
                             setFillType("gradient");
                             clearCopyState();
                         }}
-                        className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${fillType === "gradient"
+                        className={`rounded-2xl border font-semibold transition ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
+                            } ${fillType === "gradient"
                                 ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
                                 : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
                             }`}
@@ -1049,69 +1068,43 @@ function BlobSettingsPanel({
             </div>
 
             {fillType === "solid" ? (
-                compact ? (
-                    <CompactColorInput
-                        label={text.fillColor}
-                        value={color}
-                        onChange={(value) => {
-                            setColor(value);
-                            clearCopyState();
-                        }}
-                    />
-                ) : (
-                    <ColorInput
-                        label={text.fillColor}
-                        value={color}
-                        onChange={(value) => {
-                            setColor(value);
-                            clearCopyState();
-                        }}
-                    />
-                )
+                <ColorInput
+                    label={text.fillColor}
+                    value={color}
+                    compact={compact}
+                    onChange={(value) => {
+                        setColor(value);
+                        clearCopyState();
+                    }}
+                />
             ) : (
                 <>
-                    <div className={compact ? "grid grid-cols-2 gap-2" : "space-y-5"}>
-                        {compact ? (
-                            <>
-                                <CompactColorInput
-                                    label={gradientColor1Text}
-                                    value={gradientColor1}
-                                    onChange={(value) => {
-                                        setGradientColor1(value);
-                                        clearCopyState();
-                                    }}
-                                />
+                    <div
+                        className={
+                            compact
+                                ? "grid grid-cols-2 gap-2"
+                                : "grid gap-3 sm:grid-cols-2"
+                        }
+                    >
+                        <ColorInput
+                            label={gradientColor1Text}
+                            value={gradientColor1}
+                            compact={compact}
+                            onChange={(value) => {
+                                setGradientColor1(value);
+                                clearCopyState();
+                            }}
+                        />
 
-                                <CompactColorInput
-                                    label={gradientColor2Text}
-                                    value={gradientColor2}
-                                    onChange={(value) => {
-                                        setGradientColor2(value);
-                                        clearCopyState();
-                                    }}
-                                />
-                            </>
-                        ) : (
-                            <>
-                                <ColorInput
-                                    label={gradientColor1Text}
-                                    value={gradientColor1}
-                                    onChange={(value) => {
-                                        setGradientColor1(value);
-                                        clearCopyState();
-                                    }}
-                                />
-
-                                <ColorInput
-                                    label={gradientColor2Text}
-                                    value={gradientColor2}
-                                    onChange={(value) => {
-                                        setGradientColor2(value);
-                                        clearCopyState();
-                                    }}
-                                />
-                            </>
-                        )}
+                        <ColorInput
+                            label={gradientColor2Text}
+                            value={gradientColor2}
+                            compact={compact}
+                            onChange={(value) => {
+                                setGradientColor2(value);
+                                clearCopyState();
+                            }}
+                        />
                     </div>
 
                     <RangeInput
@@ -1129,34 +1122,36 @@ function BlobSettingsPanel({
                 </>
             )}
 
-            {!isCustomPoints ? (
+            <div className={compact ? "grid grid-cols-2 gap-3" : "space-y-5"}>
+                {!isCustomPoints ? (
+                    <RangeInput
+                        label={text.points}
+                        value={pointsCount}
+                        min={5}
+                        max={14}
+                        suffix=""
+                        compact={compact}
+                        onChange={(value) => {
+                            setPointsCount(value);
+                            setPoints(createRandomPoints(value, 80, 125));
+                            clearCopyState();
+                        }}
+                    />
+                ) : null}
+
                 <RangeInput
-                    label={text.points}
-                    value={pointsCount}
-                    min={5}
-                    max={14}
+                    label={text.smoothness}
+                    value={smoothness}
+                    min={10}
+                    max={45}
                     suffix=""
                     compact={compact}
                     onChange={(value) => {
-                        setPointsCount(value);
-                        setPoints(createRandomPoints(value, 80, 125));
+                        setSmoothness(value);
                         clearCopyState();
                     }}
                 />
-            ) : null}
-
-            <RangeInput
-                label={text.smoothness}
-                value={smoothness}
-                min={10}
-                max={45}
-                suffix=""
-                compact={compact}
-                onChange={(value) => {
-                    setSmoothness(value);
-                    clearCopyState();
-                }}
-            />
+            </div>
         </div>
     );
 }
@@ -1173,63 +1168,42 @@ function SectionHeader({ title }: { title: string }) {
 function ColorInput({
     label,
     value,
+    compact = false,
     onChange,
 }: {
     label: string;
     value: string;
-    onChange: (value: string) => void;
-}) {
-    return (
-        <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-gray-800">
-                {label}
-            </span>
-
-            <div className="flex items-center gap-3">
-                <input
-                    type="color"
-                    value={value}
-                    onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-12 w-16 cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
-                />
-
-                <input
-                    value={value}
-                    onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-12 min-w-0 flex-1 rounded-xl border border-[#F1E5DF] px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                />
-            </div>
-        </label>
-    );
-}
-
-function CompactColorInput({
-    label,
-    value,
-    onChange,
-}: {
-    label: string;
-    value: string;
+    compact?: boolean;
     onChange: (value: string) => void;
 }) {
     return (
         <label className="block min-w-0">
-            <span className="mb-1.5 block truncate text-[10px] font-semibold text-gray-800">
+            <span
+                className={`mb-1.5 block truncate font-semibold text-gray-800 ${compact ? "text-[10px]" : "text-sm"
+                    }`}
+            >
                 {label}
             </span>
 
-            <div className="grid grid-cols-[42px_1fr] gap-2">
+            <div
+                className={`grid gap-1.5 ${compact ? "grid-cols-[34px_1fr]" : "grid-cols-[58px_1fr]"
+                    }`}
+            >
                 <input
                     type="color"
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-10 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
+                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-10" : "h-12"
+                        }`}
                 />
 
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-10 min-w-0 rounded-xl border border-[#F1E5DF] px-3 text-xs font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                    className={`w-full rounded-xl border border-[#F1E5DF] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
+                            ? "h-10 px-2 text-[11px]"
+                            : "h-12 px-4 text-sm"
+                        }`}
                 />
             </div>
         </label>
@@ -1254,19 +1228,31 @@ function RangeInput({
     onChange: (value: number) => void;
 }) {
     return (
-        <label className="block">
+        <label className="block min-w-0">
             <div
-                className={`flex items-center justify-between gap-4 ${compact ? "mb-1.5" : "mb-2"
-                    }`}
+                className={
+                    compact
+                        ? "mb-1 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5"
+                        : "mb-2 flex items-center justify-between gap-4"
+                }
             >
                 <span
-                    className={`font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
-                        }`}
+                    className={
+                        compact
+                            ? "min-w-0 truncate whitespace-nowrap text-[11px] font-semibold leading-5 text-gray-800"
+                            : "text-sm font-semibold text-gray-800"
+                    }
                 >
                     {label}
                 </span>
 
-                <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
+                <span
+                    className={
+                        compact
+                            ? "min-w-[40px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-0.5 text-center text-[11px] font-semibold leading-5 text-[#7A5A4F]"
+                            : "rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]"
+                    }
+                >
                     {value}
                     {suffix}
                 </span>
@@ -1379,12 +1365,12 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-2 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
         >
             <div
-                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
@@ -1405,7 +1391,9 @@ function MobileSettingsSheet({
                     </button>
                 </div>
 
-                <div className="overflow-y-auto px-4 pb-4 pt-2">{children}</div>
+                <div className="min-h-0 flex-1 overflow-hidden px-4 pb-4 pt-2">
+                    {children}
+                </div>
             </div>
         </div>
     );
