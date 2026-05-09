@@ -3,6 +3,14 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { t } from "@/data/messages";
 
+type ShadowStyle =
+    | "soft-card"
+    | "floating"
+    | "glow"
+    | "inset"
+    | "neumorphism"
+    | "hard-shadow";
+
 type BoxShadowSettings = {
     boxWidth: number;
     boxHeight: number;
@@ -30,6 +38,15 @@ const defaultSettings: BoxShadowSettings = {
     shadowOpacity: 35,
     borderRadius: 28,
 };
+
+const shadowStyles: ShadowStyle[] = [
+    "soft-card",
+    "floating",
+    "glow",
+    "inset",
+    "neumorphism",
+    "hard-shadow",
+];
 
 function isValidHexColor(value: string) {
     return /^#[0-9A-Fa-f]{6}$/.test(value);
@@ -63,6 +80,57 @@ function getRandomNumber(min: number, max: number) {
     return Math.floor(min + Math.random() * (max - min + 1));
 }
 
+function getShadowStyleLabel(
+    text: typeof t.boxShadowGenerator,
+    style: ShadowStyle,
+) {
+    const labels = text as {
+        styleSoftCard?: string;
+        styleFloating?: string;
+        styleGlow?: string;
+        styleInset?: string;
+        styleNeumorphism?: string;
+        styleHardShadow?: string;
+    };
+
+    if (style === "floating") return labels.styleFloating ?? "Floating";
+    if (style === "glow") return labels.styleGlow ?? "Glow";
+    if (style === "inset") return labels.styleInset ?? "Inset";
+    if (style === "neumorphism") return labels.styleNeumorphism ?? "Neumorphism";
+    if (style === "hard-shadow") return labels.styleHardShadow ?? "Hard Shadow";
+
+    return labels.styleSoftCard ?? "Soft Card";
+}
+
+function getShadowRgba(color: string, opacity: number) {
+    const rgb = hexToRgb(color);
+
+    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity / 100})`;
+}
+
+function getBoxShadowValue({
+    settings,
+    safeShadowColor,
+    shadowStyle,
+}: {
+    settings: BoxShadowSettings;
+    safeShadowColor: string;
+    shadowStyle: ShadowStyle;
+}) {
+    const shadowRgba = getShadowRgba(safeShadowColor, settings.shadowOpacity);
+
+    if (shadowStyle === "inset") {
+        return `inset ${settings.offsetX}px ${settings.offsetY}px ${settings.blurRadius}px ${settings.spreadRadius}px ${shadowRgba}`;
+    }
+
+    if (shadowStyle === "neumorphism") {
+        return `${settings.offsetX}px ${settings.offsetY}px ${settings.blurRadius}px ${settings.spreadRadius}px ${shadowRgba},
+  ${-settings.offsetX}px ${-settings.offsetY}px ${settings.blurRadius}px ${settings.spreadRadius}px rgba(255, 255, 255, 0.72)`;
+    }
+
+    return `${settings.offsetX}px ${settings.offsetY}px ${settings.blurRadius}px ${settings.spreadRadius}px ${shadowRgba}`;
+}
+
 export default function BoxShadowGeneratorTool() {
     const text = t.boxShadowGenerator;
     const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -70,6 +138,10 @@ export default function BoxShadowGeneratorTool() {
     const settingsButtonText =
         (text as { settingsButton?: string }).settingsButton ?? "Settings";
 
+    const shadowStyleText =
+        (text as { shadowStyle?: string }).shadowStyle ?? "Shadow Style";
+
+    const [shadowStyle, setShadowStyle] = useState<ShadowStyle>("soft-card");
     const [settings, setSettings] =
         useState<BoxShadowSettings>(defaultSettings);
     const [copiedKey, setCopiedKey] = useState("");
@@ -83,14 +155,13 @@ export default function BoxShadowGeneratorTool() {
     );
     const safeShadowColor = getSafeHexColor(settings.shadowColor, "#F28C6F");
 
-    const shadowRgba = useMemo(() => {
-        const rgb = hexToRgb(safeShadowColor);
-        const opacity = settings.shadowOpacity / 100;
-
-        return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
-    }, [safeShadowColor, settings.shadowOpacity]);
-
-    const boxShadowValue = `${settings.offsetX}px ${settings.offsetY}px ${settings.blurRadius}px ${settings.spreadRadius}px ${shadowRgba}`;
+    const boxShadowValue = useMemo(() => {
+        return getBoxShadowValue({
+            settings,
+            safeShadowColor,
+            shadowStyle,
+        });
+    }, [settings, safeShadowColor, shadowStyle]);
 
     const cssOutput = `.peach-box-shadow {
   width: ${settings.boxWidth}px;
@@ -125,12 +196,114 @@ export default function BoxShadowGeneratorTool() {
         clearCopyState();
     }
 
+    function applyShadowStyle(nextStyle: ShadowStyle) {
+        setShadowStyle(nextStyle);
+
+        if (nextStyle === "soft-card") {
+            setSettings({
+                boxWidth: 260,
+                boxHeight: 180,
+                boxColor: "#FFFFFF",
+                shadowColor: "#F28C6F",
+                backgroundColor: "#FFF7F3",
+                offsetX: 0,
+                offsetY: 18,
+                blurRadius: 45,
+                spreadRadius: -12,
+                shadowOpacity: 35,
+                borderRadius: 28,
+            });
+        }
+
+        if (nextStyle === "floating") {
+            setSettings({
+                boxWidth: 260,
+                boxHeight: 180,
+                boxColor: "#FFFFFF",
+                shadowColor: "#7A5A4F",
+                backgroundColor: "#FFF7F3",
+                offsetX: 0,
+                offsetY: 28,
+                blurRadius: 70,
+                spreadRadius: -18,
+                shadowOpacity: 28,
+                borderRadius: 30,
+            });
+        }
+
+        if (nextStyle === "glow") {
+            setSettings({
+                boxWidth: 250,
+                boxHeight: 170,
+                boxColor: "#FFFFFF",
+                shadowColor: "#F28C6F",
+                backgroundColor: "#FFF7F3",
+                offsetX: 0,
+                offsetY: 0,
+                blurRadius: 70,
+                spreadRadius: 2,
+                shadowOpacity: 55,
+                borderRadius: 32,
+            });
+        }
+
+        if (nextStyle === "inset") {
+            setSettings({
+                boxWidth: 260,
+                boxHeight: 180,
+                boxColor: "#FFF7F3",
+                shadowColor: "#A17F74",
+                backgroundColor: "#FFF7F3",
+                offsetX: 0,
+                offsetY: 10,
+                blurRadius: 30,
+                spreadRadius: -8,
+                shadowOpacity: 35,
+                borderRadius: 28,
+            });
+        }
+
+        if (nextStyle === "neumorphism") {
+            setSettings({
+                boxWidth: 260,
+                boxHeight: 180,
+                boxColor: "#FFF7F3",
+                shadowColor: "#D8B6AA",
+                backgroundColor: "#FFF7F3",
+                offsetX: 16,
+                offsetY: 16,
+                blurRadius: 34,
+                spreadRadius: -10,
+                shadowOpacity: 45,
+                borderRadius: 32,
+            });
+        }
+
+        if (nextStyle === "hard-shadow") {
+            setSettings({
+                boxWidth: 250,
+                boxHeight: 170,
+                boxColor: "#FFFFFF",
+                shadowColor: "#2A1F1B",
+                backgroundColor: "#FFF7F3",
+                offsetX: 14,
+                offsetY: 14,
+                blurRadius: 0,
+                spreadRadius: 0,
+                shadowOpacity: 90,
+                borderRadius: 22,
+            });
+        }
+
+        clearCopyState();
+    }
+
     function handleShuffle() {
         setSettings((current) => ({
             ...current,
             offsetX: getRandomNumber(-30, 30),
             offsetY: getRandomNumber(4, 40),
-            blurRadius: getRandomNumber(10, 80),
+            blurRadius: shadowStyle === "hard-shadow" ? 0 : getRandomNumber(10, 80),
             spreadRadius: getRandomNumber(-24, 18),
             shadowOpacity: getRandomNumber(15, 70),
             borderRadius: getRandomNumber(0, 50),
@@ -140,6 +313,10 @@ export default function BoxShadowGeneratorTool() {
     }
 
     function handleRandomAll() {
+        const nextStyle = shadowStyles[Math.floor(Math.random() * shadowStyles.length)];
+
+        setShadowStyle(nextStyle);
+
         setSettings({
             boxWidth: getRandomNumber(180, 360),
             boxHeight: getRandomNumber(120, 260),
@@ -148,7 +325,7 @@ export default function BoxShadowGeneratorTool() {
             backgroundColor: getRandomHexColor(),
             offsetX: getRandomNumber(-30, 30),
             offsetY: getRandomNumber(4, 40),
-            blurRadius: getRandomNumber(10, 80),
+            blurRadius: nextStyle === "hard-shadow" ? 0 : getRandomNumber(10, 80),
             spreadRadius: getRandomNumber(-24, 18),
             shadowOpacity: getRandomNumber(15, 70),
             borderRadius: getRandomNumber(0, 50),
@@ -158,6 +335,7 @@ export default function BoxShadowGeneratorTool() {
     }
 
     function handleReset() {
+        setShadowStyle("soft-card");
         setSettings(defaultSettings);
         clearCopyState();
     }
@@ -184,8 +362,11 @@ export default function BoxShadowGeneratorTool() {
     const desktopSettingsPanel = (
         <BoxShadowSettingsPanel
             text={text}
+            shadowStyleText={shadowStyleText}
+            shadowStyle={shadowStyle}
             settings={settings}
             updateSetting={updateSetting}
+            onApplyShadowStyle={applyShadowStyle}
             onShuffle={handleShuffle}
             onRandom={handleRandomAll}
             onReset={handleReset}
@@ -196,8 +377,11 @@ export default function BoxShadowGeneratorTool() {
     const mobileSettingsPanel = (
         <BoxShadowSettingsPanel
             text={text}
+            shadowStyleText={shadowStyleText}
+            shadowStyle={shadowStyle}
             settings={settings}
             updateSetting={updateSetting}
+            onApplyShadowStyle={applyShadowStyle}
             onShuffle={handleShuffle}
             onRandom={handleRandomAll}
             onReset={handleReset}
@@ -362,19 +546,25 @@ function BoxShadowMiniPreview({
 
 function BoxShadowSettingsPanel({
     text,
+    shadowStyleText,
+    shadowStyle,
     settings,
     updateSetting,
+    onApplyShadowStyle,
     onShuffle,
     onRandom,
     onReset,
     compact = false,
 }: {
     text: typeof t.boxShadowGenerator;
+    shadowStyleText: string;
+    shadowStyle: ShadowStyle;
     settings: BoxShadowSettings;
     updateSetting: <K extends keyof BoxShadowSettings>(
         key: K,
         value: BoxShadowSettings[K],
     ) => void;
+    onApplyShadowStyle: (style: ShadowStyle) => void;
     onShuffle: () => void;
     onRandom: () => void;
     onReset: () => void;
@@ -382,6 +572,36 @@ function BoxShadowSettingsPanel({
 }) {
     return (
         <div className={compact ? "space-y-3" : "space-y-5"}>
+            <div>
+                <span
+                    className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                        }`}
+                >
+                    {shadowStyleText}
+                </span>
+
+                <div className="grid grid-cols-2 gap-2">
+                    {shadowStyles.map((style) => {
+                        const isActive = shadowStyle === style;
+
+                        return (
+                            <button
+                                key={style}
+                                type="button"
+                                onClick={() => onApplyShadowStyle(style)}
+                                className={`rounded-2xl border px-3 font-semibold transition ${compact ? "py-2 text-xs" : "py-3 text-sm"
+                                    } ${isActive
+                                        ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                                        : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                                    }`}
+                            >
+                                {getShadowStyleLabel(text, style)}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-2">
                 <button
                     type="button"
@@ -407,32 +627,6 @@ function BoxShadowSettingsPanel({
             >
                 {text.reset}
             </button>
-
-            <div
-                className={
-                    compact
-                        ? "grid grid-cols-2 gap-3"
-                        : "grid gap-4 sm:grid-cols-2"
-                }
-            >
-                <NumberInput
-                    label={text.boxWidthLabel}
-                    value={settings.boxWidth}
-                    min={80}
-                    max={600}
-                    compact={compact}
-                    onChange={(value) => updateSetting("boxWidth", value)}
-                />
-
-                <NumberInput
-                    label={text.boxHeightLabel}
-                    value={settings.boxHeight}
-                    min={80}
-                    max={400}
-                    compact={compact}
-                    onChange={(value) => updateSetting("boxHeight", value)}
-                />
-            </div>
 
             {compact ? (
                 <>
@@ -462,9 +656,49 @@ function BoxShadowSettingsPanel({
                             updateSetting("backgroundColor", value)
                         }
                     />
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <NumberInput
+                            label={text.boxWidthLabel}
+                            value={settings.boxWidth}
+                            min={80}
+                            max={600}
+                            compact={compact}
+                            onChange={(value) => updateSetting("boxWidth", value)}
+                        />
+
+                        <NumberInput
+                            label={text.boxHeightLabel}
+                            value={settings.boxHeight}
+                            min={80}
+                            max={400}
+                            compact={compact}
+                            onChange={(value) => updateSetting("boxHeight", value)}
+                        />
+                    </div>
                 </>
             ) : (
                 <>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <NumberInput
+                            label={text.boxWidthLabel}
+                            value={settings.boxWidth}
+                            min={80}
+                            max={600}
+                            compact={compact}
+                            onChange={(value) => updateSetting("boxWidth", value)}
+                        />
+
+                        <NumberInput
+                            label={text.boxHeightLabel}
+                            value={settings.boxHeight}
+                            min={80}
+                            max={400}
+                            compact={compact}
+                            onChange={(value) => updateSetting("boxHeight", value)}
+                        />
+                    </div>
+
                     <ColorInput
                         label={text.boxColorLabel}
                         value={settings.boxColor}

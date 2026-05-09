@@ -826,6 +826,14 @@ export const messages = {
                 "Create soft CSS box shadow styles for cards, buttons, panels, and UI elements.",
             emptyPreview: "Adjust the settings to generate a box shadow preview.",
 
+            shadowStyle: "Shadow Style",
+            styleSoftCard: "Soft Card",
+            styleFloating: "Floating",
+            styleGlow: "Glow",
+            styleInset: "Inset",
+            styleNeumorphism: "Neumorphism",
+            styleHardShadow: "Hard Shadow",
+
             boxWidthLabel: "Box Width",
             boxHeightLabel: "Box Height",
             boxColorLabel: "Box Color",
