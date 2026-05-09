@@ -747,19 +747,27 @@ export const messages = {
         // =========================
         noiseTextureGenerator: {
             previewTitle: "Noise Preview",
-            previewDescription: "Generate subtle grain and noise textures for backgrounds.",
+            previewDescription:
+                "Generate subtle grain and noise textures for backgrounds.",
             emptyHint: "Adjust the settings to see a live preview.",
-            shuffleNoise: "Shuffle",
-            randomAll: "Random All",
-            controls: "Controls",
+
+            controls: "Noise Settings",
+            settingsButton: "Settings",
+
             width: "Width",
             height: "Height",
             backgroundColor: "Background Color",
             noiseColor: "Noise Color",
             density: "Density",
             opacity: "Opacity",
+
+            shuffleNoise: "Shuffle",
+            randomAll: "Random",
+
             copyCss: "Copy CSS",
             downloadPng: "Download PNG",
+            actionDownload: "Download",
+
             cssTitle: "CSS Noise Background",
         },
 

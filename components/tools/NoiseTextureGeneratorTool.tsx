@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { t } from "@/data/messages";
 
 function isValidHexColor(value: string) {
@@ -48,9 +48,64 @@ function getRandomCanvasSize() {
     return sizes[Math.floor(Math.random() * sizes.length)];
 }
 
+function getNoiseCssOutput({
+    backgroundColor,
+    noiseColor,
+    density,
+    opacity,
+}: {
+    backgroundColor: string;
+    noiseColor: string;
+    density: number;
+    opacity: number;
+}) {
+    const safeBackgroundColor = getSafeHexColor(backgroundColor, "#FFF7F3");
+    const safeNoiseColor = getSafeHexColor(noiseColor, "#111827");
+    const dotAlpha = Math.max(0.02, opacity / 100);
+    const dotSize = Math.max(1, Math.round(density / 18));
+    const spacing = Math.max(3, Math.round(18 - density / 5));
+    const rgb = hexToRgb(safeNoiseColor);
+
+    return `background-color: ${safeBackgroundColor};
+background-image: radial-gradient(rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${dotAlpha}) ${dotSize}px, transparent ${dotSize}px);
+background-size: ${spacing}px ${spacing}px;`;
+}
+
+function getNoisePreviewStyle({
+    backgroundColor,
+    noiseColor,
+    density,
+    opacity,
+}: {
+    backgroundColor: string;
+    noiseColor: string;
+    density: number;
+    opacity: number;
+}) {
+    const safeBackgroundColor = getSafeHexColor(backgroundColor, "#FFF7F3");
+    const safeNoiseColor = getSafeHexColor(noiseColor, "#111827");
+    const dotAlpha = Math.max(0.02, opacity / 100);
+    const dotSize = Math.max(1, Math.round(density / 18));
+    const spacing = Math.max(3, Math.round(18 - density / 5));
+    const rgb = hexToRgb(safeNoiseColor);
+
+    return {
+        backgroundColor: safeBackgroundColor,
+        backgroundImage: `radial-gradient(rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${dotAlpha}) ${dotSize}px, transparent ${dotSize}px)`,
+        backgroundSize: `${spacing}px ${spacing}px`,
+    };
+}
+
 export default function NoiseTextureGeneratorTool() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const text = t.noiseTextureGenerator;
+
+    const settingsButtonText =
+        (text as { settingsButton?: string }).settingsButton ?? "Settings";
+
+    const actionDownloadText =
+        (text as { actionDownload?: string }).actionDownload ?? "Download";
 
     const [width, setWidth] = useState(800);
     const [height, setHeight] = useState(600);
@@ -61,6 +116,15 @@ export default function NoiseTextureGeneratorTool() {
     const [seed, setSeed] = useState(1);
     const [copied, setCopied] = useState(false);
     const [hasPreview, setHasPreview] = useState(false);
+    const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            if (copyTimerRef.current) {
+                clearTimeout(copyTimerRef.current);
+            }
+        };
+    }, []);
 
     function generateNoise() {
         const canvas = canvasRef.current;
@@ -144,16 +208,12 @@ export default function NoiseTextureGeneratorTool() {
     }
 
     function getCssOutput() {
-        const safeBackgroundColor = getSafeHexColor(backgroundColor, "#FFF7F3");
-        const safeNoiseColor = getSafeHexColor(noiseColor, "#111827");
-        const dotAlpha = Math.max(0.02, opacity / 100);
-        const dotSize = Math.max(1, Math.round(density / 18));
-        const spacing = Math.max(3, Math.round(18 - density / 5));
-        const rgb = hexToRgb(safeNoiseColor);
-
-        return `background-color: ${safeBackgroundColor};
-background-image: radial-gradient(rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${dotAlpha}) ${dotSize}px, transparent ${dotSize}px);
-background-size: ${spacing}px ${spacing}px;`;
+        return getNoiseCssOutput({
+            backgroundColor,
+            noiseColor,
+            density,
+            opacity,
+        });
     }
 
     async function copyCss() {
@@ -161,7 +221,11 @@ background-size: ${spacing}px ${spacing}px;`;
             await navigator.clipboard.writeText(getCssOutput());
             setCopied(true);
 
-            setTimeout(() => {
+            if (copyTimerRef.current) {
+                clearTimeout(copyTimerRef.current);
+            }
+
+            copyTimerRef.current = setTimeout(() => {
                 setCopied(false);
             }, 1500);
         } catch {
@@ -185,157 +249,119 @@ background-size: ${spacing}px ${spacing}px;`;
         }, 0);
     }
 
+    const desktopSettingsPanel = (
+        <NoiseSettingsPanel
+            text={text}
+            width={width}
+            height={height}
+            density={density}
+            opacity={opacity}
+            backgroundColor={backgroundColor}
+            noiseColor={noiseColor}
+            setWidth={setWidth}
+            setHeight={setHeight}
+            setDensity={setDensity}
+            setOpacity={setOpacity}
+            setBackgroundColor={setBackgroundColor}
+            setNoiseColor={setNoiseColor}
+            showPreview={showPreview}
+            compact={false}
+        />
+    );
+
+    const mobileSettingsPanel = (
+        <NoiseSettingsPanel
+            text={text}
+            width={width}
+            height={height}
+            density={density}
+            opacity={opacity}
+            backgroundColor={backgroundColor}
+            noiseColor={noiseColor}
+            setWidth={setWidth}
+            setHeight={setHeight}
+            setDensity={setDensity}
+            setOpacity={setOpacity}
+            setBackgroundColor={setBackgroundColor}
+            setNoiseColor={setNoiseColor}
+            showPreview={showPreview}
+            compact
+        />
+    );
+
     return (
-        <div className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-                <div className="min-w-0 space-y-6">
-                    <section className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                        <div className="mb-5">
-                            <h3 className="font-semibold text-gray-900">
-                                {text.previewTitle}
-                            </h3>
+        <>
+            <div className="space-y-6">
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+                    <div className="min-w-0 space-y-6">
+                        <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                            <div className="mb-5">
+                                <SectionHeader title={text.previewTitle} />
 
-                            <p className="mt-2 max-w-[320px] text-sm leading-6 text-gray-500">
-                                {text.previewDescription}
-                            </p>
-                        </div>
+                                <p className="mt-2 max-w-[320px] text-sm leading-6 text-gray-500">
+                                    {text.previewDescription}
+                                </p>
+                            </div>
 
-                        <div className="relative overflow-hidden rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                            <canvas
-                                ref={canvasRef}
-                                className={`h-auto max-h-[520px] w-full rounded-2xl object-contain ${hasPreview ? "block" : "hidden"
-                                    }`}
-                            />
+                            <div className="relative overflow-hidden rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                                <canvas
+                                    ref={canvasRef}
+                                    className={`h-auto max-h-[520px] w-full rounded-2xl object-contain ${hasPreview ? "block" : "hidden"
+                                        }`}
+                                />
 
-                            {!hasPreview && (
-                                <div className="flex min-h-64 items-center justify-center rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center">
-                                    <p className="max-w-xs text-sm leading-6 text-gray-500">
-                                        {text.emptyHint}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    </section>
+                                {!hasPreview && (
+                                    <div className="flex min-h-64 items-center justify-center rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center">
+                                        <p className="max-w-xs text-sm leading-6 text-gray-500">
+                                            {text.emptyHint}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
 
-                    <section className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                        <div className="mb-4 flex items-center justify-between gap-4">
-                            <h3 className="font-semibold text-gray-900">{text.cssTitle}</h3>
+                        <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                            <div className="mb-4 flex items-center justify-between gap-4">
+                                <SectionHeader title={text.cssTitle} />
 
-                            <button
-                                type="button"
-                                onClick={copyCss}
-                                className="rounded-xl border border-[#F1E5DF] bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
-                            >
-                                {copied ? t.common.copied : t.common.copy}
-                            </button>
-                        </div>
+                                <button
+                                    type="button"
+                                    onClick={copyCss}
+                                    className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                >
+                                    {copied ? t.common.copied : text.copyCss}
+                                </button>
+                            </div>
 
-                        <pre className="overflow-x-auto rounded-2xl bg-[#FFF7F3] p-4 text-sm leading-7 text-gray-700">
-                            <code>{getCssOutput()}</code>
-                        </pre>
-                    </section>
-                </div>
-
-                <section className="min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                    <h3 className="font-semibold text-gray-900">{text.controls}</h3>
-
-                    <div className="mt-5 grid grid-cols-2 gap-3">
-                        <button
-                            type="button"
-                            onClick={shuffleNoise}
-                            className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                        >
-                            {text.shuffleNoise}
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={randomizeAll}
-                            className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                        >
-                            {text.randomAll}
-                        </button>
+                            <pre className="overflow-x-auto rounded-2xl bg-[#FFF7F3] p-4 text-sm leading-7 text-gray-700">
+                                <code>{getCssOutput()}</code>
+                            </pre>
+                        </section>
                     </div>
 
-                    <div className="mt-5 space-y-5">
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <NumberInput
-                                label={text.width}
-                                value={width}
-                                min={100}
-                                max={3000}
-                                onChange={(value) => {
-                                    setWidth(value);
-                                    showPreview();
-                                }}
-                            />
+                    <section className="hidden min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm lg:block">
+                        <SectionHeader title={text.controls} />
 
-                            <NumberInput
-                                label={text.height}
-                                value={height}
-                                min={100}
-                                max={3000}
-                                onChange={(value) => {
-                                    setHeight(value);
-                                    showPreview();
-                                }}
-                            />
-                        </div>
-
-                        <RangeInput
-                            label={text.density}
-                            value={density}
-                            min={1}
-                            max={100}
-                            suffix="%"
-                            onChange={(value) => {
-                                setDensity(value);
-                                showPreview();
-                            }}
-                        />
-
-                        <RangeInput
-                            label={text.opacity}
-                            value={opacity}
-                            min={1}
-                            max={100}
-                            suffix="%"
-                            onChange={(value) => {
-                                setOpacity(value);
-                                showPreview();
-                            }}
-                        />
-
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <ColorInput
-                                label={text.backgroundColor}
-                                value={backgroundColor}
-                                fallback="#FFF7F3"
-                                onChange={(value) => {
-                                    setBackgroundColor(value);
-                                    showPreview();
-                                }}
-                            />
-
-                            <ColorInput
-                                label={text.noiseColor}
-                                value={noiseColor}
-                                fallback="#111827"
-                                onChange={(value) => {
-                                    setNoiseColor(value);
-                                    showPreview();
-                                }}
-                            />
-                        </div>
-
-                        <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="mt-5 grid grid-cols-2 gap-3">
                             <button
                                 type="button"
-                                onClick={copyCss}
+                                onClick={shuffleNoise}
                                 className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
                             >
-                                {copied ? t.common.copied : text.copyCss}
+                                {text.shuffleNoise}
                             </button>
+
+                            <button
+                                type="button"
+                                onClick={randomizeAll}
+                                className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
+                            >
+                                {text.randomAll}
+                            </button>
+                        </div>
+
+                        <div className="mt-5 space-y-5">
+                            {desktopSettingsPanel}
 
                             <button
                                 type="button"
@@ -345,9 +371,236 @@ background-size: ${spacing}px ${spacing}px;`;
                                 {text.downloadPng}
                             </button>
                         </div>
-                    </div>
-                </section>
+                    </section>
+                </div>
             </div>
+
+            <MobileActionBar
+                settingsButtonText={settingsButtonText}
+                shuffleText={text.shuffleNoise}
+                randomText={text.randomAll}
+                downloadText={actionDownloadText}
+                onOpenSettings={() => setIsMobileSettingsOpen(true)}
+                onShuffle={shuffleNoise}
+                onRandom={randomizeAll}
+                onDownload={downloadPng}
+            />
+
+            {isMobileSettingsOpen ? (
+                <MobileSettingsSheet
+                    title={text.controls}
+                    onClose={() => setIsMobileSettingsOpen(false)}
+                >
+                    <div className="space-y-3">
+                        <NoiseMiniPreview
+                            width={width}
+                            height={height}
+                            density={density}
+                            opacity={opacity}
+                            backgroundColor={backgroundColor}
+                            noiseColor={noiseColor}
+                        />
+
+                        {mobileSettingsPanel}
+                    </div>
+                </MobileSettingsSheet>
+            ) : null}
+        </>
+    );
+}
+
+function NoiseSettingsPanel({
+    text,
+    width,
+    height,
+    density,
+    opacity,
+    backgroundColor,
+    noiseColor,
+    setWidth,
+    setHeight,
+    setDensity,
+    setOpacity,
+    setBackgroundColor,
+    setNoiseColor,
+    showPreview,
+    compact = false,
+}: {
+    text: typeof t.noiseTextureGenerator;
+    width: number;
+    height: number;
+    density: number;
+    opacity: number;
+    backgroundColor: string;
+    noiseColor: string;
+    setWidth: (value: number) => void;
+    setHeight: (value: number) => void;
+    setDensity: (value: number) => void;
+    setOpacity: (value: number) => void;
+    setBackgroundColor: (value: string) => void;
+    setNoiseColor: (value: string) => void;
+    showPreview: () => void;
+    compact?: boolean;
+}) {
+    return (
+        <div className={compact ? "space-y-3" : "space-y-5"}>
+            {compact ? (
+                <div className="grid grid-cols-2 gap-2">
+                    <CompactColorInput
+                        label={text.backgroundColor}
+                        value={backgroundColor}
+                        fallback="#FFF7F3"
+                        onChange={(value) => {
+                            setBackgroundColor(value);
+                            showPreview();
+                        }}
+                    />
+
+                    <CompactColorInput
+                        label={text.noiseColor}
+                        value={noiseColor}
+                        fallback="#111827"
+                        onChange={(value) => {
+                            setNoiseColor(value);
+                            showPreview();
+                        }}
+                    />
+                </div>
+            ) : null}
+
+            <div
+                className={
+                    compact
+                        ? "grid grid-cols-2 gap-3"
+                        : "grid gap-4 sm:grid-cols-2"
+                }
+            >
+                <NumberInput
+                    label={text.width}
+                    value={width}
+                    min={100}
+                    max={3000}
+                    compact={compact}
+                    onChange={(value) => {
+                        setWidth(value);
+                        showPreview();
+                    }}
+                />
+
+                <NumberInput
+                    label={text.height}
+                    value={height}
+                    min={100}
+                    max={3000}
+                    compact={compact}
+                    onChange={(value) => {
+                        setHeight(value);
+                        showPreview();
+                    }}
+                />
+            </div>
+
+            <RangeInput
+                label={text.density}
+                value={density}
+                min={1}
+                max={100}
+                suffix="%"
+                compact={compact}
+                onChange={(value) => {
+                    setDensity(value);
+                    showPreview();
+                }}
+            />
+
+            <RangeInput
+                label={text.opacity}
+                value={opacity}
+                min={1}
+                max={100}
+                suffix="%"
+                compact={compact}
+                onChange={(value) => {
+                    setOpacity(value);
+                    showPreview();
+                }}
+            />
+
+            {!compact ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                    <ColorInput
+                        label={text.backgroundColor}
+                        value={backgroundColor}
+                        fallback="#FFF7F3"
+                        onChange={(value) => {
+                            setBackgroundColor(value);
+                            showPreview();
+                        }}
+                    />
+
+                    <ColorInput
+                        label={text.noiseColor}
+                        value={noiseColor}
+                        fallback="#111827"
+                        onChange={(value) => {
+                            setNoiseColor(value);
+                            showPreview();
+                        }}
+                    />
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+function NoiseMiniPreview({
+    width,
+    height,
+    density,
+    opacity,
+    backgroundColor,
+    noiseColor,
+}: {
+    width: number;
+    height: number;
+    density: number;
+    opacity: number;
+    backgroundColor: string;
+    noiseColor: string;
+}) {
+    const safeWidth = Math.max(width, 1);
+    const safeHeight = Math.max(height, 1);
+    const previewRatio = safeWidth / safeHeight;
+    const containerRatio = 3.4;
+    const fillWidth = previewRatio >= containerRatio;
+
+    return (
+        <div className="flex h-36 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5">
+            <div
+                className="overflow-hidden rounded-xl border border-[#F1E5DF] shadow-sm"
+                style={{
+                    aspectRatio: `${safeWidth} / ${safeHeight}`,
+                    width: fillWidth ? "100%" : "auto",
+                    height: fillWidth ? "auto" : "100%",
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    ...getNoisePreviewStyle({
+                        backgroundColor,
+                        noiseColor,
+                        density,
+                        opacity,
+                    }),
+                }}
+            />
+        </div>
+    );
+}
+
+function SectionHeader({ title }: { title: string }) {
+    return (
+        <div className="flex items-center gap-3">
+            <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
+            <h3 className="font-semibold text-gray-900">{title}</h3>
         </div>
     );
 }
@@ -357,17 +610,42 @@ function NumberInput({
     value,
     min,
     max,
+    compact = false,
     onChange,
 }: {
     label: string;
     value: number;
     min: number;
     max: number;
+    compact?: boolean;
     onChange: (value: number) => void;
 }) {
+    const [inputValue, setInputValue] = useState(String(value));
+
+    useEffect(() => {
+        setInputValue(String(value));
+    }, [value]);
+
+    function handleChange(nextValue: string) {
+        setInputValue(nextValue);
+
+        if (nextValue.trim() === "") {
+            return;
+        }
+
+        const parsedValue = Number(nextValue);
+
+        if (!Number.isNaN(parsedValue)) {
+            onChange(parsedValue);
+        }
+    }
+
     return (
-        <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-gray-800">
+        <label className="block min-w-0">
+            <span
+                className={`mb-2 block truncate font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                    }`}
+            >
                 {label}
             </span>
 
@@ -375,9 +653,15 @@ function NumberInput({
                 type="number"
                 min={min}
                 max={max}
-                value={value}
-                onChange={(event) => onChange(Number(event.target.value))}
-                className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                value={inputValue}
+                onChange={(event) => handleChange(event.target.value)}
+                onBlur={() => {
+                    if (inputValue.trim() === "") {
+                        setInputValue(String(value));
+                    }
+                }}
+                className={`w-full rounded-xl border border-[#F1E5DF] px-3 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-10" : "h-12"
+                    }`}
             />
         </label>
     );
@@ -420,12 +704,50 @@ function ColorInput({
     );
 }
 
+function CompactColorInput({
+    label,
+    value,
+    fallback,
+    onChange,
+}: {
+    label: string;
+    value: string;
+    fallback: string;
+    onChange: (value: string) => void;
+}) {
+    const colorPickerValue = isValidHexColor(value) ? value : fallback;
+
+    return (
+        <label className="block min-w-0">
+            <span className="mb-1.5 block truncate text-[10px] font-semibold text-gray-800">
+                {label}
+            </span>
+
+            <div className="grid grid-cols-[34px_1fr] gap-1.5">
+                <input
+                    type="color"
+                    value={colorPickerValue}
+                    onChange={(event) => onChange(event.target.value.toUpperCase())}
+                    className="h-10 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
+                />
+
+                <input
+                    value={value}
+                    onChange={(event) => onChange(event.target.value.toUpperCase())}
+                    className="h-10 min-w-0 rounded-xl border border-[#F1E5DF] px-2 text-[10px] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                />
+            </div>
+        </label>
+    );
+}
+
 function RangeInput({
     label,
     value,
     min,
     max,
     suffix,
+    compact = false,
     onChange,
 }: {
     label: string;
@@ -433,12 +755,21 @@ function RangeInput({
     min: number;
     max: number;
     suffix: string;
+    compact?: boolean;
     onChange: (value: number) => void;
 }) {
     return (
         <label className="block">
-            <div className="mb-2 flex items-center justify-between gap-4">
-                <span className="text-sm font-semibold text-gray-800">{label}</span>
+            <div
+                className={`flex items-center justify-between gap-4 ${compact ? "mb-1.5" : "mb-2"
+                    }`}
+            >
+                <span
+                    className={`font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                        }`}
+                >
+                    {label}
+                </span>
 
                 <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
                     {value}
@@ -455,5 +786,156 @@ function RangeInput({
                 className="w-full accent-[#F28C6F]"
             />
         </label>
+    );
+}
+
+function MobileActionBar({
+    settingsButtonText,
+    shuffleText,
+    randomText,
+    downloadText,
+    onOpenSettings,
+    onShuffle,
+    onRandom,
+    onDownload,
+}: {
+    settingsButtonText: string;
+    shuffleText: string;
+    randomText: string;
+    downloadText: string;
+    onOpenSettings: () => void;
+    onShuffle: () => void;
+    onRandom: () => void;
+    onDownload: () => void;
+}) {
+    const actionBarRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const updateSpace = () => {
+            const element = actionBarRef.current;
+            if (!element) return;
+
+            const rect = element.getBoundingClientRect();
+
+            document.documentElement.style.setProperty(
+                "--mobile-action-bar-space",
+                `${Math.ceil(rect.height + 24)}px`,
+            );
+        };
+
+        const timer = window.setTimeout(updateSpace, 0);
+        window.addEventListener("resize", updateSpace);
+
+        return () => {
+            window.clearTimeout(timer);
+            window.removeEventListener("resize", updateSpace);
+            document.documentElement.style.removeProperty(
+                "--mobile-action-bar-space",
+            );
+        };
+    }, []);
+
+    return (
+        <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
+            <div
+                ref={actionBarRef}
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-4 gap-1.5 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+            >
+                <button
+                    type="button"
+                    onClick={onShuffle}
+                    className="rounded-2xl border border-[#F1E5DF] bg-white px-1.5 py-2.5 text-center text-[11px] font-semibold leading-tight text-[#E6765B] transition hover:bg-[#FFF7F3]"
+                >
+                    {shuffleText}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onRandom}
+                    className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-1.5 py-2.5 text-center text-[11px] font-semibold leading-tight text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                >
+                    {randomText}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onOpenSettings}
+                    className="rounded-2xl border border-[#F1E5DF] bg-white px-1.5 py-2.5 text-center text-[11px] font-semibold leading-tight text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
+                >
+                    {settingsButtonText}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onDownload}
+                    className="rounded-2xl bg-[#F28C6F] px-1.5 py-2.5 text-center text-[11px] font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B]"
+                >
+                    {downloadText}
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function MobileSettingsSheet({
+    title,
+    children,
+    onClose,
+}: {
+    title: string;
+    children: ReactNode;
+    onClose: () => void;
+}) {
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const frame = requestAnimationFrame(() => {
+            setIsVisible(true);
+        });
+
+        return () => cancelAnimationFrame(frame);
+    }, []);
+
+    function handleClose() {
+        setIsVisible(false);
+
+        window.setTimeout(() => {
+            onClose();
+        }, 180);
+    }
+
+    return (
+        <div
+            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+                }`}
+            onClick={handleClose}
+        >
+            <div
+                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                    }`}
+                onClick={(event) => event.stopPropagation()}
+            >
+                <div className="flex items-center justify-between gap-4 px-4 pb-2 pt-4">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
+                        <h3 className="truncate text-lg font-semibold text-gray-900">
+                            {title}
+                        </h3>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <div className="overflow-y-auto px-4 pb-4 pt-2">{children}</div>
+            </div>
+        </div>
     );
 }
