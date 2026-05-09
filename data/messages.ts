@@ -859,27 +859,29 @@ export const messages = {
             previewTitle: "Live Preview",
             controlsTitle: "Border Radius Settings",
             outputTitle: "CSS Output",
-            settingsButton: "Settings",
+            previewDescription:
+                "Create custom CSS border radius styles for cards, buttons, images, and UI blocks.",
 
-            previewDescription: "Create custom CSS border radius styles for cards, buttons, images, and UI blocks.",
+            settingsButton: "Settings",
+            radiusStyle: "Radius Style",
+            allCornersLabel: "All Corners",
+
             boxWidthLabel: "Box Width",
             boxHeightLabel: "Box Height",
             boxColorLabel: "Box Color",
             backgroundColorLabel: "Background Color",
 
-            radiusStyle: "Radius Style",
+            topLeftLabel: "Top Left",
+            topRightLabel: "Top Right",
+            bottomRightLabel: "Bottom Right",
+            bottomLeftLabel: "Bottom Left",
+
             styleSoftCard: "Soft Card",
             stylePill: "Pill",
             styleTicket: "Ticket",
             styleBlob: "Blob",
             styleLeaf: "Leaf",
             styleArch: "Arch",
-
-            allCornersLabel: "All Corners",
-            topLeftLabel: "Top Left",
-            topRightLabel: "Top Right",
-            bottomRightLabel: "Bottom Right",
-            bottomLeftLabel: "Bottom Left",
 
             shuffle: "Shuffle",
             randomAll: "Random",

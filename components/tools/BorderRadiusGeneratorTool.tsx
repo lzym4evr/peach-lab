@@ -1,9 +1,12 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import {
+    type ReactNode,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import { t } from "@/data/messages";
-
-type RadiusStyle = "soft-card" | "pill" | "ticket" | "blob" | "leaf" | "arch";
 
 type BorderRadiusSettings = {
     boxWidth: number;
@@ -15,6 +18,14 @@ type BorderRadiusSettings = {
     bottomRight: number;
     bottomLeft: number;
 };
+
+type RadiusStyle =
+    | "softCard"
+    | "pill"
+    | "ticket"
+    | "blob"
+    | "leaf"
+    | "arch";
 
 const defaultSettings: BorderRadiusSettings = {
     boxWidth: 280,
@@ -28,7 +39,7 @@ const defaultSettings: BorderRadiusSettings = {
 };
 
 const radiusStyles: RadiusStyle[] = [
-    "soft-card",
+    "softCard",
     "pill",
     "ticket",
     "blob",
@@ -57,6 +68,60 @@ function getRandomNumber(min: number, max: number) {
     return Math.floor(min + Math.random() * (max - min + 1));
 }
 
+function getRadiusStyleValues(style: RadiusStyle) {
+    if (style === "pill") {
+        return {
+            topLeft: 120,
+            topRight: 120,
+            bottomRight: 120,
+            bottomLeft: 120,
+        };
+    }
+
+    if (style === "ticket") {
+        return {
+            topLeft: 28,
+            topRight: 10,
+            bottomRight: 28,
+            bottomLeft: 10,
+        };
+    }
+
+    if (style === "blob") {
+        return {
+            topLeft: 64,
+            topRight: 28,
+            bottomRight: 56,
+            bottomLeft: 22,
+        };
+    }
+
+    if (style === "leaf") {
+        return {
+            topLeft: 72,
+            topRight: 18,
+            bottomRight: 72,
+            bottomLeft: 18,
+        };
+    }
+
+    if (style === "arch") {
+        return {
+            topLeft: 90,
+            topRight: 90,
+            bottomRight: 24,
+            bottomLeft: 24,
+        };
+    }
+
+    return {
+        topLeft: 36,
+        topRight: 36,
+        bottomRight: 36,
+        bottomLeft: 36,
+    };
+}
+
 function getRadiusStyleLabel(
     text: typeof t.borderRadiusGenerator,
     style: RadiusStyle,
@@ -79,6 +144,28 @@ function getRadiusStyleLabel(
     return labels.styleSoftCard ?? "Soft Card";
 }
 
+function getMatchedRadiusStyle(
+    settings: Pick<
+        BorderRadiusSettings,
+        "topLeft" | "topRight" | "bottomRight" | "bottomLeft"
+    >,
+) {
+    for (const style of radiusStyles) {
+        const preset = getRadiusStyleValues(style);
+
+        if (
+            preset.topLeft === settings.topLeft &&
+            preset.topRight === settings.topRight &&
+            preset.bottomRight === settings.bottomRight &&
+            preset.bottomLeft === settings.bottomLeft
+        ) {
+            return style;
+        }
+    }
+
+    return null;
+}
+
 export default function BorderRadiusGeneratorTool() {
     const text = t.borderRadiusGenerator;
     const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -86,18 +173,28 @@ export default function BorderRadiusGeneratorTool() {
     const settingsButtonText =
         (text as { settingsButton?: string }).settingsButton ?? "Settings";
 
-    const radiusStyleText =
-        (text as { radiusStyle?: string }).radiusStyle ?? "Radius Style";
-
     const allCornersLabel =
         (text as { allCornersLabel?: string }).allCornersLabel ?? "All Corners";
 
-    const [radiusStyle, setRadiusStyle] = useState<RadiusStyle>("soft-card");
+    const radiusStyleLabel =
+        (text as { radiusStyle?: string }).radiusStyle ?? "Radius Style";
+
     const [settings, setSettings] =
         useState<BorderRadiusSettings>(defaultSettings);
-    const [copiedKey, setCopiedKey] = useState("");
+    const [copied, setCopied] = useState(false);
     const [copyError, setCopyError] = useState("");
+    const [activeStyle, setActiveStyle] = useState<RadiusStyle | null>(
+        "softCard",
+    );
     const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            if (copyTimerRef.current) {
+                clearTimeout(copyTimerRef.current);
+            }
+        };
+    }, []);
 
     const safeBoxColor = getSafeHexColor(settings.boxColor, "#F28C6F");
     const safeBackgroundColor = getSafeHexColor(
@@ -114,158 +211,84 @@ export default function BorderRadiusGeneratorTool() {
   border-radius: ${borderRadiusValue};
 }`;
 
-    useEffect(() => {
-        return () => {
-            if (copyTimerRef.current) {
-                clearTimeout(copyTimerRef.current);
-            }
-        };
-    }, []);
-
-    function clearCopyState() {
-        setCopiedKey("");
-        setCopyError("");
-    }
-
     function updateSetting<K extends keyof BorderRadiusSettings>(
         key: K,
         value: BorderRadiusSettings[K],
     ) {
-        setSettings((current) => ({
-            ...current,
-            [key]: value,
-        }));
+        setSettings((current) => {
+            const next = {
+                ...current,
+                [key]: value,
+            };
 
-        clearCopyState();
+            setActiveStyle(getMatchedRadiusStyle(next));
+            return next;
+        });
+
+        setCopied(false);
+        setCopyError("");
     }
 
-    function applyRadiusStyle(nextStyle: RadiusStyle) {
-        setRadiusStyle(nextStyle);
+    function applyRadiusStyle(style: RadiusStyle) {
+        const preset = getRadiusStyleValues(style);
 
-        if (nextStyle === "soft-card") {
-            setSettings({
-                boxWidth: 280,
-                boxHeight: 190,
-                boxColor: "#F28C6F",
-                backgroundColor: "#FFF7F3",
-                topLeft: 36,
-                topRight: 36,
-                bottomRight: 36,
-                bottomLeft: 36,
-            });
-        }
-
-        if (nextStyle === "pill") {
-            setSettings({
-                boxWidth: 320,
-                boxHeight: 150,
-                boxColor: "#F28C6F",
-                backgroundColor: "#FFF7F3",
-                topLeft: 120,
-                topRight: 120,
-                bottomRight: 120,
-                bottomLeft: 120,
-            });
-        }
-
-        if (nextStyle === "ticket") {
-            setSettings({
-                boxWidth: 300,
-                boxHeight: 185,
-                boxColor: "#F28C6F",
-                backgroundColor: "#FFF7F3",
-                topLeft: 46,
-                topRight: 12,
-                bottomRight: 46,
-                bottomLeft: 12,
-            });
-        }
-
-        if (nextStyle === "blob") {
-            setSettings({
-                boxWidth: 280,
-                boxHeight: 210,
-                boxColor: "#F28C6F",
-                backgroundColor: "#FFF7F3",
-                topLeft: 72,
-                topRight: 28,
-                bottomRight: 88,
-                bottomLeft: 36,
-            });
-        }
-
-        if (nextStyle === "leaf") {
-            setSettings({
-                boxWidth: 290,
-                boxHeight: 190,
-                boxColor: "#F28C6F",
-                backgroundColor: "#FFF7F3",
-                topLeft: 100,
-                topRight: 16,
-                bottomRight: 100,
-                bottomLeft: 16,
-            });
-        }
-
-        if (nextStyle === "arch") {
-            setSettings({
-                boxWidth: 260,
-                boxHeight: 220,
-                boxColor: "#F28C6F",
-                backgroundColor: "#FFF7F3",
-                topLeft: 110,
-                topRight: 110,
-                bottomRight: 18,
-                bottomLeft: 18,
-            });
-        }
-
-        clearCopyState();
+        setSettings((current) => ({
+            ...current,
+            ...preset,
+        }));
+        setActiveStyle(style);
+        setCopied(false);
+        setCopyError("");
     }
 
     function handleShuffle() {
-        setSettings((current) => ({
-            ...current,
-            topLeft: getRandomNumber(0, 120),
-            topRight: getRandomNumber(0, 120),
-            bottomRight: getRandomNumber(0, 120),
-            bottomLeft: getRandomNumber(0, 120),
-        }));
+        setSettings((current) => {
+            const next = {
+                ...current,
+                topLeft: getRandomNumber(0, 160),
+                topRight: getRandomNumber(0, 160),
+                bottomRight: getRandomNumber(0, 160),
+                bottomLeft: getRandomNumber(0, 160),
+            };
 
-        clearCopyState();
+            setActiveStyle(getMatchedRadiusStyle(next));
+            return next;
+        });
+
+        setCopied(false);
+        setCopyError("");
     }
 
-    function handleRandomAll() {
-        const nextStyle =
-            radiusStyles[Math.floor(Math.random() * radiusStyles.length)];
-
-        setRadiusStyle(nextStyle);
-
-        setSettings({
+    function handleRandom() {
+        const next: BorderRadiusSettings = {
             boxWidth: getRandomNumber(180, 380),
             boxHeight: getRandomNumber(120, 280),
             boxColor: getRandomHexColor(),
             backgroundColor: getRandomHexColor(),
-            topLeft: getRandomNumber(0, 120),
-            topRight: getRandomNumber(0, 120),
-            bottomRight: getRandomNumber(0, 120),
-            bottomLeft: getRandomNumber(0, 120),
-        });
+            topLeft: getRandomNumber(0, 160),
+            topRight: getRandomNumber(0, 160),
+            bottomRight: getRandomNumber(0, 160),
+            bottomLeft: getRandomNumber(0, 160),
+        };
 
-        clearCopyState();
+        setSettings(next);
+        setActiveStyle(getMatchedRadiusStyle(next));
+        setCopied(false);
+        setCopyError("");
     }
 
     function handleReset() {
-        setRadiusStyle("soft-card");
         setSettings(defaultSettings);
-        clearCopyState();
+        setActiveStyle("softCard");
+        setCopied(false);
+        setCopyError("");
     }
 
     async function handleCopyCss() {
         try {
             await navigator.clipboard.writeText(cssOutput);
 
-            setCopiedKey("copy-css");
+            setCopied(true);
             setCopyError("");
 
             if (copyTimerRef.current) {
@@ -273,23 +296,27 @@ export default function BorderRadiusGeneratorTool() {
             }
 
             copyTimerRef.current = setTimeout(() => {
-                setCopiedKey("");
+                setCopied(false);
             }, 1500);
         } catch {
+            setCopied(false);
             setCopyError(text.copyError);
         }
     }
 
     function handleAllCorners(value: number) {
-        setSettings((current) => ({
-            ...current,
+        const next = {
+            ...settings,
             topLeft: value,
             topRight: value,
             bottomRight: value,
             bottomLeft: value,
-        }));
+        };
 
-        clearCopyState();
+        setSettings(next);
+        setActiveStyle(getMatchedRadiusStyle(next));
+        setCopied(false);
+        setCopyError("");
     }
 
     const allCornersValue =
@@ -299,38 +326,46 @@ export default function BorderRadiusGeneratorTool() {
             ? settings.topLeft
             : 0;
 
-    const desktopSettingsPanel = (
-        <BorderRadiusSettingsPanel
-            text={text}
-            radiusStyleText={radiusStyleText}
-            radiusStyle={radiusStyle}
-            allCornersLabel={allCornersLabel}
+    const previewPanel = (
+        <RadiusPreview
+            safeBackgroundColor={safeBackgroundColor}
+            safeBoxColor={safeBoxColor}
             settings={settings}
+            borderRadiusValue={borderRadiusValue}
+        />
+    );
+
+    const desktopSettingsPanel = (
+        <RadiusSettingsPanel
+            text={text}
+            settings={settings}
+            activeStyle={activeStyle}
             allCornersValue={allCornersValue}
-            updateSetting={updateSetting}
-            onApplyRadiusStyle={applyRadiusStyle}
-            onAllCornersChange={handleAllCorners}
+            allCornersLabel={allCornersLabel}
+            radiusStyleLabel={radiusStyleLabel}
+            onApplyStyle={applyRadiusStyle}
             onShuffle={handleShuffle}
-            onRandom={handleRandomAll}
+            onRandom={handleRandom}
             onReset={handleReset}
-            compact={false}
+            onUpdateSetting={updateSetting}
+            onAllCornersChange={handleAllCorners}
         />
     );
 
     const mobileSettingsPanel = (
-        <BorderRadiusSettingsPanel
+        <RadiusSettingsPanel
             text={text}
-            radiusStyleText={radiusStyleText}
-            radiusStyle={radiusStyle}
-            allCornersLabel={allCornersLabel}
             settings={settings}
+            activeStyle={activeStyle}
             allCornersValue={allCornersValue}
-            updateSetting={updateSetting}
-            onApplyRadiusStyle={applyRadiusStyle}
-            onAllCornersChange={handleAllCorners}
+            allCornersLabel={allCornersLabel}
+            radiusStyleLabel={radiusStyleLabel}
+            onApplyStyle={applyRadiusStyle}
             onShuffle={handleShuffle}
-            onRandom={handleRandomAll}
+            onRandom={handleRandom}
             onReset={handleReset}
+            onUpdateSetting={updateSetting}
+            onAllCornersChange={handleAllCorners}
             compact
         />
     );
@@ -344,17 +379,12 @@ export default function BorderRadiusGeneratorTool() {
                             <div className="mb-5">
                                 <SectionHeader title={text.previewTitle} />
 
-                                <p className="mt-2 max-w-[320px] text-sm leading-6 text-gray-500">
+                                <p className="mt-2 max-w-[360px] text-sm leading-6 text-gray-500">
                                     {text.previewDescription}
                                 </p>
                             </div>
 
-                            <BorderRadiusPreview
-                                settings={settings}
-                                safeBoxColor={safeBoxColor}
-                                safeBackgroundColor={safeBackgroundColor}
-                                borderRadiusValue={borderRadiusValue}
-                            />
+                            {previewPanel}
                         </section>
 
                         <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
@@ -366,9 +396,7 @@ export default function BorderRadiusGeneratorTool() {
                                     onClick={handleCopyCss}
                                     className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                                 >
-                                    {copiedKey === "copy-css"
-                                        ? text.copied
-                                        : text.copyCss}
+                                    {copied ? t.common.copied : text.copyCss}
                                 </button>
                             </div>
 
@@ -402,13 +430,10 @@ export default function BorderRadiusGeneratorTool() {
                     title={text.controlsTitle}
                     onClose={() => setIsMobileSettingsOpen(false)}
                 >
-                    <div className="space-y-3">
-                        <BorderRadiusMiniPreview
-                            settings={settings}
-                            safeBoxColor={safeBoxColor}
-                            safeBackgroundColor={safeBackgroundColor}
-                            borderRadiusValue={borderRadiusValue}
-                        />
+                    <div className="space-y-4">
+                        <div className="sticky top-0 z-20 bg-white pb-4">
+                            {previewPanel}
+                        </div>
 
                         {mobileSettingsPanel}
                     </div>
@@ -418,29 +443,28 @@ export default function BorderRadiusGeneratorTool() {
     );
 }
 
-function BorderRadiusPreview({
-    settings,
-    safeBoxColor,
+function RadiusPreview({
     safeBackgroundColor,
+    safeBoxColor,
+    settings,
     borderRadiusValue,
 }: {
-    settings: BorderRadiusSettings;
-    safeBoxColor: string;
     safeBackgroundColor: string;
+    safeBoxColor: string;
+    settings: BorderRadiusSettings;
     borderRadiusValue: string;
 }) {
     return (
         <div
-            className="flex aspect-square w-full items-center justify-center rounded-3xl border border-[#F1E5DF] p-8"
+            className="flex aspect-square w-full items-center justify-center rounded-3xl border border-[#F1E5DF] p-5 md:min-h-[360px] md:aspect-auto md:p-8"
             style={{ backgroundColor: safeBackgroundColor }}
         >
             <div
-                className="flex items-center justify-center text-center shadow-sm"
+                className="flex items-center justify-center text-center shadow-sm transition-all"
                 style={{
-                    width: `${settings.boxWidth}px`,
+                    width: `min(${settings.boxWidth}px, 100%)`,
                     height: `${settings.boxHeight}px`,
-                    maxWidth: "78%",
-                    maxHeight: "68%",
+                    maxWidth: "100%",
                     backgroundColor: safeBoxColor,
                     borderRadius: borderRadiusValue,
                 }}
@@ -453,93 +477,55 @@ function BorderRadiusPreview({
     );
 }
 
-function BorderRadiusMiniPreview({
-    settings,
-    safeBoxColor,
-    safeBackgroundColor,
-    borderRadiusValue,
-}: {
-    settings: BorderRadiusSettings;
-    safeBoxColor: string;
-    safeBackgroundColor: string;
-    borderRadiusValue: string;
-}) {
-    return (
-        <div
-            className="flex aspect-square w-full items-center justify-center rounded-2xl border border-[#F1E5DF] p-6"
-            style={{ backgroundColor: safeBackgroundColor }}
-        >
-            <div
-                className="flex items-center justify-center text-center shadow-sm"
-                style={{
-                    width: `${settings.boxWidth}px`,
-                    height: `${settings.boxHeight}px`,
-                    maxWidth: "76%",
-                    maxHeight: "64%",
-                    backgroundColor: safeBoxColor,
-                    borderRadius: borderRadiusValue,
-                }}
-            >
-                <span className="text-xs font-semibold text-white">
-                    Peach Lab
-                </span>
-            </div>
-        </div>
-    );
-}
-
-function BorderRadiusSettingsPanel({
+function RadiusSettingsPanel({
     text,
-    radiusStyleText,
-    radiusStyle,
-    allCornersLabel,
     settings,
+    activeStyle,
     allCornersValue,
-    updateSetting,
-    onApplyRadiusStyle,
-    onAllCornersChange,
+    allCornersLabel,
+    radiusStyleLabel,
+    onApplyStyle,
     onShuffle,
     onRandom,
     onReset,
+    onUpdateSetting,
+    onAllCornersChange,
     compact = false,
 }: {
     text: typeof t.borderRadiusGenerator;
-    radiusStyleText: string;
-    radiusStyle: RadiusStyle;
-    allCornersLabel: string;
     settings: BorderRadiusSettings;
+    activeStyle: RadiusStyle | null;
     allCornersValue: number;
-    updateSetting: <K extends keyof BorderRadiusSettings>(
-        key: K,
-        value: BorderRadiusSettings[K],
-    ) => void;
-    onApplyRadiusStyle: (style: RadiusStyle) => void;
-    onAllCornersChange: (value: number) => void;
+    allCornersLabel: string;
+    radiusStyleLabel: string;
+    onApplyStyle: (style: RadiusStyle) => void;
     onShuffle: () => void;
     onRandom: () => void;
     onReset: () => void;
+    onUpdateSetting: <K extends keyof BorderRadiusSettings>(
+        key: K,
+        value: BorderRadiusSettings[K],
+    ) => void;
+    onAllCornersChange: (value: number) => void;
     compact?: boolean;
 }) {
     return (
-        <div className={compact ? "space-y-3" : "space-y-5"}>
+        <div className={compact ? "space-y-4" : "space-y-5"}>
             <div>
-                <span
-                    className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
-                        }`}
-                >
-                    {radiusStyleText}
+                <span className="mb-3 block text-sm font-semibold text-gray-800">
+                    {radiusStyleLabel}
                 </span>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className={compact ? "grid grid-cols-2 gap-2" : "grid grid-cols-2 gap-3"}>
                     {radiusStyles.map((style) => {
-                        const isActive = radiusStyle === style;
+                        const isActive = activeStyle === style;
 
                         return (
                             <button
                                 key={style}
                                 type="button"
-                                onClick={() => onApplyRadiusStyle(style)}
-                                className={`rounded-2xl border px-3 font-semibold transition ${compact ? "py-2 text-xs" : "py-3 text-sm"
+                                onClick={() => onApplyStyle(style)}
+                                className={`rounded-2xl border font-semibold transition ${compact ? "px-3 py-3 text-sm" : "px-4 py-3 text-sm"
                                     } ${isActive
                                         ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
                                         : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
@@ -552,141 +538,74 @@ function BorderRadiusSettingsPanel({
                 </div>
             </div>
 
-            {compact ? (
-                <div className="grid grid-cols-3 gap-2">
-                    <button
-                        type="button"
-                        onClick={onShuffle}
-                        className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2 text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3]"
-                    >
-                        {text.shuffle}
-                    </button>
+            <div className={compact ? "grid grid-cols-3 gap-2.5" : "grid grid-cols-3 gap-3"}>
+                <button
+                    type="button"
+                    onClick={onShuffle}
+                    className={`rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] ${compact ? "px-3 py-3 text-sm" : "px-4 py-3 text-sm"
+                        }`}
+                >
+                    {text.shuffle}
+                </button>
 
-                    <button
-                        type="button"
-                        onClick={onRandom}
-                        className="rounded-2xl border border-[#F28C6F] bg-[#F28C6F] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                    >
-                        {text.randomAll}
-                    </button>
+                <button
+                    type="button"
+                    onClick={onRandom}
+                    className={`rounded-2xl bg-[#F28C6F] font-semibold text-white transition hover:bg-[#E6765B] ${compact ? "px-3 py-3 text-sm" : "px-4 py-3 text-sm"
+                        }`}
+                >
+                    {text.randomAll}
+                </button>
 
-                    <button
-                        type="button"
-                        onClick={onReset}
-                        className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2 text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3]"
-                    >
-                        {text.reset}
-                    </button>
-                </div>
-            ) : (
-                <>
-                    <div className="grid grid-cols-2 gap-2">
-                        <button
-                            type="button"
-                            onClick={onShuffle}
-                            className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                        >
-                            {text.shuffle}
-                        </button>
+                <button
+                    type="button"
+                    onClick={onReset}
+                    className={`rounded-2xl border border-[#F4C8BA] bg-white font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] ${compact ? "px-3 py-3 text-sm" : "px-4 py-3 text-sm"
+                        }`}
+                >
+                    {text.reset}
+                </button>
+            </div>
 
-                        <button
-                            type="button"
-                            onClick={onRandom}
-                            className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                        >
-                            {text.randomAll}
-                        </button>
-                    </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+                <NumberInput
+                    label={text.boxWidthLabel}
+                    value={settings.boxWidth}
+                    min={80}
+                    max={600}
+                    compact={compact}
+                    onChange={(value) => onUpdateSetting("boxWidth", value)}
+                />
 
-                    <button
-                        type="button"
-                        onClick={onReset}
-                        className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                    >
-                        {text.reset}
-                    </button>
-                </>
-            )}
+                <NumberInput
+                    label={text.boxHeightLabel}
+                    value={settings.boxHeight}
+                    min={80}
+                    max={400}
+                    compact={compact}
+                    onChange={(value) => onUpdateSetting("boxHeight", value)}
+                />
+            </div>
 
-            {compact ? (
-                <>
-                    <div className="grid grid-cols-2 gap-2">
-                        <CompactColorInput
-                            label={text.boxColorLabel}
-                            value={settings.boxColor}
-                            fallback="#F28C6F"
-                            onChange={(value) => updateSetting("boxColor", value)}
-                        />
+            <div className="grid gap-3 sm:grid-cols-2">
+                <ColorInput
+                    label={text.boxColorLabel}
+                    value={settings.boxColor}
+                    fallback="#F28C6F"
+                    compact={compact}
+                    onChange={(value) => onUpdateSetting("boxColor", value)}
+                />
 
-                        <CompactColorInput
-                            label={text.backgroundColorLabel}
-                            value={settings.backgroundColor}
-                            fallback="#FFF7F3"
-                            onChange={(value) =>
-                                updateSetting("backgroundColor", value)
-                            }
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <NumberInput
-                            label={text.boxWidthLabel}
-                            value={settings.boxWidth}
-                            min={80}
-                            max={600}
-                            compact={compact}
-                            onChange={(value) => updateSetting("boxWidth", value)}
-                        />
-
-                        <NumberInput
-                            label={text.boxHeightLabel}
-                            value={settings.boxHeight}
-                            min={80}
-                            max={400}
-                            compact={compact}
-                            onChange={(value) => updateSetting("boxHeight", value)}
-                        />
-                    </div>
-                </>
-            ) : (
-                <>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <NumberInput
-                            label={text.boxWidthLabel}
-                            value={settings.boxWidth}
-                            min={80}
-                            max={600}
-                            compact={compact}
-                            onChange={(value) => updateSetting("boxWidth", value)}
-                        />
-
-                        <NumberInput
-                            label={text.boxHeightLabel}
-                            value={settings.boxHeight}
-                            min={80}
-                            max={400}
-                            compact={compact}
-                            onChange={(value) => updateSetting("boxHeight", value)}
-                        />
-                    </div>
-
-                    <ColorInput
-                        label={text.boxColorLabel}
-                        value={settings.boxColor}
-                        fallback="#F28C6F"
-                        onChange={(value) => updateSetting("boxColor", value)}
-                    />
-
-                    <ColorInput
-                        label={text.backgroundColorLabel}
-                        value={settings.backgroundColor}
-                        fallback="#FFF7F3"
-                        onChange={(value) =>
-                            updateSetting("backgroundColor", value)
-                        }
-                    />
-                </>
-            )}
+                <ColorInput
+                    label={text.backgroundColorLabel}
+                    value={settings.backgroundColor}
+                    fallback="#FFF7F3"
+                    compact={compact}
+                    onChange={(value) =>
+                        onUpdateSetting("backgroundColor", value)
+                    }
+                />
+            </div>
 
             <RangeInput
                 label={allCornersLabel}
@@ -698,247 +617,46 @@ function BorderRadiusSettingsPanel({
                 onChange={onAllCornersChange}
             />
 
-            <div
-                className={
-                    compact
-                        ? "grid grid-cols-2 gap-3"
-                        : "grid gap-5 sm:grid-cols-2"
-                }
-            >
-                <RangeInput
-                    label={text.topLeftLabel}
-                    value={settings.topLeft}
-                    min={0}
-                    max={160}
-                    suffix="px"
-                    compact={compact}
-                    onChange={(value) => updateSetting("topLeft", value)}
-                />
-
-                <RangeInput
-                    label={text.topRightLabel}
-                    value={settings.topRight}
-                    min={0}
-                    max={160}
-                    suffix="px"
-                    compact={compact}
-                    onChange={(value) => updateSetting("topRight", value)}
-                />
-
-                <RangeInput
-                    label={text.bottomRightLabel}
-                    value={settings.bottomRight}
-                    min={0}
-                    max={160}
-                    suffix="px"
-                    compact={compact}
-                    onChange={(value) => updateSetting("bottomRight", value)}
-                />
-
-                <RangeInput
-                    label={text.bottomLeftLabel}
-                    value={settings.bottomLeft}
-                    min={0}
-                    max={160}
-                    suffix="px"
-                    compact={compact}
-                    onChange={(value) => updateSetting("bottomLeft", value)}
-                />
-            </div>
-        </div>
-    );
-}
-
-function SectionHeader({ title }: { title: string }) {
-    return (
-        <div className="flex items-center gap-3">
-            <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
-            <h3 className="font-semibold text-gray-900">{title}</h3>
-        </div>
-    );
-}
-
-function NumberInput({
-    label,
-    value,
-    min,
-    max,
-    compact = false,
-    onChange,
-}: {
-    label: string;
-    value: number;
-    min: number;
-    max: number;
-    compact?: boolean;
-    onChange: (value: number) => void;
-}) {
-    const [inputValue, setInputValue] = useState(String(value));
-
-    useEffect(() => {
-        setInputValue(String(value));
-    }, [value]);
-
-    function handleChange(nextValue: string) {
-        setInputValue(nextValue);
-
-        if (nextValue.trim() === "") {
-            return;
-        }
-
-        const parsedValue = Number(nextValue);
-
-        if (!Number.isNaN(parsedValue)) {
-            onChange(parsedValue);
-        }
-    }
-
-    return (
-        <label className="block min-w-0">
-            <span
-                className={`mb-2 block truncate font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
-                    }`}
-            >
-                {label}
-            </span>
-
-            <input
-                type="number"
-                min={min}
-                max={max}
-                value={inputValue}
-                onChange={(event) => handleChange(event.target.value)}
-                onBlur={() => {
-                    if (inputValue.trim() === "") {
-                        setInputValue(String(value));
-                    }
-                }}
-                className={`w-full rounded-xl border border-[#F1E5DF] px-3 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-10" : "h-12"
-                    }`}
+            <RangeInput
+                label={text.topLeftLabel}
+                value={settings.topLeft}
+                min={0}
+                max={160}
+                suffix="px"
+                compact={compact}
+                onChange={(value) => onUpdateSetting("topLeft", value)}
             />
-        </label>
-    );
-}
 
-function ColorInput({
-    label,
-    value,
-    fallback,
-    onChange,
-}: {
-    label: string;
-    value: string;
-    fallback: string;
-    onChange: (value: string) => void;
-}) {
-    const colorPickerValue = isValidHexColor(value) ? value : fallback;
-
-    return (
-        <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-gray-800">
-                {label}
-            </span>
-
-            <div className="grid grid-cols-[58px_1fr] gap-3">
-                <input
-                    type="color"
-                    value={colorPickerValue}
-                    onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-12 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
-                />
-
-                <input
-                    value={value}
-                    onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                />
-            </div>
-        </label>
-    );
-}
-
-function CompactColorInput({
-    label,
-    value,
-    fallback,
-    onChange,
-}: {
-    label: string;
-    value: string;
-    fallback: string;
-    onChange: (value: string) => void;
-}) {
-    const colorPickerValue = isValidHexColor(value) ? value : fallback;
-
-    return (
-        <label className="block min-w-0">
-            <span className="mb-1.5 block truncate text-[10px] font-semibold text-gray-800">
-                {label}
-            </span>
-
-            <div className="grid grid-cols-[34px_1fr] gap-1.5">
-                <input
-                    type="color"
-                    value={colorPickerValue}
-                    onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-10 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
-                />
-
-                <input
-                    value={value}
-                    onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-10 min-w-0 rounded-xl border border-[#F1E5DF] px-2 text-[10px] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                />
-            </div>
-        </label>
-    );
-}
-
-function RangeInput({
-    label,
-    value,
-    min,
-    max,
-    suffix,
-    compact = false,
-    onChange,
-}: {
-    label: string;
-    value: number;
-    min: number;
-    max: number;
-    suffix: string;
-    compact?: boolean;
-    onChange: (value: number) => void;
-}) {
-    return (
-        <label className="block min-w-0">
-            <div
-                className={`flex items-center justify-between gap-3 ${compact ? "mb-1.5" : "mb-2"
-                    }`}
-            >
-                <span
-                    className={`truncate font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
-                        }`}
-                >
-                    {label}
-                </span>
-
-                <span className="shrink-0 rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
-                    {value}
-                    {suffix}
-                </span>
-            </div>
-
-            <input
-                type="range"
-                min={min}
-                max={max}
-                value={value}
-                onChange={(event) => onChange(Number(event.target.value))}
-                className="w-full accent-[#F28C6F]"
+            <RangeInput
+                label={text.topRightLabel}
+                value={settings.topRight}
+                min={0}
+                max={160}
+                suffix="px"
+                compact={compact}
+                onChange={(value) => onUpdateSetting("topRight", value)}
             />
-        </label>
+
+            <RangeInput
+                label={text.bottomRightLabel}
+                value={settings.bottomRight}
+                min={0}
+                max={160}
+                suffix="px"
+                compact={compact}
+                onChange={(value) => onUpdateSetting("bottomRight", value)}
+            />
+
+            <RangeInput
+                label={text.bottomLeftLabel}
+                value={settings.bottomLeft}
+                min={0}
+                max={160}
+                suffix="px"
+                compact={compact}
+                onChange={(value) => onUpdateSetting("bottomLeft", value)}
+            />
+        </div>
     );
 }
 
@@ -982,7 +700,7 @@ function MobileActionBar({
         <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
             <div
                 ref={actionBarRef}
-                className="pointer-events-auto mx-auto grid max-w-md grid-cols-1 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-1 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
             >
                 <button
                     type="button"
@@ -1025,12 +743,12 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-14 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
         >
             <div
-                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                className={`ml-auto flex h-full max-h-[88vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
@@ -1054,5 +772,134 @@ function MobileSettingsSheet({
                 <div className="overflow-y-auto px-4 pb-4 pt-2">{children}</div>
             </div>
         </div>
+    );
+}
+
+function SectionHeader({ title }: { title: string }) {
+    return (
+        <div className="flex items-center gap-3">
+            <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
+            <h3 className="font-semibold text-gray-900">{title}</h3>
+        </div>
+    );
+}
+
+function NumberInput({
+    label,
+    value,
+    min,
+    max,
+    onChange,
+    compact = false,
+}: {
+    label: string;
+    value: number;
+    min: number;
+    max: number;
+    compact?: boolean;
+    onChange: (value: number) => void;
+}) {
+    return (
+        <label className="block">
+            <span className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-sm" : "text-sm"}`}>
+                {label}
+            </span>
+
+            <input
+                type="number"
+                min={min}
+                max={max}
+                value={value}
+                onChange={(event) => onChange(Number(event.target.value))}
+                className={`w-full rounded-xl border border-[#F1E5DF] px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-11" : "h-12"
+                    }`}
+            />
+        </label>
+    );
+}
+
+function ColorInput({
+    label,
+    value,
+    fallback,
+    onChange,
+    compact = false,
+}: {
+    label: string;
+    value: string;
+    fallback: string;
+    compact?: boolean;
+    onChange: (value: string) => void;
+}) {
+    const colorPickerValue = isValidHexColor(value) ? value : fallback;
+
+    return (
+        <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-gray-800">
+                {label}
+            </span>
+
+            <div className={`grid gap-2.5 ${compact ? "grid-cols-[50px_1fr]" : "grid-cols-[58px_1fr]"}`}>
+                <input
+                    type="color"
+                    value={colorPickerValue}
+                    onChange={(event) => onChange(event.target.value.toUpperCase())}
+                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-11" : "h-12"
+                        }`}
+                />
+
+                <input
+                    value={value}
+                    onChange={(event) => onChange(event.target.value.toUpperCase())}
+                    className={`w-full rounded-xl border border-[#F1E5DF] px-3 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-11" : "h-12 px-4"
+                        }`}
+                />
+            </div>
+        </label>
+    );
+}
+
+function RangeInput({
+    label,
+    value,
+    min,
+    max,
+    suffix,
+    onChange,
+    compact = false,
+}: {
+    label: string;
+    value: number;
+    min: number;
+    max: number;
+    suffix: string;
+    compact?: boolean;
+    onChange: (value: number) => void;
+}) {
+    return (
+        <label className="block">
+            <div className={`mb-2 flex items-center justify-between gap-3 ${compact ? "min-h-[24px]" : ""}`}>
+                <span
+                    className={`font-semibold text-gray-800 ${compact ? "text-sm" : "text-sm"
+                        }`}
+                >
+                    {label}
+                </span>
+
+                <span className="shrink-0 rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
+                    {value}
+                    {suffix}
+                </span>
+            </div>
+
+            <input
+                type="range"
+                min={min}
+                max={max}
+                value={value}
+                onChange={(event) => onChange(Number(event.target.value))}
+                className="w-full accent-[#F28C6F]"
+            />
+        </label>
     );
 }
