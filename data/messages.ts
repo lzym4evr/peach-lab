@@ -786,13 +786,20 @@ export const messages = {
             previewDescription:
                 "Generate smooth organic SVG shapes for backgrounds and layouts.",
             generate: "Generate",
-            controls: "Controls",
+
+            controls: "Blob Settings",
+            settingsButton: "Settings",
+
             fillColor: "Fill Color",
             points: "Points",
             smoothness: "Smoothness",
+
             copySvg: "Copy SVG",
             downloadSvg: "Download SVG",
+            actionDownload: "Download",
+
             svgCode: "SVG Code",
+            copyError: "Copy failed. Please copy the SVG manually.",
         },
 
         boxShadowGenerator: {
