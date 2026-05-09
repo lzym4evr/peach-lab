@@ -90,6 +90,8 @@ export default function BlobGeneratorTool() {
     const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const dragIndexRef = useRef<number | null>(null);
     const didDragRef = useRef(false);
+    const dragStartPointsRef = useRef<Point[] | null>(null);
+    const customPointsRef = useRef<Point[]>([]);
 
     const settingsButtonText =
         (text as { settingsButton?: string }).settingsButton ?? "Settings";
@@ -103,9 +105,12 @@ export default function BlobGeneratorTool() {
     const clearPointsText =
         (text as { clearPoints?: string }).clearPoints ?? "Clear Points";
 
+    const undoText = (text as { undo?: string }).undo ?? "Undo";
+    const redoText = (text as { redo?: string }).redo ?? "Redo";
+
     const clickToAddPointText =
         (text as { clickToAddPoint?: string }).clickToAddPoint ??
-        "Click or tap the preview to add points. Drag points to adjust the shape.";
+        "Click or tap the preview to add points. Drag points to adjust the shape, then click Generate.";
 
     const copyErrorText =
         (text as { copyError?: string }).copyError ??
@@ -114,21 +119,36 @@ export default function BlobGeneratorTool() {
     const [pointsCount, setPointsCount] = useState(8);
     const [smoothness, setSmoothness] = useState(28);
     const [color, setColor] = useState("#F28C6F");
+
+    // 真正已经生成出来的 blob 点位
     const [points, setPoints] = useState(() => createRandomPoints(8, 80, 125));
+
+    // Custom Points 草稿点位：点击/拖动只改这里，不直接生成 blob
+    const [customPointsDraft, setCustomPointsDraft] = useState<Point[]>([]);
+    const [customHistory, setCustomHistory] = useState<Point[][]>([]);
+    const [customFuture, setCustomFuture] = useState<Point[][]>([]);
     const [isCustomPoints, setIsCustomPoints] = useState(false);
+    const [isCustomDraftDirty, setIsCustomDraftDirty] = useState(false);
+
     const [copied, setCopied] = useState(false);
     const [copyError, setCopyError] = useState("");
     const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);
 
-    const path = useMemo(() => {
+    useEffect(() => {
+        customPointsRef.current = customPointsDraft;
+    }, [customPointsDraft]);
+
+    const generatedPath = useMemo(() => {
         return createSmoothPath(points, smoothness);
     }, [points, smoothness]);
 
+    const visiblePath = isCustomPoints && isCustomDraftDirty ? "" : generatedPath;
+
     const svgCode = useMemo(() => {
         return `<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-  <path d="${path}" fill="${color}" />
+  <path d="${visiblePath}" fill="${color}" />
 </svg>`;
-    }, [path, color]);
+    }, [visiblePath, color]);
 
     useEffect(() => {
         return () => {
@@ -143,7 +163,32 @@ export default function BlobGeneratorTool() {
         setCopyError("");
     }
 
+    function setCustomPointsWithHistory(nextPoints: Point[]) {
+        const currentPoints = customPointsRef.current;
+
+        setCustomHistory((current) => [...current, currentPoints]);
+        setCustomFuture([]);
+        setCustomPointsDraft(nextPoints);
+        customPointsRef.current = nextPoints;
+        setIsCustomDraftDirty(true);
+        clearCopyState();
+    }
+
     function generateBlob() {
+        if (isCustomPoints) {
+            if (customPointsRef.current.length < 3) {
+                setPoints([]);
+                setIsCustomDraftDirty(true);
+                clearCopyState();
+                return;
+            }
+
+            setPoints(customPointsRef.current);
+            setIsCustomDraftDirty(false);
+            clearCopyState();
+            return;
+        }
+
         const nextPoints = createRandomPoints(pointsCount, 80, 125);
 
         setPoints(nextPoints);
@@ -151,15 +196,59 @@ export default function BlobGeneratorTool() {
     }
 
     function clearCustomPoints() {
+        setCustomPointsWithHistory([]);
         setPoints([]);
+    }
+
+    function undoCustomPoints() {
+        const previousPoints = customHistory[customHistory.length - 1];
+
+        if (!previousPoints) return;
+
+        const currentPoints = customPointsRef.current;
+
+        setCustomHistory((current) => current.slice(0, -1));
+        setCustomFuture((current) => [currentPoints, ...current]);
+        setCustomPointsDraft(previousPoints);
+        customPointsRef.current = previousPoints;
+        setIsCustomDraftDirty(true);
+        clearCopyState();
+    }
+
+    function redoCustomPoints() {
+        const nextPoints = customFuture[0];
+
+        if (!nextPoints) return;
+
+        const currentPoints = customPointsRef.current;
+
+        setCustomFuture((current) => current.slice(1));
+        setCustomHistory((current) => [...current, currentPoints]);
+        setCustomPointsDraft(nextPoints);
+        customPointsRef.current = nextPoints;
+        setIsCustomDraftDirty(true);
         clearCopyState();
     }
 
     function handleCustomModeChange(nextValue: boolean) {
         setIsCustomPoints(nextValue);
+        setCustomHistory([]);
+        setCustomFuture([]);
         clearCopyState();
 
-        if (!nextValue && points.length < 3) {
+        if (nextValue) {
+            setCustomPointsDraft([]);
+            customPointsRef.current = [];
+            setPoints([]);
+            setIsCustomDraftDirty(true);
+            return;
+        }
+
+        setCustomPointsDraft([]);
+        customPointsRef.current = [];
+        setIsCustomDraftDirty(false);
+
+        if (points.length < 3) {
             setPoints(createRandomPoints(pointsCount, 80, 125));
         }
     }
@@ -170,11 +259,13 @@ export default function BlobGeneratorTool() {
         if (typeof pointIndex === "number") {
             dragIndexRef.current = pointIndex;
             didDragRef.current = false;
+            dragStartPointsRef.current = customPointsRef.current;
             return;
         }
 
         dragIndexRef.current = null;
         didDragRef.current = false;
+        dragStartPointsRef.current = null;
     }
 
     function handlePreviewPointerMove(event: ReactPointerEvent<SVGSVGElement>) {
@@ -184,13 +275,13 @@ export default function BlobGeneratorTool() {
         didDragRef.current = true;
 
         const nextPoint = getSvgPoint(event);
-
-        setPoints((current) =>
-            current.map((point, index) =>
-                index === dragIndexRef.current ? nextPoint : point,
-            ),
+        const nextPoints = customPointsRef.current.map((point, index) =>
+            index === dragIndexRef.current ? nextPoint : point,
         );
 
+        setCustomPointsDraft(nextPoints);
+        customPointsRef.current = nextPoints;
+        setIsCustomDraftDirty(true);
         clearCopyState();
     }
 
@@ -202,8 +293,14 @@ export default function BlobGeneratorTool() {
         }
 
         if (dragIndexRef.current !== null) {
+            if (didDragRef.current && dragStartPointsRef.current) {
+                setCustomHistory((current) => [...current, dragStartPointsRef.current!]);
+                setCustomFuture([]);
+            }
+
             dragIndexRef.current = null;
             didDragRef.current = false;
+            dragStartPointsRef.current = null;
             return;
         }
 
@@ -213,16 +310,19 @@ export default function BlobGeneratorTool() {
         }
 
         const nextPoint = getSvgPoint(event);
+        const nextPoints = [...customPointsRef.current, nextPoint];
 
-        setPoints((current) => [...current, nextPoint]);
-        clearCopyState();
+        setCustomPointsWithHistory(nextPoints);
     }
 
     function removePoint(pointIndex: number) {
         if (!isCustomPoints) return;
 
-        setPoints((current) => current.filter((_, index) => index !== pointIndex));
-        clearCopyState();
+        const nextPoints = customPointsRef.current.filter(
+            (_, index) => index !== pointIndex,
+        );
+
+        setCustomPointsWithHistory(nextPoints);
     }
 
     async function copySvg() {
@@ -259,9 +359,9 @@ export default function BlobGeneratorTool() {
 
     const previewPanel = (
         <BlobPreview
-            path={path}
+            path={visiblePath}
             color={color}
-            points={points}
+            customPointsDraft={customPointsDraft}
             isCustomPoints={isCustomPoints}
             clickToAddPointText={clickToAddPointText}
             onPointerDown={handlePreviewPointerDown}
@@ -280,6 +380,10 @@ export default function BlobGeneratorTool() {
             isCustomPoints={isCustomPoints}
             customPointsText={customPointsText}
             clearPointsText={clearPointsText}
+            undoText={undoText}
+            redoText={redoText}
+            canUndo={customHistory.length > 0}
+            canRedo={customFuture.length > 0}
             setPointsCount={setPointsCount}
             setSmoothness={setSmoothness}
             setColor={setColor}
@@ -287,6 +391,8 @@ export default function BlobGeneratorTool() {
             onCustomModeChange={handleCustomModeChange}
             onGenerateBlob={generateBlob}
             onClearCustomPoints={clearCustomPoints}
+            onUndo={undoCustomPoints}
+            onRedo={redoCustomPoints}
             clearCopyState={clearCopyState}
             compact={false}
         />
@@ -301,6 +407,10 @@ export default function BlobGeneratorTool() {
             isCustomPoints={isCustomPoints}
             customPointsText={customPointsText}
             clearPointsText={clearPointsText}
+            undoText={undoText}
+            redoText={redoText}
+            canUndo={customHistory.length > 0}
+            canRedo={customFuture.length > 0}
             setPointsCount={setPointsCount}
             setSmoothness={setSmoothness}
             setColor={setColor}
@@ -308,6 +418,8 @@ export default function BlobGeneratorTool() {
             onCustomModeChange={handleCustomModeChange}
             onGenerateBlob={generateBlob}
             onClearCustomPoints={clearCustomPoints}
+            onUndo={undoCustomPoints}
+            onRedo={redoCustomPoints}
             clearCopyState={clearCopyState}
             compact
         />
@@ -318,22 +430,12 @@ export default function BlobGeneratorTool() {
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
                 <div className="min-w-0 space-y-6">
                     <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <SectionHeader title={text.previewTitle} />
+                        <div>
+                            <SectionHeader title={text.previewTitle} />
 
-                                <p className="mt-2 max-w-[320px] text-sm leading-6 text-gray-500">
-                                    {text.previewDescription}
-                                </p>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={generateBlob}
-                                className="hidden rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B] md:inline-flex"
-                            >
-                                {text.generate}
-                            </button>
+                            <p className="mt-2 max-w-[320px] text-sm leading-6 text-gray-500">
+                                {text.previewDescription}
+                            </p>
                         </div>
 
                         <div className="mt-5">{previewPanel}</div>
@@ -395,9 +497,9 @@ export default function BlobGeneratorTool() {
                 >
                     <div className="space-y-3">
                         <BlobMiniPreview
-                            path={path}
+                            path={visiblePath}
                             color={color}
-                            points={points}
+                            customPointsDraft={customPointsDraft}
                             isCustomPoints={isCustomPoints}
                             clickToAddPointText={clickToAddPointText}
                             onPointerDown={handlePreviewPointerDown}
@@ -417,7 +519,7 @@ export default function BlobGeneratorTool() {
 function BlobPreview({
     path,
     color,
-    points,
+    customPointsDraft,
     isCustomPoints,
     clickToAddPointText,
     onPointerDown,
@@ -427,7 +529,7 @@ function BlobPreview({
 }: {
     path: string;
     color: string;
-    points: Point[];
+    customPointsDraft: Point[];
     isCustomPoints: boolean;
     clickToAddPointText: string;
     onPointerDown: (pointIndex?: number) => void;
@@ -462,7 +564,7 @@ function BlobPreview({
                 {path ? <path d={path} fill={color} /> : null}
 
                 {isCustomPoints
-                    ? points.map((point, index) => (
+                    ? customPointsDraft.map((point, index) => (
                         <g key={`${point.x}-${point.y}-${index}`}>
                             <circle
                                 cx={point.x}
@@ -476,6 +578,7 @@ function BlobPreview({
                                     event.stopPropagation();
 
                                     const svg = event.currentTarget.ownerSVGElement;
+
                                     if (svg) {
                                         svg.setPointerCapture(event.pointerId);
                                     }
@@ -505,7 +608,7 @@ function BlobPreview({
 function BlobMiniPreview({
     path,
     color,
-    points,
+    customPointsDraft,
     isCustomPoints,
     clickToAddPointText,
     onPointerDown,
@@ -515,7 +618,7 @@ function BlobMiniPreview({
 }: {
     path: string;
     color: string;
-    points: Point[];
+    customPointsDraft: Point[];
     isCustomPoints: boolean;
     clickToAddPointText: string;
     onPointerDown: (pointIndex?: number) => void;
@@ -550,7 +653,7 @@ function BlobMiniPreview({
                 {path ? <path d={path} fill={color} /> : null}
 
                 {isCustomPoints
-                    ? points.map((point, index) => (
+                    ? customPointsDraft.map((point, index) => (
                         <g key={`${point.x}-${point.y}-${index}`}>
                             <circle
                                 cx={point.x}
@@ -564,6 +667,7 @@ function BlobMiniPreview({
                                     event.stopPropagation();
 
                                     const svg = event.currentTarget.ownerSVGElement;
+
                                     if (svg) {
                                         svg.setPointerCapture(event.pointerId);
                                     }
@@ -598,6 +702,10 @@ function BlobSettingsPanel({
     isCustomPoints,
     customPointsText,
     clearPointsText,
+    undoText,
+    redoText,
+    canUndo,
+    canRedo,
     setPointsCount,
     setSmoothness,
     setColor,
@@ -605,6 +713,8 @@ function BlobSettingsPanel({
     onCustomModeChange,
     onGenerateBlob,
     onClearCustomPoints,
+    onUndo,
+    onRedo,
     clearCopyState,
     compact = false,
 }: {
@@ -615,6 +725,10 @@ function BlobSettingsPanel({
     isCustomPoints: boolean;
     customPointsText: string;
     clearPointsText: string;
+    undoText: string;
+    redoText: string;
+    canUndo: boolean;
+    canRedo: boolean;
     setPointsCount: (value: number) => void;
     setSmoothness: (value: number) => void;
     setColor: (value: string) => void;
@@ -622,6 +736,8 @@ function BlobSettingsPanel({
     onCustomModeChange: (value: boolean) => void;
     onGenerateBlob: () => void;
     onClearCustomPoints: () => void;
+    onUndo: () => void;
+    onRedo: () => void;
     clearCopyState: () => void;
     compact?: boolean;
 }) {
@@ -645,6 +761,28 @@ function BlobSettingsPanel({
                     {clearPointsText}
                 </button>
             </div>
+
+            {isCustomPoints ? (
+                <div className="grid grid-cols-2 gap-2">
+                    <button
+                        type="button"
+                        onClick={onUndo}
+                        disabled={!canUndo}
+                        className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {undoText}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={onRedo}
+                        disabled={!canRedo}
+                        className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {redoText}
+                    </button>
+                </div>
+            ) : null}
 
             <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] px-4 py-3 transition hover:bg-[#FFF7F3]">
                 <span

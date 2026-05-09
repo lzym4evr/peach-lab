@@ -792,7 +792,9 @@ export const messages = {
 
             customPoints: "Custom Points",
             clearPoints: "Clear Points",
-            clickToAddPoint: "Click or tap the preview to add points. Drag points to adjust the shape.",
+            undo: "Undo",
+            redo: "Redo",
+            clickToAddPoint: "Click or tap the preview to add points. Drag points to adjust the shape, then click Generate.",
 
             fillColor: "Fill Color",
             points: "Points",
