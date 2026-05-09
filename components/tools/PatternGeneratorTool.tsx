@@ -384,6 +384,20 @@ export default function PatternGeneratorTool() {
         }, 0);
     }
 
+    const mobilePreviewPanel = (
+        <PatternMiniPreview
+            patternType={patternType}
+            canvasWidth={canvasWidth}
+            canvasHeight={canvasHeight}
+            patternSize={patternSize}
+            spacing={spacing}
+            foregroundColor={foregroundColor}
+            backgroundColor={backgroundColor}
+            offsetX={offsetX}
+            offsetY={offsetY}
+        />
+    );
+
     const desktopSettingsPanel = (
         <PatternSettingsPanel
             text={text}
@@ -528,20 +542,14 @@ export default function PatternGeneratorTool() {
                     title={text.controls}
                     onClose={() => setIsMobileSettingsOpen(false)}
                 >
-                    <div className="space-y-3">
-                        <PatternMiniPreview
-                            patternType={patternType}
-                            canvasWidth={canvasWidth}
-                            canvasHeight={canvasHeight}
-                            patternSize={patternSize}
-                            spacing={spacing}
-                            foregroundColor={foregroundColor}
-                            backgroundColor={backgroundColor}
-                            offsetX={offsetX}
-                            offsetY={offsetY}
-                        />
+                    <div className="flex h-full min-h-0 flex-col">
+                        <div className="shrink-0 bg-white pb-3">
+                            {mobilePreviewPanel}
+                        </div>
 
-                        {mobileSettingsPanel}
+                        <div className="min-h-0 flex-1 overflow-y-auto pt-1">
+                            {mobileSettingsPanel}
+                        </div>
                     </div>
                 </MobileSettingsSheet>
             ) : null}
@@ -654,29 +662,35 @@ function PatternSettingsPanel({
                 </div>
             </div>
 
-            {compact ? (
-                <div className="grid grid-cols-2 gap-2">
-                    <CompactColorInput
-                        label={text.foregroundColor}
-                        value={foregroundColor}
-                        fallback="#F28C6F"
-                        onChange={(value) => {
-                            setForegroundColor(value);
-                            showPreview();
-                        }}
-                    />
+            <div
+                className={
+                    compact
+                        ? "grid grid-cols-2 gap-2"
+                        : "grid gap-4 sm:grid-cols-2"
+                }
+            >
+                <ColorInput
+                    label={text.foregroundColor}
+                    value={foregroundColor}
+                    fallback="#F28C6F"
+                    compact={compact}
+                    onChange={(value) => {
+                        setForegroundColor(value);
+                        showPreview();
+                    }}
+                />
 
-                    <CompactColorInput
-                        label={text.backgroundColor}
-                        value={backgroundColor}
-                        fallback="#FFF7F3"
-                        onChange={(value) => {
-                            setBackgroundColor(value);
-                            showPreview();
-                        }}
-                    />
-                </div>
-            ) : null}
+                <ColorInput
+                    label={text.backgroundColor}
+                    value={backgroundColor}
+                    fallback="#FFF7F3"
+                    compact={compact}
+                    onChange={(value) => {
+                        setBackgroundColor(value);
+                        showPreview();
+                    }}
+                />
+            </div>
 
             <div
                 className={
@@ -710,55 +724,33 @@ function PatternSettingsPanel({
                 />
             </div>
 
-            <RangeInput
-                label={text.patternSize}
-                value={patternSize}
-                min={2}
-                max={50}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => {
-                    setPatternSize(value);
-                    showPreview();
-                }}
-            />
+            <div className={compact ? "grid grid-cols-2 gap-3" : "space-y-5"}>
+                <RangeInput
+                    label={text.patternSize}
+                    value={patternSize}
+                    min={2}
+                    max={50}
+                    suffix="px"
+                    compact={compact}
+                    onChange={(value) => {
+                        setPatternSize(value);
+                        showPreview();
+                    }}
+                />
 
-            <RangeInput
-                label={text.spacing}
-                value={spacing}
-                min={8}
-                max={100}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => {
-                    setSpacing(value);
-                    showPreview();
-                }}
-            />
-
-            {!compact ? (
-                <div className="grid gap-4 sm:grid-cols-2">
-                    <ColorInput
-                        label={text.foregroundColor}
-                        value={foregroundColor}
-                        fallback="#F28C6F"
-                        onChange={(value) => {
-                            setForegroundColor(value);
-                            showPreview();
-                        }}
-                    />
-
-                    <ColorInput
-                        label={text.backgroundColor}
-                        value={backgroundColor}
-                        fallback="#FFF7F3"
-                        onChange={(value) => {
-                            setBackgroundColor(value);
-                            showPreview();
-                        }}
-                    />
-                </div>
-            ) : null}
+                <RangeInput
+                    label={text.spacing}
+                    value={spacing}
+                    min={8}
+                    max={100}
+                    suffix="px"
+                    compact={compact}
+                    onChange={(value) => {
+                        setSpacing(value);
+                        showPreview();
+                    }}
+                />
+            </div>
         </div>
     );
 }
@@ -890,70 +882,45 @@ function ColorInput({
     label,
     value,
     fallback,
+    compact = false,
     onChange,
 }: {
     label: string;
     value: string;
     fallback: string;
-    onChange: (value: string) => void;
-}) {
-    const colorPickerValue = isValidHexColor(value) ? value : fallback;
-
-    return (
-        <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-gray-800">
-                {label}
-            </span>
-
-            <div className="grid grid-cols-[58px_1fr] gap-3">
-                <input
-                    type="color"
-                    value={colorPickerValue}
-                    onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-12 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
-                />
-
-                <input
-                    value={value}
-                    onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                />
-            </div>
-        </label>
-    );
-}
-
-function CompactColorInput({
-    label,
-    value,
-    fallback,
-    onChange,
-}: {
-    label: string;
-    value: string;
-    fallback: string;
+    compact?: boolean;
     onChange: (value: string) => void;
 }) {
     const colorPickerValue = isValidHexColor(value) ? value : fallback;
 
     return (
         <label className="block min-w-0">
-            <span className="mb-1.5 block truncate text-[10px] font-semibold text-gray-800">
+            <span
+                className={`mb-1.5 block truncate font-semibold text-gray-800 ${compact ? "text-[10px]" : "text-sm"
+                    }`}
+            >
                 {label}
             </span>
 
-            <div className="grid grid-cols-[34px_1fr] gap-1.5">
+            <div
+                className={`grid gap-1.5 ${compact ? "grid-cols-[34px_1fr]" : "grid-cols-[58px_1fr]"
+                    }`}
+            >
                 <input
                     type="color"
                     value={colorPickerValue}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-10 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
+                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-10" : "h-12"
+                        }`}
                 />
 
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-10 min-w-0 rounded-xl border border-[#F1E5DF] px-2 text-[10px] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                    className={`w-full rounded-xl border border-[#F1E5DF] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
+                            ? "h-10 px-2 text-[11px]"
+                            : "h-12 px-4 text-sm"
+                        }`}
                 />
             </div>
         </label>
@@ -978,19 +945,31 @@ function RangeInput({
     onChange: (value: number) => void;
 }) {
     return (
-        <label className="block">
+        <label className="block min-w-0">
             <div
-                className={`flex items-center justify-between gap-4 ${compact ? "mb-1.5" : "mb-2"
-                    }`}
+                className={
+                    compact
+                        ? "mb-1 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5"
+                        : "mb-2 flex items-center justify-between gap-4"
+                }
             >
                 <span
-                    className={`font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
-                        }`}
+                    className={
+                        compact
+                            ? "min-w-0 truncate whitespace-nowrap text-[11px] font-semibold leading-5 text-gray-800"
+                            : "text-sm font-semibold text-gray-800"
+                    }
                 >
                     {label}
                 </span>
 
-                <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
+                <span
+                    className={
+                        compact
+                            ? "min-w-[40px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-0.5 text-center text-[11px] font-semibold leading-5 text-[#7A5A4F]"
+                            : "rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]"
+                    }
+                >
                     {value}
                     {suffix}
                 </span>
@@ -1103,12 +1082,12 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-2 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
         >
             <div
-                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
@@ -1129,7 +1108,9 @@ function MobileSettingsSheet({
                     </button>
                 </div>
 
-                <div className="overflow-y-auto px-4 pb-4 pt-2">{children}</div>
+                <div className="min-h-0 flex-1 overflow-hidden px-4 pb-4 pt-2">
+                    {children}
+                </div>
             </div>
         </div>
     );
