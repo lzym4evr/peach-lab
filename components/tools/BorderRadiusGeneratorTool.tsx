@@ -452,6 +452,29 @@ export default function BorderRadiusGeneratorTool() {
     );
 }
 
+function getPreviewBoxSize({
+    boxWidth,
+    boxHeight,
+    compact = false,
+}: {
+    boxWidth: number;
+    boxHeight: number;
+    compact?: boolean;
+}) {
+    const safeWidth = Math.max(boxWidth, 1);
+    const safeHeight = Math.max(boxHeight, 1);
+
+    const maxWidth = compact ? 300 : 520;
+    const maxHeight = compact ? 108 : 260;
+
+    const scale = Math.min(maxWidth / safeWidth, maxHeight / safeHeight, 1);
+
+    return {
+        width: Math.max(32, Math.round(safeWidth * scale)),
+        height: Math.max(32, Math.round(safeHeight * scale)),
+    };
+}
+
 function RadiusPreview({
     safeBackgroundColor,
     safeBoxColor,
@@ -465,6 +488,12 @@ function RadiusPreview({
     borderRadiusValue: string;
     compact?: boolean;
 }) {
+    const previewSize = getPreviewBoxSize({
+        boxWidth: settings.boxWidth,
+        boxHeight: settings.boxHeight,
+        compact,
+    });
+
     return (
         <div
             className={
@@ -475,20 +504,21 @@ function RadiusPreview({
             style={{ backgroundColor: safeBackgroundColor }}
         >
             <div
-                className="flex items-center justify-center text-center shadow-sm transition-all"
+                className="flex items-center justify-center text-center shadow-sm"
                 style={{
-                    width: compact
-                        ? `min(${settings.boxWidth}px, 70%)`
-                        : `min(${settings.boxWidth}px, 100%)`,
-                    height: compact
-                        ? `min(${settings.boxHeight}px, 90px)`
-                        : `${settings.boxHeight}px`,
-                    maxWidth: "100%",
+                    width: `${previewSize.width}px`,
+                    height: `${previewSize.height}px`,
                     backgroundColor: safeBoxColor,
                     borderRadius: borderRadiusValue,
                 }}
             >
-                <span className="text-sm font-semibold text-white">
+                <span
+                    className={
+                        compact
+                            ? "text-xs font-semibold text-white"
+                            : "text-sm font-semibold text-white"
+                    }
+                >
                     Peach Lab
                 </span>
             </div>
