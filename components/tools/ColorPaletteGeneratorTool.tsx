@@ -377,19 +377,28 @@ export default function ColorPaletteGenerator() {
         { label: text.cool, value: "cool" },
     ];
 
+    const settingsTitle =
+        (text as { settingsTitle?: string }).settingsTitle ?? "Palette Settings";
+
+    const settingsButtonText =
+        (text as { settingsButton?: string }).settingsButton ?? "Settings";
+
+    const paletteShortLabel =
+        (text as { paletteShortLabel?: string }).paletteShortLabel ?? "Palette";
+
     const [baseColor, setBaseColor] = useState(DEFAULT_BASE_COLOR);
     const [paletteType, setPaletteType] = useState<PaletteType>("analogous");
     const [colorCount, setColorCount] = useState(5);
     const [copiedTarget, setCopiedTarget] = useState<string | null>(null);
 
-    const [isPickerOpen, setIsPickerOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [draftHsl, setDraftHsl] = useState<HslColor>(() =>
         hexToHsl(DEFAULT_BASE_COLOR),
     );
     const [draftHex, setDraftHex] = useState(DEFAULT_BASE_COLOR);
 
     const mobileActionBarRef = useRef<HTMLDivElement | null>(null);
-    const mobilePickerPanelRef = useRef<HTMLDivElement | null>(null);
+    const mobileSettingsPanelRef = useRef<HTMLDivElement | null>(null);
     const mobileWheelRef = useRef<HTMLDivElement | null>(null);
     const desktopWheelRef = useRef<HTMLDivElement | null>(null);
 
@@ -444,13 +453,13 @@ export default function ColorPaletteGenerator() {
             window.removeEventListener("resize", updateActionBarSpace);
             document.documentElement.style.removeProperty("--mobile-action-bar-space");
         };
-    }, [isPickerOpen]);
+    }, [isSettingsOpen]);
 
     useEffect(() => {
-        if (!isPickerOpen) return;
+        if (!isSettingsOpen) return;
 
         const preventBackgroundTouchMove = (event: TouchEvent) => {
-            const panel = mobilePickerPanelRef.current;
+            const panel = mobileSettingsPanelRef.current;
             const target = event.target;
 
             if (panel && target instanceof Node && panel.contains(target)) {
@@ -467,15 +476,15 @@ export default function ColorPaletteGenerator() {
         return () => {
             window.removeEventListener("touchmove", preventBackgroundTouchMove);
         };
-    }, [isPickerOpen]);
+    }, [isSettingsOpen]);
 
     useEffect(() => {
-        if (isPickerOpen) return;
+        if (isSettingsOpen) return;
 
         const currentHsl = hexToHsl(baseColor);
         setDraftHsl(currentHsl);
         setDraftHex(baseColor);
-    }, [baseColor, isPickerOpen]);
+    }, [baseColor, isSettingsOpen]);
 
     const setCopied = (target: string) => {
         setCopiedTarget(target);
@@ -490,24 +499,23 @@ export default function ColorPaletteGenerator() {
         setCopied(target);
     };
 
-    const openPicker = () => {
+    const openSettings = () => {
         const currentHsl = hexToHsl(baseColor);
         setDraftHsl(currentHsl);
         setDraftHex(baseColor);
-        setIsPickerOpen(true);
+        setIsSettingsOpen(true);
     };
 
-    const closePicker = () => {
+    const closeSettings = () => {
         const currentHsl = hexToHsl(baseColor);
         setDraftHsl(currentHsl);
         setDraftHex(baseColor);
-        setIsPickerOpen(false);
+        setIsSettingsOpen(false);
     };
 
     const applyPickerColor = () => {
         const nextColor = isValidHex(draftHex) ? draftHex : draftColor;
         setBaseColor(nextColor.toUpperCase());
-        setIsPickerOpen(false);
     };
 
     const applyDesktopColor = () => {
@@ -590,6 +598,10 @@ export default function ColorPaletteGenerator() {
         setBaseColor(nextColor);
         setPaletteType(getRandomPaletteType());
         setColorCount(getRandomColorCount());
+
+        const nextHsl = hexToHsl(nextColor);
+        setDraftHsl(nextHsl);
+        setDraftHex(nextColor);
     };
 
     const handleDownloadPng = () => {
@@ -729,6 +741,7 @@ export default function ColorPaletteGenerator() {
                     <span className="text-xs font-semibold text-[#2A1F1B]">
                         {text.palettePreview}
                     </span>
+
                     <span className="truncate text-[10px] text-gray-500">
                         {text.palettePreviewHint}
                     </span>
@@ -752,6 +765,32 @@ export default function ColorPaletteGenerator() {
                         </button>
                     ))}
                 </div>
+            </div>
+        );
+    };
+
+    const renderRandomButtons = (compact = false) => {
+        return (
+            <div className="grid grid-cols-2 gap-2">
+                <button
+                    type="button"
+                    onClick={handleShuffle}
+                    className={`inline-flex items-center justify-center gap-2 rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6] ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
+                        }`}
+                >
+                    <Shuffle className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
+                    {text.shuffle}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={handleRandomAll}
+                    className={`inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] font-semibold text-white shadow-sm transition hover:bg-[#E6765B] ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
+                        }`}
+                >
+                    <Dices className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
+                    {text.random}
+                </button>
             </div>
         );
     };
@@ -795,7 +834,7 @@ export default function ColorPaletteGenerator() {
                     {!isDesktop ? (
                         <button
                             type="button"
-                            onClick={closePicker}
+                            onClick={closeSettings}
                             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-[#2A1F1B] transition hover:bg-[#FFEDE6]"
                             aria-label={text.cancel}
                         >
@@ -993,7 +1032,7 @@ export default function ColorPaletteGenerator() {
                         <div className="grid min-w-0 grid-cols-2 gap-3 pt-1">
                             <button
                                 type="button"
-                                onClick={isDesktop ? resetDesktopColor : closePicker}
+                                onClick={isDesktop ? resetDesktopColor : closeSettings}
                                 className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-2.5 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
                             >
                                 {isDesktop ? text.reset : text.cancel}
@@ -1016,7 +1055,7 @@ export default function ColorPaletteGenerator() {
     return (
         <div className="space-y-6 pb-1 md:pb-0">
             <div>
-                <SectionTitle title={text.controlsTitle} />
+                <SectionTitle title={settingsTitle} />
                 <p className="mt-2 text-sm leading-6 text-gray-500">
                     {text.controlsDescription}
                 </p>
@@ -1031,7 +1070,7 @@ export default function ColorPaletteGenerator() {
 
                         <button
                             type="button"
-                            onClick={openPicker}
+                            onClick={openSettings}
                             className="flex h-12 w-full items-center rounded-2xl border border-[#F1E5DF] bg-white px-3 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] md:hidden"
                         >
                             <div className="flex min-w-0 items-center gap-3">
@@ -1099,6 +1138,8 @@ export default function ColorPaletteGenerator() {
                     </div>
                 </div>
 
+                <div className="hidden md:block">{renderRandomButtons(false)}</div>
+
                 <div className="border-t border-[#F1E5DF] pt-5">
                     <SectionTitle
                         title={text.palettePreview}
@@ -1131,25 +1172,7 @@ export default function ColorPaletteGenerator() {
                     </div>
                 </div>
 
-                <div className="hidden grid-cols-4 gap-3 md:grid">
-                    <button
-                        type="button"
-                        onClick={handleShuffle}
-                        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6]"
-                    >
-                        <Shuffle className="h-4 w-4" />
-                        {text.shuffle}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={handleRandomAll}
-                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                    >
-                        <Dices className="h-4 w-4" />
-                        {text.random}
-                    </button>
-
+                <div className="hidden grid-cols-2 gap-3 md:grid">
                     <button
                         type="button"
                         onClick={handleCopyPalette}
@@ -1194,11 +1217,11 @@ export default function ColorPaletteGenerator() {
                 </div>
             </div>
 
-            {isPickerOpen ? (
+            {isSettingsOpen ? (
                 <button
                     type="button"
                     aria-label={text.cancel}
-                    onClick={closePicker}
+                    onClick={closeSettings}
                     className="fixed inset-0 z-40 bg-[#2A1F1B]/35 backdrop-blur-[2px] md:hidden"
                 />
             ) : null}
@@ -1209,22 +1232,45 @@ export default function ColorPaletteGenerator() {
                     className={[
                         "pointer-events-auto mx-auto max-w-md overflow-hidden rounded-[30px] border border-[#F1E5DF] bg-white/95 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur",
                         "transition-all duration-300 ease-out",
-                        isPickerOpen
+                        isSettingsOpen
                             ? "origin-bottom animate-[paletteExpand_260ms_ease-out]"
                             : "",
                     ].join(" ")}
                 >
                     <div
-                        ref={mobilePickerPanelRef}
+                        ref={mobileSettingsPanelRef}
                         className={[
                             "overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-out",
-                            isPickerOpen
+                            isSettingsOpen
                                 ? "max-h-[72vh] translate-y-0 opacity-100"
                                 : "max-h-0 translate-y-4 opacity-0",
                         ].join(" ")}
                     >
                         <div className="max-h-[72vh] space-y-3 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pb-4 pt-4">
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="min-w-0">
+                                    <h3 className="truncate text-base font-semibold text-[#2A1F1B]">
+                                        {settingsTitle}
+                                    </h3>
+                                    <p className="mt-0.5 truncate text-xs text-gray-500">
+                                        {text.controlsDescription}
+                                    </p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={closeSettings}
+                                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-[#2A1F1B] transition hover:bg-[#FFEDE6]"
+                                    aria-label={text.cancel}
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            </div>
+
                             {renderMobilePalettePreview()}
+
+                            {renderRandomButtons(true)}
+
                             {renderColorPickerPanel("mobile", mobileWheelRef)}
                         </div>
                     </div>
@@ -1232,37 +1278,22 @@ export default function ColorPaletteGenerator() {
                     <div
                         className={[
                             "transition-[max-height,opacity,transform] duration-300 ease-out",
-                            isPickerOpen
+                            isSettingsOpen
                                 ? "pointer-events-none max-h-0 translate-y-4 overflow-hidden opacity-0"
-                                : "max-h-[140px] translate-y-0 opacity-100",
+                                : "max-h-[120px] translate-y-0 opacity-100",
                         ].join(" ")}
                     >
-                        <div className="grid grid-cols-4 gap-2 p-3">
+                        <div className="grid grid-cols-3 gap-2 p-3">
                             <button
                                 type="button"
-                                onClick={handleShuffle}
-                                className="flex flex-col items-center justify-center rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-3 text-center"
-                            >
-                                <Shuffle className="mb-1 h-5 w-5 text-[#E6765B]" />
-                                <span className="text-xs font-semibold text-[#E6765B]">
-                                    {text.shuffle}
-                                </span>
-                                <span className="mt-0.5 text-[10px] text-[#9C6B5B]">
-                                    {text.keepColor}
-                                </span>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={handleRandomAll}
+                                onClick={openSettings}
                                 className="flex flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
                             >
-                                <Dices className="mb-1 h-5 w-5 text-white" />
-                                <span className="whitespace-nowrap text-xs font-semibold text-white">
-                                    {text.random}
+                                <span className="text-xs font-semibold text-white">
+                                    {settingsButtonText}
                                 </span>
                                 <span className="mt-0.5 text-[10px] text-white/85">
-                                    {text.newPalette}
+                                    {text.baseColorLabel}
                                 </span>
                             </button>
 
@@ -1278,7 +1309,7 @@ export default function ColorPaletteGenerator() {
                                         : t.common.copy}
                                 </span>
                                 <span className="mt-0.5 text-[10px] text-gray-500">
-                                    {text.paletteShortLabel}
+                                    {paletteShortLabel}
                                 </span>
                             </button>
 

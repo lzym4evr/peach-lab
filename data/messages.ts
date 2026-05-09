@@ -318,12 +318,15 @@ export const messages = {
 
         colorPaletteGenerator: {
             previewTitle: "Palette Preview",
-            controlsTitle: "Controls",
+            settingsTitle: "Palette Settings",
+            controlsTitle: "Settings",
             outputTitle: "Palette Output",
 
             previewDescription:
                 "Create beautiful color palettes from a base color with copy-ready HEX values.",
             controlsDescription: "Adjust the base color, palette style, and color count.",
+
+            settingsButton: "Settings",
 
             baseColorLabel: "Base Color",
             paletteTypeLabel: "Palette Type",
