@@ -1,11 +1,6 @@
 "use client";
 
-import {
-    type ReactNode,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { t } from "@/data/messages";
 
 type PatternType = "dots" | "grid" | "diagonal-lines" | "checkerboard";
@@ -430,6 +425,8 @@ export default function PatternGeneratorTool() {
             setBackgroundColor={setBackgroundColor}
             showPreview={showPreview}
             compact
+            onShuffle={shufflePattern}
+            onRandom={randomAll}
         />
     );
 
@@ -521,12 +518,8 @@ export default function PatternGeneratorTool() {
 
             <MobileActionBar
                 settingsButtonText={settingsButtonText}
-                shuffleText={text.shufflePattern}
-                randomText={text.randomAll}
                 downloadText={actionDownloadText}
                 onOpenSettings={() => setIsMobileSettingsOpen(true)}
-                onShuffle={shufflePattern}
-                onRandom={randomAll}
                 onDownload={downloadPng}
             />
 
@@ -574,6 +567,8 @@ function PatternSettingsPanel({
     setBackgroundColor,
     showPreview,
     compact = false,
+    onShuffle,
+    onRandom,
 }: {
     text: typeof t.patternGenerator;
     patternType: PatternType;
@@ -592,16 +587,41 @@ function PatternSettingsPanel({
     setBackgroundColor: (value: string) => void;
     showPreview: () => void;
     compact?: boolean;
+    onShuffle?: () => void;
+    onRandom?: () => void;
 }) {
     return (
         <div className={compact ? "space-y-3" : "space-y-5"}>
             <div>
-                <span
-                    className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
-                        }`}
-                >
-                    {text.patternType}
-                </span>
+                {compact ? (
+                    <div className="mb-2 flex flex-nowrap items-center justify-between gap-2">
+                        <span className="min-w-0 truncate text-xs font-semibold text-gray-800">
+                            {text.patternType}
+                        </span>
+
+                        <div className="grid shrink-0 grid-cols-2 gap-1.5">
+                            <button
+                                type="button"
+                                onClick={onShuffle}
+                                className="h-8 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 text-[11px] font-semibold leading-none text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                            >
+                                {text.shufflePattern}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={onRandom}
+                                className="h-8 rounded-xl bg-[#F28C6F] px-2 text-[11px] font-semibold leading-none text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                {text.randomAll}
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <span className="mb-2 block text-sm font-semibold text-gray-800">
+                        {text.patternType}
+                    </span>
+                )}
 
                 <div
                     className={
@@ -633,6 +653,30 @@ function PatternSettingsPanel({
                     })}
                 </div>
             </div>
+
+            {compact ? (
+                <div className="grid grid-cols-2 gap-2">
+                    <CompactColorInput
+                        label={text.foregroundColor}
+                        value={foregroundColor}
+                        fallback="#F28C6F"
+                        onChange={(value) => {
+                            setForegroundColor(value);
+                            showPreview();
+                        }}
+                    />
+
+                    <CompactColorInput
+                        label={text.backgroundColor}
+                        value={backgroundColor}
+                        fallback="#FFF7F3"
+                        onChange={(value) => {
+                            setBackgroundColor(value);
+                            showPreview();
+                        }}
+                    />
+                </div>
+            ) : null}
 
             <div
                 className={
@@ -692,29 +736,7 @@ function PatternSettingsPanel({
                 }}
             />
 
-            {compact ? (
-                <div className="grid grid-cols-2 gap-2">
-                    <CompactColorInput
-                        label={text.foregroundColor}
-                        value={foregroundColor}
-                        fallback="#F28C6F"
-                        onChange={(value) => {
-                            setForegroundColor(value);
-                            showPreview();
-                        }}
-                    />
-
-                    <CompactColorInput
-                        label={text.backgroundColor}
-                        value={backgroundColor}
-                        fallback="#FFF7F3"
-                        onChange={(value) => {
-                            setBackgroundColor(value);
-                            showPreview();
-                        }}
-                    />
-                </div>
-            ) : (
+            {!compact ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                     <ColorInput
                         label={text.foregroundColor}
@@ -736,7 +758,7 @@ function PatternSettingsPanel({
                         }}
                     />
                 </div>
-            )}
+            ) : null}
         </div>
     );
 }
@@ -988,21 +1010,13 @@ function RangeInput({
 
 function MobileActionBar({
     settingsButtonText,
-    shuffleText,
-    randomText,
     downloadText,
     onOpenSettings,
-    onShuffle,
-    onRandom,
     onDownload,
 }: {
     settingsButtonText: string;
-    shuffleText: string;
-    randomText: string;
     downloadText: string;
     onOpenSettings: () => void;
-    onShuffle: () => void;
-    onRandom: () => void;
     onDownload: () => void;
 }) {
     const actionBarRef = useRef<HTMLDivElement | null>(null);
@@ -1038,28 +1052,12 @@ function MobileActionBar({
         <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
             <div
                 ref={actionBarRef}
-                className="pointer-events-auto mx-auto grid max-w-md grid-cols-4 gap-1.5 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-2 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
             >
                 <button
                     type="button"
-                    onClick={onShuffle}
-                    className="rounded-2xl border border-[#F1E5DF] bg-white px-1.5 py-2.5 text-center text-[11px] font-semibold leading-tight text-[#E6765B] transition hover:bg-[#FFF7F3]"
-                >
-                    {shuffleText}
-                </button>
-
-                <button
-                    type="button"
-                    onClick={onRandom}
-                    className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-1.5 py-2.5 text-center text-[11px] font-semibold leading-tight text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                >
-                    {randomText}
-                </button>
-
-                <button
-                    type="button"
                     onClick={onOpenSettings}
-                    className="rounded-2xl border border-[#F1E5DF] bg-white px-1.5 py-2.5 text-center text-[11px] font-semibold leading-tight text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
+                    className="rounded-2xl border border-[#F1E5DF] bg-white px-3 py-2.5 text-center text-sm font-semibold leading-tight text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
                 >
                     {settingsButtonText}
                 </button>
@@ -1067,7 +1065,7 @@ function MobileActionBar({
                 <button
                     type="button"
                     onClick={onDownload}
-                    className="rounded-2xl bg-[#F28C6F] px-1.5 py-2.5 text-center text-[11px] font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B]"
+                    className="rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B]"
                 >
                     {downloadText}
                 </button>
