@@ -747,8 +747,7 @@ export const messages = {
         // =========================
         noiseTextureGenerator: {
             previewTitle: "Noise Preview",
-            previewDescription:
-                "Generate subtle grain and noise textures for backgrounds.",
+            previewDescription: "Generate subtle grain and noise textures for backgrounds.",
             emptyHint: "Adjust the settings to see a live preview.",
 
             controls: "Noise Settings",
