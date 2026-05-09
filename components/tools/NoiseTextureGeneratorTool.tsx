@@ -104,7 +104,10 @@ function getNoiseCssOutput({
     const safeNoiseColor = getSafeHexColor(noiseColor, "#111827");
     const dotAlpha = Math.max(0.02, opacity / 100);
     const dotSize = Math.max(1, Math.round(grainSize));
-    const spacing = Math.max(dotSize + 2, Math.round(18 - density / 5 + grainSize * 2));
+    const spacing = Math.max(
+        dotSize + 2,
+        Math.round(18 - density / 5 + grainSize * 2),
+    );
     const rgb = hexToRgb(safeNoiseColor);
 
     return `background-color: ${safeBackgroundColor};
@@ -129,7 +132,10 @@ function getNoisePreviewStyle({
     const safeNoiseColor = getSafeHexColor(noiseColor, "#111827");
     const dotAlpha = Math.max(0.02, opacity / 100);
     const dotSize = Math.max(1, Math.round(grainSize));
-    const spacing = Math.max(dotSize + 2, Math.round(18 - density / 5 + grainSize * 2));
+    const spacing = Math.max(
+        dotSize + 2,
+        Math.round(18 - density / 5 + grainSize * 2),
+    );
     const rgb = hexToRgb(safeNoiseColor);
 
     return {
@@ -156,6 +162,9 @@ export default function NoiseTextureGeneratorTool() {
 
     const noiseStyleLabel =
         (text as { noiseStyle?: string }).noiseStyle ?? "Noise Style";
+
+    const grainSizeLabel =
+        (text as { grainSize?: string }).grainSize ?? "Grain Size";
 
     const [noiseStyle, setNoiseStyle] = useState<NoiseStyle>("fine-grain");
     const [width, setWidth] = useState(800);
@@ -224,10 +233,12 @@ export default function NoiseTextureGeneratorTool() {
         }
 
         const dotCount = Math.round(
-            (width * height * densityValue) / (safeGrainSize * safeGrainSize * 2.8),
+            (width * height * densityValue) /
+            (safeGrainSize * safeGrainSize * 2.8),
         );
 
-        context.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity / 100})`;
+        context.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity / 100
+            })`;
 
         for (let index = 0; index < dotCount; index += 1) {
             const x = seededRandom() * width;
@@ -382,21 +393,36 @@ export default function NoiseTextureGeneratorTool() {
         }, 0);
     }
 
+    const mobilePreviewPanel = (
+        <NoiseMiniPreview
+            width={width}
+            height={height}
+            density={density}
+            opacity={opacity}
+            grainSize={grainSize}
+            backgroundColor={backgroundColor}
+            noiseColor={noiseColor}
+        />
+    );
+
     const desktopSettingsPanel = (
         <NoiseSettingsPanel
             text={text}
             noiseStyleLabel={noiseStyleLabel}
+            grainSizeLabel={grainSizeLabel}
             noiseStyle={noiseStyle}
             width={width}
             height={height}
             density={density}
             opacity={opacity}
+            grainSize={grainSize}
             backgroundColor={backgroundColor}
             noiseColor={noiseColor}
             setWidth={setWidth}
             setHeight={setHeight}
             setDensity={setDensity}
             setOpacity={setOpacity}
+            setGrainSize={setGrainSize}
             setBackgroundColor={setBackgroundColor}
             setNoiseColor={setNoiseColor}
             applyNoiseStyle={applyNoiseStyle}
@@ -409,17 +435,20 @@ export default function NoiseTextureGeneratorTool() {
         <NoiseSettingsPanel
             text={text}
             noiseStyleLabel={noiseStyleLabel}
+            grainSizeLabel={grainSizeLabel}
             noiseStyle={noiseStyle}
             width={width}
             height={height}
             density={density}
             opacity={opacity}
+            grainSize={grainSize}
             backgroundColor={backgroundColor}
             noiseColor={noiseColor}
             setWidth={setWidth}
             setHeight={setHeight}
             setDensity={setDensity}
             setOpacity={setOpacity}
+            setGrainSize={setGrainSize}
             setBackgroundColor={setBackgroundColor}
             setNoiseColor={setNoiseColor}
             applyNoiseStyle={applyNoiseStyle}
@@ -528,18 +557,14 @@ export default function NoiseTextureGeneratorTool() {
                     title={text.controls}
                     onClose={() => setIsMobileSettingsOpen(false)}
                 >
-                    <div className="space-y-3">
-                        <NoiseMiniPreview
-                            width={width}
-                            height={height}
-                            density={density}
-                            opacity={opacity}
-                            grainSize={grainSize}
-                            backgroundColor={backgroundColor}
-                            noiseColor={noiseColor}
-                        />
+                    <div className="flex h-full min-h-0 flex-col">
+                        <div className="shrink-0 bg-white pb-3">
+                            {mobilePreviewPanel}
+                        </div>
 
-                        {mobileSettingsPanel}
+                        <div className="min-h-0 flex-1 overflow-y-auto pt-1">
+                            {mobileSettingsPanel}
+                        </div>
                     </div>
                 </MobileSettingsSheet>
             ) : null}
@@ -550,17 +575,20 @@ export default function NoiseTextureGeneratorTool() {
 function NoiseSettingsPanel({
     text,
     noiseStyleLabel,
+    grainSizeLabel,
     noiseStyle,
     width,
     height,
     density,
     opacity,
+    grainSize,
     backgroundColor,
     noiseColor,
     setWidth,
     setHeight,
     setDensity,
     setOpacity,
+    setGrainSize,
     setBackgroundColor,
     setNoiseColor,
     applyNoiseStyle,
@@ -571,17 +599,20 @@ function NoiseSettingsPanel({
 }: {
     text: typeof t.noiseTextureGenerator;
     noiseStyleLabel: string;
+    grainSizeLabel: string;
     noiseStyle: NoiseStyle;
     width: number;
     height: number;
     density: number;
     opacity: number;
+    grainSize: number;
     backgroundColor: string;
     noiseColor: string;
     setWidth: (value: number) => void;
     setHeight: (value: number) => void;
     setDensity: (value: number) => void;
     setOpacity: (value: number) => void;
+    setGrainSize: (value: number) => void;
     setBackgroundColor: (value: string) => void;
     setNoiseColor: (value: string) => void;
     applyNoiseStyle: (value: NoiseStyle) => void;
@@ -651,29 +682,35 @@ function NoiseSettingsPanel({
                 </div>
             </div>
 
-            {compact ? (
-                <div className="grid grid-cols-2 gap-2">
-                    <CompactColorInput
-                        label={text.backgroundColor}
-                        value={backgroundColor}
-                        fallback="#FFF7F3"
-                        onChange={(value) => {
-                            setBackgroundColor(value);
-                            showPreview();
-                        }}
-                    />
+            <div
+                className={
+                    compact
+                        ? "grid grid-cols-2 gap-2"
+                        : "grid gap-4 sm:grid-cols-2"
+                }
+            >
+                <ColorInput
+                    label={text.backgroundColor}
+                    value={backgroundColor}
+                    fallback="#FFF7F3"
+                    compact={compact}
+                    onChange={(value) => {
+                        setBackgroundColor(value);
+                        showPreview();
+                    }}
+                />
 
-                    <CompactColorInput
-                        label={text.noiseColor}
-                        value={noiseColor}
-                        fallback="#111827"
-                        onChange={(value) => {
-                            setNoiseColor(value);
-                            showPreview();
-                        }}
-                    />
-                </div>
-            ) : null}
+                <ColorInput
+                    label={text.noiseColor}
+                    value={noiseColor}
+                    fallback="#111827"
+                    compact={compact}
+                    onChange={(value) => {
+                        setNoiseColor(value);
+                        showPreview();
+                    }}
+                />
+            </div>
 
             <div
                 className={
@@ -707,55 +744,46 @@ function NoiseSettingsPanel({
                 />
             </div>
 
-            <RangeInput
-                label={text.density}
-                value={density}
-                min={1}
-                max={100}
-                suffix="%"
-                compact={compact}
-                onChange={(value) => {
-                    setDensity(value);
-                    showPreview();
-                }}
-            />
+            <div className={compact ? "grid grid-cols-2 gap-3" : "space-y-5"}>
+                <RangeInput
+                    label={text.density}
+                    value={density}
+                    min={1}
+                    max={100}
+                    suffix="%"
+                    compact={compact}
+                    onChange={(value) => {
+                        setDensity(value);
+                        showPreview();
+                    }}
+                />
 
-            <RangeInput
-                label={text.opacity}
-                value={opacity}
-                min={1}
-                max={100}
-                suffix="%"
-                compact={compact}
-                onChange={(value) => {
-                    setOpacity(value);
-                    showPreview();
-                }}
-            />
+                <RangeInput
+                    label={text.opacity}
+                    value={opacity}
+                    min={1}
+                    max={100}
+                    suffix="%"
+                    compact={compact}
+                    onChange={(value) => {
+                        setOpacity(value);
+                        showPreview();
+                    }}
+                />
 
-            {!compact ? (
-                <div className="grid gap-4 sm:grid-cols-2">
-                    <ColorInput
-                        label={text.backgroundColor}
-                        value={backgroundColor}
-                        fallback="#FFF7F3"
-                        onChange={(value) => {
-                            setBackgroundColor(value);
-                            showPreview();
-                        }}
-                    />
-
-                    <ColorInput
-                        label={text.noiseColor}
-                        value={noiseColor}
-                        fallback="#111827"
-                        onChange={(value) => {
-                            setNoiseColor(value);
-                            showPreview();
-                        }}
-                    />
-                </div>
-            ) : null}
+                <RangeInput
+                    label={grainSizeLabel}
+                    value={grainSize}
+                    min={1}
+                    max={6}
+                    suffix="px"
+                    compact={compact}
+                    onChange={(value) => {
+                        setGrainSize(value);
+                        showPreview();
+                    }}
+                />
+            </div>
         </div>
     );
 }
@@ -784,7 +812,7 @@ function NoiseMiniPreview({
     const fillWidth = previewRatio >= containerRatio;
 
     return (
-        <div className="flex h-36 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5">
+        <div className="flex h-48 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5">
             <div
                 className="overflow-hidden rounded-xl border border-[#F1E5DF] shadow-sm"
                 style={{
@@ -881,70 +909,45 @@ function ColorInput({
     label,
     value,
     fallback,
+    compact = false,
     onChange,
 }: {
     label: string;
     value: string;
     fallback: string;
-    onChange: (value: string) => void;
-}) {
-    const colorPickerValue = isValidHexColor(value) ? value : fallback;
-
-    return (
-        <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-gray-800">
-                {label}
-            </span>
-
-            <div className="grid grid-cols-[58px_1fr] gap-3">
-                <input
-                    type="color"
-                    value={colorPickerValue}
-                    onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-12 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
-                />
-
-                <input
-                    value={value}
-                    onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                />
-            </div>
-        </label>
-    );
-}
-
-function CompactColorInput({
-    label,
-    value,
-    fallback,
-    onChange,
-}: {
-    label: string;
-    value: string;
-    fallback: string;
+    compact?: boolean;
     onChange: (value: string) => void;
 }) {
     const colorPickerValue = isValidHexColor(value) ? value : fallback;
 
     return (
         <label className="block min-w-0">
-            <span className="mb-1.5 block truncate text-[10px] font-semibold text-gray-800">
+            <span
+                className={`mb-1.5 block truncate font-semibold text-gray-800 ${compact ? "text-[10px]" : "text-sm"
+                    }`}
+            >
                 {label}
             </span>
 
-            <div className="grid grid-cols-[34px_1fr] gap-1.5">
+            <div
+                className={`grid gap-1.5 ${compact ? "grid-cols-[34px_1fr]" : "grid-cols-[58px_1fr]"
+                    }`}
+            >
                 <input
                     type="color"
                     value={colorPickerValue}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-10 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
+                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-10" : "h-12"
+                        }`}
                 />
 
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-10 min-w-0 rounded-xl border border-[#F1E5DF] px-2 text-[10px] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                    className={`w-full rounded-xl border border-[#F1E5DF] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
+                            ? "h-10 px-2 text-[11px]"
+                            : "h-12 px-4 text-sm"
+                        }`}
                 />
             </div>
         </label>
@@ -969,19 +972,31 @@ function RangeInput({
     onChange: (value: number) => void;
 }) {
     return (
-        <label className="block">
+        <label className="block min-w-0">
             <div
-                className={`flex items-center justify-between gap-4 ${compact ? "mb-1.5" : "mb-2"
-                    }`}
+                className={
+                    compact
+                        ? "mb-1 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5"
+                        : "mb-2 flex items-center justify-between gap-4"
+                }
             >
                 <span
-                    className={`font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
-                        }`}
+                    className={
+                        compact
+                            ? "min-w-0 truncate whitespace-nowrap text-[11px] font-semibold leading-5 text-gray-800"
+                            : "text-sm font-semibold text-gray-800"
+                    }
                 >
                     {label}
                 </span>
 
-                <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
+                <span
+                    className={
+                        compact
+                            ? "min-w-[40px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-0.5 text-center text-[11px] font-semibold leading-5 text-[#7A5A4F]"
+                            : "rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]"
+                    }
+                >
                     {value}
                     {suffix}
                 </span>
@@ -1094,12 +1109,12 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-2 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
         >
             <div
-                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
@@ -1120,7 +1135,9 @@ function MobileSettingsSheet({
                     </button>
                 </div>
 
-                <div className="overflow-y-auto px-4 pb-4 pt-2">{children}</div>
+                <div className="min-h-0 flex-1 overflow-hidden px-4 pb-4 pt-2">
+                    {children}
+                </div>
             </div>
         </div>
     );
