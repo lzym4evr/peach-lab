@@ -737,7 +737,7 @@ function BlobMiniPreview({
     onRemovePoint: (pointIndex: number) => void;
 }) {
     return (
-        <div className="relative flex aspect-square w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
+        <div className="relative flex h-36 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-3">
             {isCustomPoints ? (
                 <p className="absolute left-3 right-3 top-3 z-10 rounded-2xl bg-white/80 px-3 py-2 text-center text-[11px] font-medium leading-4 text-[#7A5A4F] backdrop-blur">
                     {clickToAddPointText}
@@ -758,7 +758,7 @@ function BlobMiniPreview({
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
                 onRemovePoint={onRemovePoint}
-                className={`h-full max-h-60 w-full max-w-60 drop-shadow-sm ${isCustomPoints ? "cursor-crosshair touch-none" : ""
+                className={`h-full max-h-32 w-full max-w-32 drop-shadow-sm ${isCustomPoints ? "cursor-crosshair touch-none" : ""
                     }`}
             />
         </div>
@@ -1201,8 +1201,8 @@ function ColorInput({
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
                     className={`w-full rounded-xl border border-[#F1E5DF] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
-                            ? "h-10 px-2 text-[11px]"
-                            : "h-12 px-4 text-sm"
+                        ? "h-10 px-2 text-[11px]"
+                        : "h-12 px-4 text-sm"
                         }`}
                 />
             </div>

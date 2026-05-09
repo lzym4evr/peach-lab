@@ -433,7 +433,13 @@ export default function BorderRadiusGeneratorTool() {
                 >
                     <div className="flex h-full min-h-0 flex-col">
                         <div className="shrink-0 bg-white pb-3">
-                            {previewPanel}
+                            <RadiusPreview
+                                safeBackgroundColor={safeBackgroundColor}
+                                safeBoxColor={safeBoxColor}
+                                settings={settings}
+                                borderRadiusValue={borderRadiusValue}
+                                compact
+                            />
                         </div>
 
                         <div className="min-h-0 flex-1 overflow-y-auto pt-1">
@@ -451,22 +457,32 @@ function RadiusPreview({
     safeBoxColor,
     settings,
     borderRadiusValue,
+    compact = false,
 }: {
     safeBackgroundColor: string;
     safeBoxColor: string;
     settings: BorderRadiusSettings;
     borderRadiusValue: string;
+    compact?: boolean;
 }) {
     return (
         <div
-            className="flex aspect-square w-full items-center justify-center rounded-3xl border border-[#F1E5DF] p-5 md:aspect-auto md:min-h-[360px] md:p-8"
+            className={
+                compact
+                    ? "flex h-36 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] p-3"
+                    : "flex aspect-square w-full items-center justify-center rounded-3xl border border-[#F1E5DF] p-5 md:aspect-auto md:min-h-[360px] md:p-8"
+            }
             style={{ backgroundColor: safeBackgroundColor }}
         >
             <div
                 className="flex items-center justify-center text-center shadow-sm transition-all"
                 style={{
-                    width: `min(${settings.boxWidth}px, 100%)`,
-                    height: `${settings.boxHeight}px`,
+                    width: compact
+                        ? `min(${settings.boxWidth}px, 70%)`
+                        : `min(${settings.boxWidth}px, 100%)`,
+                    height: compact
+                        ? `min(${settings.boxHeight}px, 90px)`
+                        : `${settings.boxHeight}px`,
                     maxWidth: "100%",
                     backgroundColor: safeBoxColor,
                     borderRadius: borderRadiusValue,
