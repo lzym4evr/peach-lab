@@ -753,16 +753,10 @@ export default function ColorPaletteGenerator() {
                             key={`${color}-mini-${index}`}
                             type="button"
                             onClick={() => copyWithStatus(color, `mini-color-${index}`)}
-                            className="relative min-w-0 flex-1 transition active:scale-[0.98]"
+                            className="min-w-0 flex-1 transition active:scale-[0.98]"
                             style={{ backgroundColor: color }}
                             aria-label={`${t.common.copy} ${color}`}
-                        >
-                            <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-white/80 px-2 py-0.5 text-[9px] font-bold text-[#2A1F1B] shadow-sm backdrop-blur">
-                                {copiedTarget === `mini-color-${index}`
-                                    ? t.common.copied
-                                    : color}
-                            </span>
-                        </button>
+                        />
                     ))}
                 </div>
             </div>
@@ -872,7 +866,7 @@ export default function ColorPaletteGenerator() {
                     className={
                         isDesktop
                             ? "mb-5 flex min-w-0 items-center justify-between gap-4"
-                            : "mb-3 flex min-w-0 items-center justify-between gap-3"
+                            : "mb-3"
                     }
                 >
                     <div className="min-w-0">
@@ -895,231 +889,265 @@ export default function ColorPaletteGenerator() {
                             {text.chooseBaseColorDescription}
                         </p>
                     </div>
-
-                    {!isDesktop ? (
-                        <button
-                            type="button"
-                            onClick={closeSettings}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-[#2A1F1B] transition hover:bg-[#FFEDE6]"
-                            aria-label={text.cancel}
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
-                    ) : null}
                 </div>
 
-                <div
-                    className={
-                        isDesktop
-                            ? "grid min-w-0 gap-5 overflow-x-hidden md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] md:items-start md:gap-8"
-                            : "grid min-w-0 gap-3 overflow-x-hidden"
-                    }
-                >
-                    <div
-                        className={
-                            isDesktop
-                                ? "min-w-0 space-y-5 overflow-x-hidden"
-                                : "min-w-0 space-y-3 overflow-x-hidden"
-                        }
-                    >
-                        <div
-                            ref={wheelRef}
-                            onPointerDown={(event) => {
-                                event.currentTarget.setPointerCapture(event.pointerId);
-                                handleWheelPointer(
-                                    wheelRef.current,
-                                    event.clientX,
-                                    event.clientY,
-                                );
-                            }}
-                            onPointerMove={(event) => {
-                                if (event.buttons !== 1) return;
-                                handleWheelPointer(
-                                    wheelRef.current,
-                                    event.clientX,
-                                    event.clientY,
-                                );
-                            }}
-                            className={
-                                isDesktop
-                                    ? "relative mx-auto aspect-square w-full max-w-[280px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)] md:max-w-[360px]"
-                                    : "relative mx-auto aspect-square w-full max-w-[210px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)]"
-                            }
-                            style={{
-                                background:
-                                    "radial-gradient(circle, white 0%, rgba(255,255,255,0.2) 35%, rgba(255,255,255,0) 62%), conic-gradient(red, yellow, lime, cyan, blue, magenta, red)",
-                            }}
-                        >
-                            <span
-                                className={
-                                    isDesktop
-                                        ? "absolute h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md md:h-8 md:w-8"
-                                        : "absolute h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md"
+                {isDesktop ? (
+                    <div className="grid min-w-0 gap-5 overflow-x-hidden md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] md:items-start md:gap-8">
+                        <div className="min-w-0 space-y-5 overflow-x-hidden">
+                            {renderColorWheel(wheelRef, true)}
+
+                            <HexInput
+                                value={draftHex}
+                                copyLabel={
+                                    copiedTarget === "picker"
+                                        ? t.common.copied
+                                        : t.common.copy
                                 }
-                                style={{
-                                    left: `${50 +
-                                        Math.cos((draftHsl.h * Math.PI) / 180) *
-                                        (draftHsl.s / 100) *
-                                        42
-                                        }%`,
-                                    top: `${50 +
-                                        Math.sin((draftHsl.h * Math.PI) / 180) *
-                                        (draftHsl.s / 100) *
-                                        42
-                                        }%`,
+                                onChange={updateDraftFromHex}
+                                onBlur={() => {
+                                    if (!isValidHex(draftHex)) {
+                                        const fixed = draftColor;
+                                        setDraftHex(fixed);
+                                    }
                                 }}
+                                onCopy={() => copyWithStatus(draftColor, "picker")}
+                                text={text}
                             />
                         </div>
 
-                        <div className="min-w-0">
-                            <label className="mb-1.5 block text-xs font-medium text-gray-500">
-                                {text.hex}
-                            </label>
+                        <div className="min-w-0 space-y-5 overflow-x-hidden">
+                            <SliderInput
+                                label={text.hue}
+                                value={Math.round(draftHsl.h)}
+                                min={0}
+                                max={360}
+                                suffix=""
+                                onChange={(value) => updateDraftHsl({ h: value })}
+                            />
 
-                            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_44px] items-center gap-2">
-                                <input
-                                    value={draftHex}
-                                    onChange={(event) =>
-                                        updateDraftFromHex(event.target.value)
-                                    }
-                                    onBlur={() => {
-                                        if (!isValidHex(draftHex)) {
-                                            const fixed = draftColor;
-                                            setDraftHex(fixed);
-                                        }
-                                    }}
-                                    className="w-full min-w-0 rounded-2xl border border-[#F1E5DF] px-3 py-2.5 text-sm font-semibold text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
-                                    aria-label={text.hexColor}
-                                />
+                            <SliderInput
+                                label={text.saturation}
+                                value={Math.round(draftHsl.s)}
+                                min={0}
+                                max={100}
+                                suffix="%"
+                                onChange={(value) => updateDraftHsl({ s: value })}
+                            />
+
+                            <SliderInput
+                                label={text.lightness}
+                                value={Math.round(draftHsl.l)}
+                                min={10}
+                                max={90}
+                                suffix="%"
+                                onChange={(value) => updateDraftHsl({ l: value })}
+                            />
+
+                            {renderCurrentColor()}
+                            {renderPresets()}
+
+                            <div className="grid min-w-0 grid-cols-2 gap-3 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={resetDesktopColor}
+                                    className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-2.5 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
+                                >
+                                    {text.reset}
+                                </button>
 
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        copyWithStatus(draftColor, "picker")
-                                    }
-                                    className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
-                                    aria-label={text.copySelectedColor}
+                                    onClick={applyDesktopColor}
+                                    className="rounded-2xl bg-[#F28C6F] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                                 >
-                                    {copiedTarget === "picker" ? (
-                                        <span className="text-[10px] font-semibold">
-                                            {t.common.copied}
-                                        </span>
-                                    ) : (
-                                        <span className="text-[10px] font-semibold">
-                                            {t.common.copy}
-                                        </span>
-                                    )}
+                                    {text.apply}
                                 </button>
                             </div>
                         </div>
                     </div>
+                ) : (
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-[minmax(0,1fr)_72px] gap-3">
+                            {renderColorWheel(wheelRef, false)}
 
-                    <div
-                        className={
-                            isDesktop
-                                ? "min-w-0 space-y-5 overflow-x-hidden"
-                                : "min-w-0 space-y-3 overflow-x-hidden"
-                        }
-                    >
-                        <SliderInput
-                            label={text.hue}
-                            value={Math.round(draftHsl.h)}
-                            min={0}
-                            max={360}
-                            suffix=""
-                            onChange={(value) => updateDraftHsl({ h: value })}
-                        />
-
-                        <SliderInput
-                            label={text.saturation}
-                            value={Math.round(draftHsl.s)}
-                            min={0}
-                            max={100}
-                            suffix="%"
-                            onChange={(value) => updateDraftHsl({ s: value })}
-                        />
-
-                        <SliderInput
-                            label={text.lightness}
-                            value={Math.round(draftHsl.l)}
-                            min={10}
-                            max={90}
-                            suffix="%"
-                            onChange={(value) => updateDraftHsl({ l: value })}
-                        />
-
-                        <div className="min-w-0">
-                            <span className="mb-1.5 block text-xs font-medium text-gray-500">
-                                {text.currentColor}
-                            </span>
-                            <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-2.5">
-                                <div
-                                    className="h-11 w-11 shrink-0 rounded-2xl border border-[#F1E5DF] shadow-sm md:h-14 md:w-14"
-                                    style={{ backgroundColor: draftColor }}
+                            <div className="grid grid-cols-3 gap-1.5">
+                                <VerticalSlider
+                                    label="H"
+                                    value={Math.round(draftHsl.h)}
+                                    min={0}
+                                    max={360}
+                                    gradient="linear-gradient(to top, red, yellow, lime, cyan, blue, magenta, red)"
+                                    onChange={(value) => updateDraftHsl({ h: value })}
                                 />
-                                <div className="min-w-0">
-                                    <p className="truncate text-sm font-semibold text-[#2A1F1B]">
-                                        {draftColor}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        {text.selectedBaseColor}
-                                    </p>
-                                </div>
+
+                                <VerticalSlider
+                                    label="S"
+                                    value={Math.round(draftHsl.s)}
+                                    min={0}
+                                    max={100}
+                                    gradient={`linear-gradient(to top, hsl(${draftHsl.h}, 0%, ${draftHsl.l}%), hsl(${draftHsl.h}, 100%, ${draftHsl.l}%))`}
+                                    onChange={(value) => updateDraftHsl({ s: value })}
+                                />
+
+                                <VerticalSlider
+                                    label="L"
+                                    value={Math.round(draftHsl.l)}
+                                    min={10}
+                                    max={90}
+                                    gradient={`linear-gradient(to top, #111827, hsl(${draftHsl.h}, ${draftHsl.s}%, 50%), #ffffff)`}
+                                    onChange={(value) => updateDraftHsl({ l: value })}
+                                />
                             </div>
                         </div>
 
-                        <div className="min-w-0">
-                            <span className="mb-2 block text-xs font-medium text-gray-500">
-                                {text.presets}
-                            </span>
+                        <HexInput
+                            value={draftHex}
+                            copyLabel={
+                                copiedTarget === "picker" ? t.common.copied : t.common.copy
+                            }
+                            onChange={updateDraftFromHex}
+                            onBlur={() => {
+                                if (!isValidHex(draftHex)) {
+                                    const fixed = draftColor;
+                                    setDraftHex(fixed);
+                                }
+                            }}
+                            onCopy={() => copyWithStatus(draftColor, "picker")}
+                            text={text}
+                        />
 
-                            <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1">
-                                {PRESET_COLORS.map((color) => {
-                                    const active = draftColor.toUpperCase() === color;
-
-                                    return (
-                                        <button
-                                            key={color}
-                                            type="button"
-                                            onClick={() => {
-                                                setDraftHex(color);
-                                                setDraftHsl(hexToHsl(color));
-                                            }}
-                                            className={
-                                                active
-                                                    ? "h-9 w-9 shrink-0 rounded-2xl border-2 border-[#F28C6F] bg-white p-1 md:h-10 md:w-10"
-                                                    : "h-9 w-9 shrink-0 rounded-2xl border border-[#F1E5DF] p-1 md:h-10 md:w-10"
-                                            }
-                                            aria-label={`Use ${color}`}
-                                        >
-                                            <span
-                                                className="block h-full w-full rounded-xl"
-                                                style={{ backgroundColor: color }}
-                                            />
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                        {renderCurrentColor()}
+                        {renderPresets()}
 
                         <div className="grid min-w-0 grid-cols-2 gap-3 pt-1">
                             <button
                                 type="button"
-                                onClick={isDesktop ? resetDesktopColor : closeSettings}
+                                onClick={closeSettings}
                                 className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-2.5 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
                             >
-                                {isDesktop ? text.reset : text.cancel}
+                                {text.cancel}
                             </button>
 
                             <button
                                 type="button"
-                                onClick={isDesktop ? applyDesktopColor : applyPickerColor}
+                                onClick={applyPickerColor}
                                 className="rounded-2xl bg-[#F28C6F] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                             >
                                 {text.apply}
                             </button>
                         </div>
                     </div>
+                )}
+            </div>
+        );
+    };
+
+    const renderColorWheel = (
+        wheelRef: RefObject<HTMLDivElement | null>,
+        isDesktop: boolean,
+    ) => {
+        return (
+            <div
+                ref={wheelRef}
+                onPointerDown={(event) => {
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    handleWheelPointer(wheelRef.current, event.clientX, event.clientY);
+                }}
+                onPointerMove={(event) => {
+                    if (event.buttons !== 1) return;
+                    handleWheelPointer(wheelRef.current, event.clientX, event.clientY);
+                }}
+                className={
+                    isDesktop
+                        ? "relative mx-auto aspect-square w-full max-w-[280px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)] md:max-w-[360px]"
+                        : "relative mx-auto aspect-square w-full max-w-[240px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)]"
+                }
+                style={{
+                    background:
+                        "radial-gradient(circle, white 0%, rgba(255,255,255,0.2) 35%, rgba(255,255,255,0) 62%), conic-gradient(red, yellow, lime, cyan, blue, magenta, red)",
+                }}
+            >
+                <span
+                    className={
+                        isDesktop
+                            ? "absolute h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md md:h-8 md:w-8"
+                            : "absolute h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md"
+                    }
+                    style={{
+                        left: `${50 +
+                            Math.cos((draftHsl.h * Math.PI) / 180) *
+                            (draftHsl.s / 100) *
+                            42
+                            }%`,
+                        top: `${50 +
+                            Math.sin((draftHsl.h * Math.PI) / 180) *
+                            (draftHsl.s / 100) *
+                            42
+                            }%`,
+                        backgroundColor: draftColor,
+                    }}
+                />
+            </div>
+        );
+    };
+
+    const renderCurrentColor = () => {
+        return (
+            <div className="min-w-0">
+                <span className="mb-1.5 block text-xs font-medium text-gray-500">
+                    {text.currentColor}
+                </span>
+                <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-2.5">
+                    <div
+                        className="h-11 w-11 shrink-0 rounded-2xl border border-[#F1E5DF] shadow-sm md:h-14 md:w-14"
+                        style={{ backgroundColor: draftColor }}
+                    />
+                    <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-[#2A1F1B]">
+                            {draftColor}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                            {text.selectedBaseColor}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const renderPresets = () => {
+        return (
+            <div className="min-w-0">
+                <span className="mb-2 block text-xs font-medium text-gray-500">
+                    {text.presets}
+                </span>
+
+                <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1">
+                    {PRESET_COLORS.map((color) => {
+                        const active = draftColor.toUpperCase() === color;
+
+                        return (
+                            <button
+                                key={color}
+                                type="button"
+                                onClick={() => {
+                                    setDraftHex(color);
+                                    setDraftHsl(hexToHsl(color));
+                                }}
+                                className={
+                                    active
+                                        ? "h-9 w-9 shrink-0 rounded-2xl border-2 border-[#F28C6F] bg-white p-1 md:h-10 md:w-10"
+                                        : "h-9 w-9 shrink-0 rounded-2xl border border-[#F1E5DF] p-1 md:h-10 md:w-10"
+                                }
+                                aria-label={`Use ${color}`}
+                            >
+                                <span
+                                    className="block h-full w-full rounded-xl"
+                                    style={{ backgroundColor: color }}
+                                />
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
         );
@@ -1127,7 +1155,7 @@ export default function ColorPaletteGenerator() {
 
     return (
         <div className="space-y-6 pb-1 md:pb-0">
-            <div className="border-b border-[#F1E5DF] pb-5">
+            <div className="pb-2">
                 <SectionTitle
                     title={text.palettePreview}
                     right={
@@ -1329,6 +1357,49 @@ export default function ColorPaletteGenerator() {
     );
 }
 
+function HexInput({
+    value,
+    copyLabel,
+    onChange,
+    onBlur,
+    onCopy,
+    text,
+}: {
+    value: string;
+    copyLabel: string;
+    onChange: (value: string) => void;
+    onBlur: () => void;
+    onCopy: () => void;
+    text: typeof t.colorPaletteGenerator;
+}) {
+    return (
+        <div className="min-w-0">
+            <label className="mb-1.5 block text-xs font-medium text-gray-500">
+                {text.hex}
+            </label>
+
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_64px] items-center gap-2">
+                <input
+                    value={value}
+                    onChange={(event) => onChange(event.target.value)}
+                    onBlur={onBlur}
+                    className="w-full min-w-0 rounded-2xl border border-[#F1E5DF] px-3 py-2.5 text-sm font-semibold text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
+                    aria-label={text.hexColor}
+                />
+
+                <button
+                    type="button"
+                    onClick={onCopy}
+                    className="flex h-11 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white px-2 text-xs font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                    aria-label={text.copySelectedColor}
+                >
+                    {copyLabel}
+                </button>
+            </div>
+        </div>
+    );
+}
+
 function SliderInput({
     label,
     value,
@@ -1365,6 +1436,55 @@ function SliderInput({
                 onChange={(event) => onChange(Number(event.target.value))}
                 className="block w-full min-w-0 accent-[#F28C6F]"
             />
+        </label>
+    );
+}
+
+function VerticalSlider({
+    label,
+    value,
+    min,
+    max,
+    gradient,
+    onChange,
+}: {
+    label: string;
+    value: number;
+    min: number;
+    max: number;
+    gradient: string;
+    onChange: (value: number) => void;
+}) {
+    const percent = ((value - min) / (max - min)) * 100;
+
+    return (
+        <label className="flex min-w-0 flex-col items-center gap-1.5">
+            <span className="text-[10px] font-semibold text-gray-500">{label}</span>
+
+            <div
+                className="relative h-full min-h-[210px] w-5 rounded-full border border-white shadow-sm"
+                style={{ background: gradient }}
+            >
+                <input
+                    type="range"
+                    min={min}
+                    max={max}
+                    value={value}
+                    onChange={(event) => onChange(Number(event.target.value))}
+                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    style={{
+                        writingMode: "vertical-lr",
+                        direction: "rtl",
+                    }}
+                />
+
+                <span
+                    className="pointer-events-none absolute left-1/2 h-5 w-5 -translate-x-1/2 rounded-full border-2 border-white bg-[#F28C6F] shadow-md"
+                    style={{
+                        bottom: `calc(${percent}% - 10px)`,
+                    }}
+                />
+            </div>
         </label>
     );
 }
