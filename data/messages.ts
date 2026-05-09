@@ -790,6 +790,10 @@ export const messages = {
             controls: "Blob Settings",
             settingsButton: "Settings",
 
+            customPoints: "Custom Points",
+            clearPoints: "Clear Points",
+            clickToAddPoint: "Click or tap the preview to add points. Drag points to adjust the shape.",
+
             fillColor: "Fill Color",
             points: "Points",
             smoothness: "Smoothness",

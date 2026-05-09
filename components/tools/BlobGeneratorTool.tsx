@@ -1,6 +1,13 @@
 "use client";
 
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import {
+    type PointerEvent as ReactPointerEvent,
+    type ReactNode,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { t } from "@/data/messages";
 
 type Point = {
@@ -13,7 +20,7 @@ function createRandomPoints(count: number, minRadius: number, maxRadius: number)
     const centerX = 150;
     const centerY = 150;
 
-    for (let index = 0; index < count; index++) {
+    for (let index = 0; index < count; index += 1) {
         const angle = (Math.PI * 2 * index) / count;
         const radius = minRadius + Math.random() * (maxRadius - minRadius);
 
@@ -27,11 +34,11 @@ function createRandomPoints(count: number, minRadius: number, maxRadius: number)
 }
 
 function createSmoothPath(points: Point[], smoothness: number) {
-    if (points.length < 2) return "";
+    if (points.length < 3) return "";
 
     let path = "";
 
-    for (let index = 0; index < points.length; index++) {
+    for (let index = 0; index < points.length; index += 1) {
         const current = points[index];
         const next = points[(index + 1) % points.length];
         const previous = points[(index - 1 + points.length) % points.length];
@@ -66,15 +73,39 @@ function createSmoothPath(points: Point[], smoothness: number) {
     return path;
 }
 
+function getSvgPoint(event: ReactPointerEvent<SVGSVGElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+
+    const x = ((event.clientX - rect.left) / rect.width) * 300;
+    const y = ((event.clientY - rect.top) / rect.height) * 300;
+
+    return {
+        x: Math.min(300, Math.max(0, x)),
+        y: Math.min(300, Math.max(0, y)),
+    };
+}
+
 export default function BlobGeneratorTool() {
     const text = t.blobGenerator;
     const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const dragIndexRef = useRef<number | null>(null);
+    const didDragRef = useRef(false);
 
     const settingsButtonText =
         (text as { settingsButton?: string }).settingsButton ?? "Settings";
 
     const actionDownloadText =
         (text as { actionDownload?: string }).actionDownload ?? "Download";
+
+    const customPointsText =
+        (text as { customPoints?: string }).customPoints ?? "Custom Points";
+
+    const clearPointsText =
+        (text as { clearPoints?: string }).clearPoints ?? "Clear Points";
+
+    const clickToAddPointText =
+        (text as { clickToAddPoint?: string }).clickToAddPoint ??
+        "Click or tap the preview to add points. Drag points to adjust the shape.";
 
     const copyErrorText =
         (text as { copyError?: string }).copyError ??
@@ -84,6 +115,7 @@ export default function BlobGeneratorTool() {
     const [smoothness, setSmoothness] = useState(28);
     const [color, setColor] = useState("#F28C6F");
     const [points, setPoints] = useState(() => createRandomPoints(8, 80, 125));
+    const [isCustomPoints, setIsCustomPoints] = useState(false);
     const [copied, setCopied] = useState(false);
     const [copyError, setCopyError] = useState("");
     const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);
@@ -112,7 +144,84 @@ export default function BlobGeneratorTool() {
     }
 
     function generateBlob() {
-        setPoints(createRandomPoints(pointsCount, 80, 125));
+        const nextPoints = createRandomPoints(pointsCount, 80, 125);
+
+        setPoints(nextPoints);
+        clearCopyState();
+    }
+
+    function clearCustomPoints() {
+        setPoints([]);
+        clearCopyState();
+    }
+
+    function handleCustomModeChange(nextValue: boolean) {
+        setIsCustomPoints(nextValue);
+        clearCopyState();
+
+        if (!nextValue && points.length < 3) {
+            setPoints(createRandomPoints(pointsCount, 80, 125));
+        }
+    }
+
+    function handlePreviewPointerDown(pointIndex?: number) {
+        if (!isCustomPoints) return;
+
+        if (typeof pointIndex === "number") {
+            dragIndexRef.current = pointIndex;
+            didDragRef.current = false;
+            return;
+        }
+
+        dragIndexRef.current = null;
+        didDragRef.current = false;
+    }
+
+    function handlePreviewPointerMove(event: ReactPointerEvent<SVGSVGElement>) {
+        if (!isCustomPoints) return;
+        if (dragIndexRef.current === null) return;
+
+        didDragRef.current = true;
+
+        const nextPoint = getSvgPoint(event);
+
+        setPoints((current) =>
+            current.map((point, index) =>
+                index === dragIndexRef.current ? nextPoint : point,
+            ),
+        );
+
+        clearCopyState();
+    }
+
+    function handlePreviewPointerUp(event: ReactPointerEvent<SVGSVGElement>) {
+        if (!isCustomPoints) return;
+
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+
+        if (dragIndexRef.current !== null) {
+            dragIndexRef.current = null;
+            didDragRef.current = false;
+            return;
+        }
+
+        if (didDragRef.current) {
+            didDragRef.current = false;
+            return;
+        }
+
+        const nextPoint = getSvgPoint(event);
+
+        setPoints((current) => [...current, nextPoint]);
+        clearCopyState();
+    }
+
+    function removePoint(pointIndex: number) {
+        if (!isCustomPoints) return;
+
+        setPoints((current) => current.filter((_, index) => index !== pointIndex));
         clearCopyState();
     }
 
@@ -149,7 +258,17 @@ export default function BlobGeneratorTool() {
     }
 
     const previewPanel = (
-        <BlobPreview path={path} color={color} />
+        <BlobPreview
+            path={path}
+            color={color}
+            points={points}
+            isCustomPoints={isCustomPoints}
+            clickToAddPointText={clickToAddPointText}
+            onPointerDown={handlePreviewPointerDown}
+            onPointerMove={handlePreviewPointerMove}
+            onPointerUp={handlePreviewPointerUp}
+            onRemovePoint={removePoint}
+        />
     );
 
     const desktopSettingsPanel = (
@@ -158,10 +277,16 @@ export default function BlobGeneratorTool() {
             pointsCount={pointsCount}
             smoothness={smoothness}
             color={color}
+            isCustomPoints={isCustomPoints}
+            customPointsText={customPointsText}
+            clearPointsText={clearPointsText}
             setPointsCount={setPointsCount}
             setSmoothness={setSmoothness}
             setColor={setColor}
             setPoints={setPoints}
+            onCustomModeChange={handleCustomModeChange}
+            onGenerateBlob={generateBlob}
+            onClearCustomPoints={clearCustomPoints}
             clearCopyState={clearCopyState}
             compact={false}
         />
@@ -173,10 +298,16 @@ export default function BlobGeneratorTool() {
             pointsCount={pointsCount}
             smoothness={smoothness}
             color={color}
+            isCustomPoints={isCustomPoints}
+            customPointsText={customPointsText}
+            clearPointsText={clearPointsText}
             setPointsCount={setPointsCount}
             setSmoothness={setSmoothness}
             setColor={setColor}
             setPoints={setPoints}
+            onCustomModeChange={handleCustomModeChange}
+            onGenerateBlob={generateBlob}
+            onClearCustomPoints={clearCustomPoints}
             clearCopyState={clearCopyState}
             compact
         />
@@ -263,15 +394,17 @@ export default function BlobGeneratorTool() {
                     onClose={() => setIsMobileSettingsOpen(false)}
                 >
                     <div className="space-y-3">
-                        <BlobMiniPreview path={path} color={color} />
-
-                        <button
-                            type="button"
-                            onClick={generateBlob}
-                            className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                        >
-                            {text.generate}
-                        </button>
+                        <BlobMiniPreview
+                            path={path}
+                            color={color}
+                            points={points}
+                            isCustomPoints={isCustomPoints}
+                            clickToAddPointText={clickToAddPointText}
+                            onPointerDown={handlePreviewPointerDown}
+                            onPointerMove={handlePreviewPointerMove}
+                            onPointerUp={handlePreviewPointerUp}
+                            onRemovePoint={removePoint}
+                        />
 
                         {mobileSettingsPanel}
                     </div>
@@ -281,33 +414,177 @@ export default function BlobGeneratorTool() {
     );
 }
 
-function BlobPreview({ path, color }: { path: string; color: string }) {
+function BlobPreview({
+    path,
+    color,
+    points,
+    isCustomPoints,
+    clickToAddPointText,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+    onRemovePoint,
+}: {
+    path: string;
+    color: string;
+    points: Point[];
+    isCustomPoints: boolean;
+    clickToAddPointText: string;
+    onPointerDown: (pointIndex?: number) => void;
+    onPointerMove: (event: ReactPointerEvent<SVGSVGElement>) => void;
+    onPointerUp: (event: ReactPointerEvent<SVGSVGElement>) => void;
+    onRemovePoint: (pointIndex: number) => void;
+}) {
     return (
-        <div className="flex aspect-square w-full items-center justify-center rounded-3xl bg-[#FFF7F3] p-6 md:min-h-96 md:p-8">
+        <div className="relative flex aspect-square w-full items-center justify-center rounded-3xl bg-[#FFF7F3] p-5 md:p-8">
+            {isCustomPoints ? (
+                <p className="absolute left-4 right-4 top-4 z-10 rounded-2xl bg-white/80 px-3 py-2 text-center text-xs font-medium leading-5 text-[#7A5A4F] backdrop-blur">
+                    {clickToAddPointText}
+                </p>
+            ) : null}
+
             <svg
                 width="300"
                 height="300"
                 viewBox="0 0 300 300"
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-full max-h-72 w-full max-w-72 drop-shadow-sm md:h-72 md:w-72"
+                className={`h-full max-h-[320px] w-full max-w-[320px] drop-shadow-sm ${isCustomPoints ? "cursor-crosshair touch-none" : ""
+                    }`}
+                onPointerDown={(event) => {
+                    if (!isCustomPoints) return;
+
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    onPointerDown();
+                }}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
             >
-                <path d={path} fill={color} />
+                {path ? <path d={path} fill={color} /> : null}
+
+                {isCustomPoints
+                    ? points.map((point, index) => (
+                        <g key={`${point.x}-${point.y}-${index}`}>
+                            <circle
+                                cx={point.x}
+                                cy={point.y}
+                                r="8"
+                                fill="#FFFFFF"
+                                stroke="#F28C6F"
+                                strokeWidth="3"
+                                className="cursor-grab"
+                                onPointerDown={(event) => {
+                                    event.stopPropagation();
+
+                                    const svg = event.currentTarget.ownerSVGElement;
+                                    if (svg) {
+                                        svg.setPointerCapture(event.pointerId);
+                                    }
+
+                                    onPointerDown(index);
+                                }}
+                                onDoubleClick={(event) => {
+                                    event.stopPropagation();
+                                    onRemovePoint(index);
+                                }}
+                            />
+                            <circle
+                                cx={point.x}
+                                cy={point.y}
+                                r="3"
+                                fill="#F28C6F"
+                                pointerEvents="none"
+                            />
+                        </g>
+                    ))
+                    : null}
             </svg>
         </div>
     );
 }
 
-function BlobMiniPreview({ path, color }: { path: string; color: string }) {
+function BlobMiniPreview({
+    path,
+    color,
+    points,
+    isCustomPoints,
+    clickToAddPointText,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+    onRemovePoint,
+}: {
+    path: string;
+    color: string;
+    points: Point[];
+    isCustomPoints: boolean;
+    clickToAddPointText: string;
+    onPointerDown: (pointIndex?: number) => void;
+    onPointerMove: (event: ReactPointerEvent<SVGSVGElement>) => void;
+    onPointerUp: (event: ReactPointerEvent<SVGSVGElement>) => void;
+    onRemovePoint: (pointIndex: number) => void;
+}) {
     return (
-        <div className="flex aspect-square w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-5">
+        <div className="relative flex aspect-square w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
+            {isCustomPoints ? (
+                <p className="absolute left-3 right-3 top-3 z-10 rounded-2xl bg-white/80 px-3 py-2 text-center text-[11px] font-medium leading-4 text-[#7A5A4F] backdrop-blur">
+                    {clickToAddPointText}
+                </p>
+            ) : null}
+
             <svg
                 width="300"
                 height="300"
                 viewBox="0 0 300 300"
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-full max-h-52 w-full max-w-52 drop-shadow-sm"
+                className={`h-full max-h-60 w-full max-w-60 drop-shadow-sm ${isCustomPoints ? "cursor-crosshair touch-none" : ""
+                    }`}
+                onPointerDown={(event) => {
+                    if (!isCustomPoints) return;
+
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    onPointerDown();
+                }}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
             >
-                <path d={path} fill={color} />
+                {path ? <path d={path} fill={color} /> : null}
+
+                {isCustomPoints
+                    ? points.map((point, index) => (
+                        <g key={`${point.x}-${point.y}-${index}`}>
+                            <circle
+                                cx={point.x}
+                                cy={point.y}
+                                r="8"
+                                fill="#FFFFFF"
+                                stroke="#F28C6F"
+                                strokeWidth="3"
+                                className="cursor-grab"
+                                onPointerDown={(event) => {
+                                    event.stopPropagation();
+
+                                    const svg = event.currentTarget.ownerSVGElement;
+                                    if (svg) {
+                                        svg.setPointerCapture(event.pointerId);
+                                    }
+
+                                    onPointerDown(index);
+                                }}
+                                onDoubleClick={(event) => {
+                                    event.stopPropagation();
+                                    onRemovePoint(index);
+                                }}
+                            />
+                            <circle
+                                cx={point.x}
+                                cy={point.y}
+                                r="3"
+                                fill="#F28C6F"
+                                pointerEvents="none"
+                            />
+                        </g>
+                    ))
+                    : null}
             </svg>
         </div>
     );
@@ -318,10 +595,16 @@ function BlobSettingsPanel({
     pointsCount,
     smoothness,
     color,
+    isCustomPoints,
+    customPointsText,
+    clearPointsText,
     setPointsCount,
     setSmoothness,
     setColor,
     setPoints,
+    onCustomModeChange,
+    onGenerateBlob,
+    onClearCustomPoints,
     clearCopyState,
     compact = false,
 }: {
@@ -329,15 +612,56 @@ function BlobSettingsPanel({
     pointsCount: number;
     smoothness: number;
     color: string;
+    isCustomPoints: boolean;
+    customPointsText: string;
+    clearPointsText: string;
     setPointsCount: (value: number) => void;
     setSmoothness: (value: number) => void;
     setColor: (value: string) => void;
     setPoints: (value: Point[]) => void;
+    onCustomModeChange: (value: boolean) => void;
+    onGenerateBlob: () => void;
+    onClearCustomPoints: () => void;
     clearCopyState: () => void;
     compact?: boolean;
 }) {
     return (
         <div className={compact ? "space-y-3" : "space-y-5"}>
+            <div className="grid grid-cols-2 gap-2">
+                <button
+                    type="button"
+                    onClick={onGenerateBlob}
+                    className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
+                >
+                    {text.generate}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onClearCustomPoints}
+                    disabled={!isCustomPoints}
+                    className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    {clearPointsText}
+                </button>
+            </div>
+
+            <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] px-4 py-3 transition hover:bg-[#FFF7F3]">
+                <span
+                    className={`font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                        }`}
+                >
+                    {customPointsText}
+                </span>
+
+                <input
+                    type="checkbox"
+                    checked={isCustomPoints}
+                    onChange={(event) => onCustomModeChange(event.target.checked)}
+                    className="h-4 w-4 accent-[#F28C6F]"
+                />
+            </label>
+
             {compact ? (
                 <CompactColorInput
                     label={text.fillColor}
@@ -358,19 +682,21 @@ function BlobSettingsPanel({
                 />
             )}
 
-            <RangeInput
-                label={text.points}
-                value={pointsCount}
-                min={5}
-                max={14}
-                suffix=""
-                compact={compact}
-                onChange={(value) => {
-                    setPointsCount(value);
-                    setPoints(createRandomPoints(value, 80, 125));
-                    clearCopyState();
-                }}
-            />
+            {!isCustomPoints ? (
+                <RangeInput
+                    label={text.points}
+                    value={pointsCount}
+                    min={5}
+                    max={14}
+                    suffix=""
+                    compact={compact}
+                    onChange={(value) => {
+                        setPointsCount(value);
+                        setPoints(createRandomPoints(value, 80, 125));
+                        clearCopyState();
+                    }}
+                />
+            ) : null}
 
             <RangeInput
                 label={text.smoothness}
