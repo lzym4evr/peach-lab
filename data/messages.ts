@@ -388,7 +388,8 @@ export const messages = {
             copyCss: "Copy CSS",
 
             gradient: "Gradient",
-            gradientSettings: "Gradient settings",
+            gradientSettings: "Gradient Settings",
+            settingsButton: "Settings",
             edit: "Edit",
             cancel: "Cancel",
             apply: "Apply",
