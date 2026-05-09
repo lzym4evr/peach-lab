@@ -818,10 +818,12 @@ export const messages = {
 
         boxShadowGenerator: {
             previewTitle: "Live Preview",
-            controlsTitle: "Controls",
+            controlsTitle: "Box Shadow Settings",
             outputTitle: "CSS Output",
+            settingsButton: "Settings",
 
-            previewDescription: "Create soft CSS box shadow styles for cards, buttons, panels, and UI elements.",
+            previewDescription:
+                "Create soft CSS box shadow styles for cards, buttons, panels, and UI elements.",
             emptyPreview: "Adjust the settings to generate a box shadow preview.",
 
             boxWidthLabel: "Box Width",
@@ -838,7 +840,7 @@ export const messages = {
             borderRadiusLabel: "Border Radius",
 
             shuffle: "Shuffle",
-            randomAll: "Random All",
+            randomAll: "Random",
             copyCss: "Copy CSS",
             reset: "Reset",
             copied: "Copied",
