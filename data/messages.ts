@@ -343,11 +343,12 @@ export const messages = {
             random: "Random",
 
             palettePreview: "Palette Preview",
-            palettePreviewHint: "Swipe or tap a color",
+            palettePreviewHint: "Tap a color to copy",
+            paletteShortLabel: "Palette",
             cssOutput: "CSS Output",
 
             shuffle: "Shuffle",
-            randomAll: "Random All",
+            randomAll: "Random",
             copyPalette: "Copy Palette",
             copyCss: "Copy CSS",
             reset: "Reset",
