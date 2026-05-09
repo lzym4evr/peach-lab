@@ -754,65 +754,73 @@ function BoxShadowSettingsPanel({
                 </>
             )}
 
-            <RangeInput
-                label={text.horizontalOffsetLabel}
-                value={settings.offsetX}
-                min={-80}
-                max={80}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => updateSetting("offsetX", value)}
-            />
+            <div
+                className={
+                    compact
+                        ? "grid grid-cols-2 gap-3"
+                        : "space-y-5"
+                }
+            >
+                <RangeInput
+                    label={text.horizontalOffsetLabel}
+                    value={settings.offsetX}
+                    min={-80}
+                    max={80}
+                    suffix="px"
+                    compact={compact}
+                    onChange={(value) => updateSetting("offsetX", value)}
+                />
 
-            <RangeInput
-                label={text.verticalOffsetLabel}
-                value={settings.offsetY}
-                min={-80}
-                max={80}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => updateSetting("offsetY", value)}
-            />
+                <RangeInput
+                    label={text.verticalOffsetLabel}
+                    value={settings.offsetY}
+                    min={-80}
+                    max={80}
+                    suffix="px"
+                    compact={compact}
+                    onChange={(value) => updateSetting("offsetY", value)}
+                />
 
-            <RangeInput
-                label={text.blurRadiusLabel}
-                value={settings.blurRadius}
-                min={0}
-                max={120}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => updateSetting("blurRadius", value)}
-            />
+                <RangeInput
+                    label={text.blurRadiusLabel}
+                    value={settings.blurRadius}
+                    min={0}
+                    max={120}
+                    suffix="px"
+                    compact={compact}
+                    onChange={(value) => updateSetting("blurRadius", value)}
+                />
 
-            <RangeInput
-                label={text.spreadRadiusLabel}
-                value={settings.spreadRadius}
-                min={-60}
-                max={60}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => updateSetting("spreadRadius", value)}
-            />
+                <RangeInput
+                    label={text.spreadRadiusLabel}
+                    value={settings.spreadRadius}
+                    min={-60}
+                    max={60}
+                    suffix="px"
+                    compact={compact}
+                    onChange={(value) => updateSetting("spreadRadius", value)}
+                />
 
-            <RangeInput
-                label={text.shadowOpacityLabel}
-                value={settings.shadowOpacity}
-                min={0}
-                max={100}
-                suffix="%"
-                compact={compact}
-                onChange={(value) => updateSetting("shadowOpacity", value)}
-            />
+                <RangeInput
+                    label={text.shadowOpacityLabel}
+                    value={settings.shadowOpacity}
+                    min={0}
+                    max={100}
+                    suffix="%"
+                    compact={compact}
+                    onChange={(value) => updateSetting("shadowOpacity", value)}
+                />
 
-            <RangeInput
-                label={text.borderRadiusLabel}
-                value={settings.borderRadius}
-                min={0}
-                max={100}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => updateSetting("borderRadius", value)}
-            />
+                <RangeInput
+                    label={text.borderRadiusLabel}
+                    value={settings.borderRadius}
+                    min={0}
+                    max={100}
+                    suffix="px"
+                    compact={compact}
+                    onChange={(value) => updateSetting("borderRadius", value)}
+                />
+            </div>
         </div>
     );
 }

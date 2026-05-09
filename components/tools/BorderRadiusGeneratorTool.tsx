@@ -3,6 +3,8 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { t } from "@/data/messages";
 
+type RadiusStyle = "soft-card" | "pill" | "ticket" | "blob" | "leaf" | "arch";
+
 type BorderRadiusSettings = {
     boxWidth: number;
     boxHeight: number;
@@ -25,6 +27,15 @@ const defaultSettings: BorderRadiusSettings = {
     bottomLeft: 36,
 };
 
+const radiusStyles: RadiusStyle[] = [
+    "soft-card",
+    "pill",
+    "ticket",
+    "blob",
+    "leaf",
+    "arch",
+];
+
 function isValidHexColor(value: string) {
     return /^#[0-9A-Fa-f]{6}$/.test(value);
 }
@@ -46,6 +57,28 @@ function getRandomNumber(min: number, max: number) {
     return Math.floor(min + Math.random() * (max - min + 1));
 }
 
+function getRadiusStyleLabel(
+    text: typeof t.borderRadiusGenerator,
+    style: RadiusStyle,
+) {
+    const labels = text as {
+        styleSoftCard?: string;
+        stylePill?: string;
+        styleTicket?: string;
+        styleBlob?: string;
+        styleLeaf?: string;
+        styleArch?: string;
+    };
+
+    if (style === "pill") return labels.stylePill ?? "Pill";
+    if (style === "ticket") return labels.styleTicket ?? "Ticket";
+    if (style === "blob") return labels.styleBlob ?? "Blob";
+    if (style === "leaf") return labels.styleLeaf ?? "Leaf";
+    if (style === "arch") return labels.styleArch ?? "Arch";
+
+    return labels.styleSoftCard ?? "Soft Card";
+}
+
 export default function BorderRadiusGeneratorTool() {
     const text = t.borderRadiusGenerator;
     const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -53,9 +86,13 @@ export default function BorderRadiusGeneratorTool() {
     const settingsButtonText =
         (text as { settingsButton?: string }).settingsButton ?? "Settings";
 
+    const radiusStyleText =
+        (text as { radiusStyle?: string }).radiusStyle ?? "Radius Style";
+
     const allCornersLabel =
         (text as { allCornersLabel?: string }).allCornersLabel ?? "All Corners";
 
+    const [radiusStyle, setRadiusStyle] = useState<RadiusStyle>("soft-card");
     const [settings, setSettings] =
         useState<BorderRadiusSettings>(defaultSettings);
     const [copiedKey, setCopiedKey] = useState("");
@@ -102,6 +139,90 @@ export default function BorderRadiusGeneratorTool() {
         clearCopyState();
     }
 
+    function applyRadiusStyle(nextStyle: RadiusStyle) {
+        setRadiusStyle(nextStyle);
+
+        if (nextStyle === "soft-card") {
+            setSettings({
+                boxWidth: 280,
+                boxHeight: 190,
+                boxColor: "#F28C6F",
+                backgroundColor: "#FFF7F3",
+                topLeft: 36,
+                topRight: 36,
+                bottomRight: 36,
+                bottomLeft: 36,
+            });
+        }
+
+        if (nextStyle === "pill") {
+            setSettings({
+                boxWidth: 320,
+                boxHeight: 150,
+                boxColor: "#F28C6F",
+                backgroundColor: "#FFF7F3",
+                topLeft: 120,
+                topRight: 120,
+                bottomRight: 120,
+                bottomLeft: 120,
+            });
+        }
+
+        if (nextStyle === "ticket") {
+            setSettings({
+                boxWidth: 300,
+                boxHeight: 185,
+                boxColor: "#F28C6F",
+                backgroundColor: "#FFF7F3",
+                topLeft: 46,
+                topRight: 12,
+                bottomRight: 46,
+                bottomLeft: 12,
+            });
+        }
+
+        if (nextStyle === "blob") {
+            setSettings({
+                boxWidth: 280,
+                boxHeight: 210,
+                boxColor: "#F28C6F",
+                backgroundColor: "#FFF7F3",
+                topLeft: 72,
+                topRight: 28,
+                bottomRight: 88,
+                bottomLeft: 36,
+            });
+        }
+
+        if (nextStyle === "leaf") {
+            setSettings({
+                boxWidth: 290,
+                boxHeight: 190,
+                boxColor: "#F28C6F",
+                backgroundColor: "#FFF7F3",
+                topLeft: 100,
+                topRight: 16,
+                bottomRight: 100,
+                bottomLeft: 16,
+            });
+        }
+
+        if (nextStyle === "arch") {
+            setSettings({
+                boxWidth: 260,
+                boxHeight: 220,
+                boxColor: "#F28C6F",
+                backgroundColor: "#FFF7F3",
+                topLeft: 110,
+                topRight: 110,
+                bottomRight: 18,
+                bottomLeft: 18,
+            });
+        }
+
+        clearCopyState();
+    }
+
     function handleShuffle() {
         setSettings((current) => ({
             ...current,
@@ -115,6 +236,11 @@ export default function BorderRadiusGeneratorTool() {
     }
 
     function handleRandomAll() {
+        const nextStyle =
+            radiusStyles[Math.floor(Math.random() * radiusStyles.length)];
+
+        setRadiusStyle(nextStyle);
+
         setSettings({
             boxWidth: getRandomNumber(180, 380),
             boxHeight: getRandomNumber(120, 280),
@@ -130,6 +256,7 @@ export default function BorderRadiusGeneratorTool() {
     }
 
     function handleReset() {
+        setRadiusStyle("soft-card");
         setSettings(defaultSettings);
         clearCopyState();
     }
@@ -175,10 +302,13 @@ export default function BorderRadiusGeneratorTool() {
     const desktopSettingsPanel = (
         <BorderRadiusSettingsPanel
             text={text}
+            radiusStyleText={radiusStyleText}
+            radiusStyle={radiusStyle}
             allCornersLabel={allCornersLabel}
             settings={settings}
             allCornersValue={allCornersValue}
             updateSetting={updateSetting}
+            onApplyRadiusStyle={applyRadiusStyle}
             onAllCornersChange={handleAllCorners}
             onShuffle={handleShuffle}
             onRandom={handleRandomAll}
@@ -190,10 +320,13 @@ export default function BorderRadiusGeneratorTool() {
     const mobileSettingsPanel = (
         <BorderRadiusSettingsPanel
             text={text}
+            radiusStyleText={radiusStyleText}
+            radiusStyle={radiusStyle}
             allCornersLabel={allCornersLabel}
             settings={settings}
             allCornersValue={allCornersValue}
             updateSetting={updateSetting}
+            onApplyRadiusStyle={applyRadiusStyle}
             onAllCornersChange={handleAllCorners}
             onShuffle={handleShuffle}
             onRandom={handleRandomAll}
@@ -357,10 +490,13 @@ function BorderRadiusMiniPreview({
 
 function BorderRadiusSettingsPanel({
     text,
+    radiusStyleText,
+    radiusStyle,
     allCornersLabel,
     settings,
     allCornersValue,
     updateSetting,
+    onApplyRadiusStyle,
     onAllCornersChange,
     onShuffle,
     onRandom,
@@ -368,6 +504,8 @@ function BorderRadiusSettingsPanel({
     compact = false,
 }: {
     text: typeof t.borderRadiusGenerator;
+    radiusStyleText: string;
+    radiusStyle: RadiusStyle;
     allCornersLabel: string;
     settings: BorderRadiusSettings;
     allCornersValue: number;
@@ -375,6 +513,7 @@ function BorderRadiusSettingsPanel({
         key: K,
         value: BorderRadiusSettings[K],
     ) => void;
+    onApplyRadiusStyle: (style: RadiusStyle) => void;
     onAllCornersChange: (value: number) => void;
     onShuffle: () => void;
     onRandom: () => void;
@@ -383,6 +522,36 @@ function BorderRadiusSettingsPanel({
 }) {
     return (
         <div className={compact ? "space-y-3" : "space-y-5"}>
+            <div>
+                <span
+                    className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                        }`}
+                >
+                    {radiusStyleText}
+                </span>
+
+                <div className="grid grid-cols-2 gap-2">
+                    {radiusStyles.map((style) => {
+                        const isActive = radiusStyle === style;
+
+                        return (
+                            <button
+                                key={style}
+                                type="button"
+                                onClick={() => onApplyRadiusStyle(style)}
+                                className={`rounded-2xl border px-3 font-semibold transition ${compact ? "py-2 text-xs" : "py-3 text-sm"
+                                    } ${isActive
+                                        ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                                        : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                                    }`}
+                            >
+                                {getRadiusStyleLabel(text, style)}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
             {compact ? (
                 <div className="grid grid-cols-3 gap-2">
                     <button

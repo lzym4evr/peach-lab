@@ -867,6 +867,14 @@ export const messages = {
             boxColorLabel: "Box Color",
             backgroundColorLabel: "Background Color",
 
+            radiusStyle: "Radius Style",
+            styleSoftCard: "Soft Card",
+            stylePill: "Pill",
+            styleTicket: "Ticket",
+            styleBlob: "Blob",
+            styleLeaf: "Leaf",
+            styleArch: "Arch",
+
             allCornersLabel: "All Corners",
             topLeftLabel: "Top Left",
             topRightLabel: "Top Right",
