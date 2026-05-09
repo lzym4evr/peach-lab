@@ -507,8 +507,7 @@ function GlassPreview({
             <div
                 className="relative w-full max-w-sm overflow-hidden p-6 text-center md:p-8"
                 style={{
-                    background: `rgba(${glassRgb.r}, ${glassRgb.g}, ${glassRgb.b
-                        }, ${opacity / 100})`,
+                    background: `rgba(${glassRgb.r}, ${glassRgb.g}, ${glassRgb.b}, ${opacity / 100})`,
                     backdropFilter: `blur(${blur}px) saturate(${saturation}%)`,
                     WebkitBackdropFilter: `blur(${blur}px) saturate(${saturation}%)`,
                     borderRadius: `${borderRadius}px`,
@@ -739,75 +738,77 @@ function GlassSettingsPanel({
                 </>
             )}
 
-            <RangeInput
-                label={text.opacity}
-                value={opacity}
-                min={5}
-                max={80}
-                suffix="%"
-                compact={compact}
-                onChange={setOpacity}
-            />
+            <div className={compact ? "grid grid-cols-2 gap-3" : "space-y-5"}>
+                <RangeInput
+                    label={text.opacity}
+                    value={opacity}
+                    min={5}
+                    max={80}
+                    suffix="%"
+                    compact={compact}
+                    onChange={setOpacity}
+                />
 
-            <RangeInput
-                label={text.blur}
-                value={blur}
-                min={0}
-                max={60}
-                suffix="px"
-                compact={compact}
-                onChange={setBlur}
-            />
+                <RangeInput
+                    label={text.blur}
+                    value={blur}
+                    min={0}
+                    max={60}
+                    suffix="px"
+                    compact={compact}
+                    onChange={setBlur}
+                />
 
-            <RangeInput
-                label={saturationLabel}
-                value={saturation}
-                min={100}
-                max={220}
-                suffix="%"
-                compact={compact}
-                onChange={setSaturation}
-            />
+                <RangeInput
+                    label={saturationLabel}
+                    value={saturation}
+                    min={100}
+                    max={220}
+                    suffix="%"
+                    compact={compact}
+                    onChange={setSaturation}
+                />
 
-            <RangeInput
-                label={highlightLabel}
-                value={highlight}
-                min={0}
-                max={100}
-                suffix="%"
-                compact={compact}
-                onChange={setHighlight}
-            />
+                <RangeInput
+                    label={highlightLabel}
+                    value={highlight}
+                    min={0}
+                    max={100}
+                    suffix="%"
+                    compact={compact}
+                    onChange={setHighlight}
+                />
 
-            <RangeInput
-                label={text.borderRadius}
-                value={borderRadius}
-                min={0}
-                max={80}
-                suffix="px"
-                compact={compact}
-                onChange={setBorderRadius}
-            />
+                <RangeInput
+                    label={text.borderRadius}
+                    value={borderRadius}
+                    min={0}
+                    max={80}
+                    suffix="px"
+                    compact={compact}
+                    onChange={setBorderRadius}
+                />
 
-            <RangeInput
-                label={text.borderOpacity}
-                value={borderOpacity}
-                min={0}
-                max={100}
-                suffix="%"
-                compact={compact}
-                onChange={setBorderOpacity}
-            />
+                <RangeInput
+                    label={text.borderOpacity}
+                    value={borderOpacity}
+                    min={0}
+                    max={100}
+                    suffix="%"
+                    compact={compact}
+                    onChange={setBorderOpacity}
+                />
 
-            <RangeInput
-                label={text.shadowIntensity}
-                value={shadowIntensity}
-                min={0}
-                max={80}
-                suffix="%"
-                compact={compact}
-                onChange={setShadowIntensity}
-            />
+                <RangeInput
+                    label={text.shadowIntensity}
+                    value={shadowIntensity}
+                    min={0}
+                    max={80}
+                    suffix="%"
+                    compact={compact}
+                    onChange={setShadowIntensity}
+                />
+            </div>
         </div>
     );
 }
@@ -1028,19 +1029,31 @@ function RangeInput({
     onChange: (value: number) => void;
 }) {
     return (
-        <label className="block">
+        <label className="block min-w-0">
             <div
-                className={`flex items-center justify-between gap-4 ${compact ? "mb-1.5" : "mb-2"
-                    }`}
+                className={
+                    compact
+                        ? "mb-1 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5"
+                        : "mb-2 flex items-center justify-between gap-4"
+                }
             >
                 <span
-                    className={`font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
-                        }`}
+                    className={
+                        compact
+                            ? "min-w-0 truncate whitespace-nowrap text-[11px] font-semibold leading-5 text-gray-800"
+                            : "text-sm font-semibold text-gray-800"
+                    }
                 >
                     {label}
                 </span>
 
-                <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
+                <span
+                    className={
+                        compact
+                            ? "min-w-[40px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-0.5 text-center text-[11px] font-semibold leading-5 text-[#7A5A4F]"
+                            : "rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]"
+                    }
+                >
                     {value}
                     {suffix}
                 </span>

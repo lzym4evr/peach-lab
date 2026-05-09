@@ -988,19 +988,31 @@ function RangeInput({
     onChange: (value: number) => void;
 }) {
     return (
-        <label className="block">
+        <label className="block min-w-0">
             <div
-                className={`flex items-center justify-between gap-4 ${compact ? "mb-1.5" : "mb-2"
-                    }`}
+                className={
+                    compact
+                        ? "mb-1 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5"
+                        : "mb-2 flex items-center justify-between gap-4"
+                }
             >
                 <span
-                    className={`font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
-                        }`}
+                    className={
+                        compact
+                            ? "min-w-0 truncate whitespace-nowrap text-[11px] font-semibold leading-5 text-gray-800"
+                            : "text-sm font-semibold text-gray-800"
+                    }
                 >
                     {label}
                 </span>
 
-                <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
+                <span
+                    className={
+                        compact
+                            ? "min-w-[40px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-0.5 text-center text-[11px] font-semibold leading-5 text-[#7A5A4F]"
+                            : "rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]"
+                    }
+                >
                     {value}
                     {suffix}
                 </span>
