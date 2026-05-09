@@ -3,6 +3,23 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { t } from "@/data/messages";
 
+type NoiseStyle =
+    | "fine-grain"
+    | "film-grain"
+    | "paper"
+    | "dust"
+    | "speckle"
+    | "soft-noise";
+
+const noiseStyles: NoiseStyle[] = [
+    "fine-grain",
+    "film-grain",
+    "paper",
+    "dust",
+    "speckle",
+    "soft-noise",
+];
+
 function isValidHexColor(value: string) {
     return /^#[0-9A-Fa-f]{6}$/.test(value);
 }
@@ -48,22 +65,46 @@ function getRandomCanvasSize() {
     return sizes[Math.floor(Math.random() * sizes.length)];
 }
 
+function getNoiseStyleLabel(
+    text: typeof t.noiseTextureGenerator,
+    style: NoiseStyle,
+) {
+    const labels = text as {
+        styleFineGrain?: string;
+        styleFilmGrain?: string;
+        stylePaper?: string;
+        styleDust?: string;
+        styleSpeckle?: string;
+        styleSoftNoise?: string;
+    };
+
+    if (style === "film-grain") return labels.styleFilmGrain ?? "Film Grain";
+    if (style === "paper") return labels.stylePaper ?? "Paper";
+    if (style === "dust") return labels.styleDust ?? "Dust";
+    if (style === "speckle") return labels.styleSpeckle ?? "Speckle";
+    if (style === "soft-noise") return labels.styleSoftNoise ?? "Soft Noise";
+
+    return labels.styleFineGrain ?? "Fine Grain";
+}
+
 function getNoiseCssOutput({
     backgroundColor,
     noiseColor,
     density,
     opacity,
+    grainSize,
 }: {
     backgroundColor: string;
     noiseColor: string;
     density: number;
     opacity: number;
+    grainSize: number;
 }) {
     const safeBackgroundColor = getSafeHexColor(backgroundColor, "#FFF7F3");
     const safeNoiseColor = getSafeHexColor(noiseColor, "#111827");
     const dotAlpha = Math.max(0.02, opacity / 100);
-    const dotSize = Math.max(1, Math.round(density / 18));
-    const spacing = Math.max(3, Math.round(18 - density / 5));
+    const dotSize = Math.max(1, Math.round(grainSize));
+    const spacing = Math.max(dotSize + 2, Math.round(18 - density / 5 + grainSize * 2));
     const rgb = hexToRgb(safeNoiseColor);
 
     return `background-color: ${safeBackgroundColor};
@@ -76,17 +117,19 @@ function getNoisePreviewStyle({
     noiseColor,
     density,
     opacity,
+    grainSize,
 }: {
     backgroundColor: string;
     noiseColor: string;
     density: number;
     opacity: number;
+    grainSize: number;
 }) {
     const safeBackgroundColor = getSafeHexColor(backgroundColor, "#FFF7F3");
     const safeNoiseColor = getSafeHexColor(noiseColor, "#111827");
     const dotAlpha = Math.max(0.02, opacity / 100);
-    const dotSize = Math.max(1, Math.round(density / 18));
-    const spacing = Math.max(3, Math.round(18 - density / 5));
+    const dotSize = Math.max(1, Math.round(grainSize));
+    const spacing = Math.max(dotSize + 2, Math.round(18 - density / 5 + grainSize * 2));
     const rgb = hexToRgb(safeNoiseColor);
 
     return {
@@ -94,6 +137,10 @@ function getNoisePreviewStyle({
         backgroundImage: `radial-gradient(rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${dotAlpha}) ${dotSize}px, transparent ${dotSize}px)`,
         backgroundSize: `${spacing}px ${spacing}px`,
     };
+}
+
+function getRandomNoiseStyle() {
+    return noiseStyles[Math.floor(Math.random() * noiseStyles.length)];
 }
 
 export default function NoiseTextureGeneratorTool() {
@@ -107,10 +154,15 @@ export default function NoiseTextureGeneratorTool() {
     const actionDownloadText =
         (text as { actionDownload?: string }).actionDownload ?? "Download";
 
+    const noiseStyleLabel =
+        (text as { noiseStyle?: string }).noiseStyle ?? "Noise Style";
+
+    const [noiseStyle, setNoiseStyle] = useState<NoiseStyle>("fine-grain");
     const [width, setWidth] = useState(800);
     const [height, setHeight] = useState(600);
     const [density, setDensity] = useState(45);
     const [opacity, setOpacity] = useState(22);
+    const [grainSize, setGrainSize] = useState(1);
     const [backgroundColor, setBackgroundColor] = useState("#FFF7F3");
     const [noiseColor, setNoiseColor] = useState("#111827");
     const [seed, setSeed] = useState(1);
@@ -143,11 +195,9 @@ export default function NoiseTextureGeneratorTool() {
         context.fillRect(0, 0, width, height);
 
         const rgb = hexToRgb(safeNoiseColor);
-        const imageData = context.getImageData(0, 0, width, height);
-        const data = imageData.data;
-
         const densityValue = density / 100;
         const alphaValue = Math.round((opacity / 100) * 255);
+        const safeGrainSize = Math.max(1, Math.round(grainSize));
 
         let randomSeed = seed;
 
@@ -156,16 +206,38 @@ export default function NoiseTextureGeneratorTool() {
             return randomSeed / 233280;
         }
 
-        for (let index = 0; index < data.length; index += 4) {
-            if (seededRandom() < densityValue) {
-                data[index] = rgb.r;
-                data[index + 1] = rgb.g;
-                data[index + 2] = rgb.b;
-                data[index + 3] = alphaValue;
+        if (safeGrainSize <= 1) {
+            const imageData = context.getImageData(0, 0, width, height);
+            const data = imageData.data;
+
+            for (let index = 0; index < data.length; index += 4) {
+                if (seededRandom() < densityValue) {
+                    data[index] = rgb.r;
+                    data[index + 1] = rgb.g;
+                    data[index + 2] = rgb.b;
+                    data[index + 3] = alphaValue;
+                }
             }
+
+            context.putImageData(imageData, 0, 0);
+            return;
         }
 
-        context.putImageData(imageData, 0, 0);
+        const dotCount = Math.round(
+            (width * height * densityValue) / (safeGrainSize * safeGrainSize * 2.8),
+        );
+
+        context.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity / 100})`;
+
+        for (let index = 0; index < dotCount; index += 1) {
+            const x = seededRandom() * width;
+            const y = seededRandom() * height;
+            const size = Math.max(1, safeGrainSize * (0.45 + seededRandom()));
+
+            context.beginPath();
+            context.arc(x, y, size, 0, Math.PI * 2);
+            context.fill();
+        }
     }
 
     useEffect(() => {
@@ -177,6 +249,7 @@ export default function NoiseTextureGeneratorTool() {
         height,
         density,
         opacity,
+        grainSize,
         backgroundColor,
         noiseColor,
         seed,
@@ -187,9 +260,66 @@ export default function NoiseTextureGeneratorTool() {
         setHasPreview(true);
     }
 
+    function applyNoiseStyle(nextStyle: NoiseStyle) {
+        setNoiseStyle(nextStyle);
+
+        if (nextStyle === "fine-grain") {
+            setBackgroundColor("#FFF7F3");
+            setNoiseColor("#111827");
+            setDensity(42);
+            setOpacity(14);
+            setGrainSize(1);
+        }
+
+        if (nextStyle === "film-grain") {
+            setBackgroundColor("#2A1F1B");
+            setNoiseColor("#FFFFFF");
+            setDensity(68);
+            setOpacity(18);
+            setGrainSize(1);
+        }
+
+        if (nextStyle === "paper") {
+            setBackgroundColor("#FFF7F3");
+            setNoiseColor("#A17F74");
+            setDensity(34);
+            setOpacity(10);
+            setGrainSize(2);
+        }
+
+        if (nextStyle === "dust") {
+            setBackgroundColor("#FFFFFF");
+            setNoiseColor("#7A5A4F");
+            setDensity(14);
+            setOpacity(28);
+            setGrainSize(2);
+        }
+
+        if (nextStyle === "speckle") {
+            setBackgroundColor("#FFF7F3");
+            setNoiseColor("#111827");
+            setDensity(22);
+            setOpacity(44);
+            setGrainSize(4);
+        }
+
+        if (nextStyle === "soft-noise") {
+            setBackgroundColor("#FFF7F3");
+            setNoiseColor("#F28C6F");
+            setDensity(45);
+            setOpacity(9);
+            setGrainSize(3);
+        }
+
+        setSeed(getRandomNumber(1, 999999));
+        setHasPreview(true);
+    }
+
     function shuffleNoise() {
+        setNoiseStyle(getRandomNoiseStyle());
         setDensity(getRandomNumber(10, 80));
-        setOpacity(getRandomNumber(15, 100));
+        setOpacity(getRandomNumber(8, 60));
+        setGrainSize(getRandomNumber(1, 5));
         setSeed(getRandomNumber(1, 999999));
         setHasPreview(true);
     }
@@ -199,10 +329,12 @@ export default function NoiseTextureGeneratorTool() {
 
         setWidth(nextSize.width);
         setHeight(nextSize.height);
+        setNoiseStyle(getRandomNoiseStyle());
         setBackgroundColor(getRandomHexColor());
         setNoiseColor(getRandomHexColor());
         setDensity(getRandomNumber(10, 80));
-        setOpacity(getRandomNumber(15, 100));
+        setOpacity(getRandomNumber(8, 60));
+        setGrainSize(getRandomNumber(1, 5));
         setSeed(getRandomNumber(1, 999999));
         setHasPreview(true);
     }
@@ -213,6 +345,7 @@ export default function NoiseTextureGeneratorTool() {
             noiseColor,
             density,
             opacity,
+            grainSize,
         });
     }
 
@@ -252,6 +385,8 @@ export default function NoiseTextureGeneratorTool() {
     const desktopSettingsPanel = (
         <NoiseSettingsPanel
             text={text}
+            noiseStyleLabel={noiseStyleLabel}
+            noiseStyle={noiseStyle}
             width={width}
             height={height}
             density={density}
@@ -264,6 +399,7 @@ export default function NoiseTextureGeneratorTool() {
             setOpacity={setOpacity}
             setBackgroundColor={setBackgroundColor}
             setNoiseColor={setNoiseColor}
+            applyNoiseStyle={applyNoiseStyle}
             showPreview={showPreview}
             compact={false}
         />
@@ -272,6 +408,8 @@ export default function NoiseTextureGeneratorTool() {
     const mobileSettingsPanel = (
         <NoiseSettingsPanel
             text={text}
+            noiseStyleLabel={noiseStyleLabel}
+            noiseStyle={noiseStyle}
             width={width}
             height={height}
             density={density}
@@ -284,6 +422,7 @@ export default function NoiseTextureGeneratorTool() {
             setOpacity={setOpacity}
             setBackgroundColor={setBackgroundColor}
             setNoiseColor={setNoiseColor}
+            applyNoiseStyle={applyNoiseStyle}
             showPreview={showPreview}
             compact
             onShuffle={shuffleNoise}
@@ -395,6 +534,7 @@ export default function NoiseTextureGeneratorTool() {
                             height={height}
                             density={density}
                             opacity={opacity}
+                            grainSize={grainSize}
                             backgroundColor={backgroundColor}
                             noiseColor={noiseColor}
                         />
@@ -409,6 +549,8 @@ export default function NoiseTextureGeneratorTool() {
 
 function NoiseSettingsPanel({
     text,
+    noiseStyleLabel,
+    noiseStyle,
     width,
     height,
     density,
@@ -421,12 +563,15 @@ function NoiseSettingsPanel({
     setOpacity,
     setBackgroundColor,
     setNoiseColor,
+    applyNoiseStyle,
     showPreview,
     compact = false,
     onShuffle,
     onRandom,
 }: {
     text: typeof t.noiseTextureGenerator;
+    noiseStyleLabel: string;
+    noiseStyle: NoiseStyle;
     width: number;
     height: number;
     density: number;
@@ -439,6 +584,7 @@ function NoiseSettingsPanel({
     setOpacity: (value: number) => void;
     setBackgroundColor: (value: string) => void;
     setNoiseColor: (value: string) => void;
+    applyNoiseStyle: (value: NoiseStyle) => void;
     showPreview: () => void;
     compact?: boolean;
     onShuffle?: () => void;
@@ -446,31 +592,64 @@ function NoiseSettingsPanel({
 }) {
     return (
         <div className={compact ? "space-y-3" : "space-y-5"}>
-            {compact ? (
-                <div className="flex flex-nowrap items-center justify-between gap-2">
-                    <span className="min-w-0 truncate text-xs font-semibold text-gray-800">
-                        {text.controls}
-                    </span>
+            <div>
+                {compact ? (
+                    <div className="mb-2 flex flex-nowrap items-center justify-between gap-2">
+                        <span className="min-w-0 truncate text-xs font-semibold text-gray-800">
+                            {noiseStyleLabel}
+                        </span>
 
-                    <div className="grid shrink-0 grid-cols-2 gap-1.5">
-                        <button
-                            type="button"
-                            onClick={onShuffle}
-                            className="h-8 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 text-[11px] font-semibold leading-none text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                        >
-                            {text.shuffleNoise}
-                        </button>
+                        <div className="grid shrink-0 grid-cols-2 gap-1.5">
+                            <button
+                                type="button"
+                                onClick={onShuffle}
+                                className="h-8 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 text-[11px] font-semibold leading-none text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                            >
+                                {text.shuffleNoise}
+                            </button>
 
-                        <button
-                            type="button"
-                            onClick={onRandom}
-                            className="h-8 rounded-xl bg-[#F28C6F] px-2 text-[11px] font-semibold leading-none text-white shadow-sm transition hover:bg-[#E6765B]"
-                        >
-                            {text.randomAll}
-                        </button>
+                            <button
+                                type="button"
+                                onClick={onRandom}
+                                className="h-8 rounded-xl bg-[#F28C6F] px-2 text-[11px] font-semibold leading-none text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                {text.randomAll}
+                            </button>
+                        </div>
                     </div>
+                ) : (
+                    <span className="mb-2 block text-sm font-semibold text-gray-800">
+                        {noiseStyleLabel}
+                    </span>
+                )}
+
+                <div
+                    className={
+                        compact
+                            ? "grid grid-cols-2 gap-2"
+                            : "grid grid-cols-2 gap-3"
+                    }
+                >
+                    {noiseStyles.map((item) => {
+                        const isActive = noiseStyle === item;
+
+                        return (
+                            <button
+                                key={item}
+                                type="button"
+                                onClick={() => applyNoiseStyle(item)}
+                                className={`rounded-2xl border px-3 font-semibold transition ${compact ? "py-2 text-xs" : "py-3 text-sm"
+                                    } ${isActive
+                                        ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                                        : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                                    }`}
+                            >
+                                {getNoiseStyleLabel(text, item)}
+                            </button>
+                        );
+                    })}
                 </div>
-            ) : null}
+            </div>
 
             {compact ? (
                 <div className="grid grid-cols-2 gap-2">
@@ -586,6 +765,7 @@ function NoiseMiniPreview({
     height,
     density,
     opacity,
+    grainSize,
     backgroundColor,
     noiseColor,
 }: {
@@ -593,6 +773,7 @@ function NoiseMiniPreview({
     height: number;
     density: number;
     opacity: number;
+    grainSize: number;
     backgroundColor: string;
     noiseColor: string;
 }) {
@@ -617,6 +798,7 @@ function NoiseMiniPreview({
                         noiseColor,
                         density,
                         opacity,
+                        grainSize,
                     }),
                 }}
             />

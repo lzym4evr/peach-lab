@@ -753,6 +753,14 @@ export const messages = {
             controls: "Noise Settings",
             settingsButton: "Settings",
 
+            noiseStyle: "Noise Style",
+            styleFineGrain: "Fine Grain",
+            styleFilmGrain: "Film Grain",
+            stylePaper: "Paper",
+            styleDust: "Dust",
+            styleSpeckle: "Speckle",
+            styleSoftNoise: "Soft Noise",
+
             width: "Width",
             height: "Height",
             backgroundColor: "Background Color",
