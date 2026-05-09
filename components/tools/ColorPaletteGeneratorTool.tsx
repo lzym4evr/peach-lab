@@ -1088,91 +1088,92 @@ export default function ColorPaletteGeneratorTool() {
 
     return (
         <>
-            <div className="space-y-6 pb-1 md:space-y-0 md:grid md:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)] md:gap-6">
-                {/* Left column */}
-                <div className="space-y-6">
-                    <div className="pb-2">
-                        <SectionTitle
-                            title={text.palettePreview}
-                            right={
-                                <span className="text-xs text-gray-400">
-                                    {text.palettePreviewHint}
-                                </span>
-                            }
-                        />
-
-                        <div className="-mx-1 mt-3 overflow-x-auto px-1 pb-1">
-                            <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-8 md:pr-0">
-                                {palette.map((color, index) => (
-                                    <button
-                                        key={`${color}-${index}`}
-                                        type="button"
-                                        onClick={() => copyWithStatus(color, `color-${index}`)}
-                                        className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
-                                        style={{ backgroundColor: color }}
-                                        aria-label={`${t.common.copy} ${color}`}
-                                    >
-                                        <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
-                                            {copiedTarget === `color-${index}`
-                                                ? t.common.copied.toUpperCase()
-                                                : color.toUpperCase()}
+            <div className="space-y-6 pb-1 md:pb-0">
+                <div className="grid gap-6 md:grid-cols-2">
+                    {/* Left column - Preview + CSS Output */}
+                    <section className="min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                        <div className="space-y-6">
+                            <div>
+                                <SectionTitle
+                                    title={text.palettePreview}
+                                    right={
+                                        <span className="text-xs text-gray-400">
+                                            {text.palettePreviewHint}
                                         </span>
-                                    </button>
-                                ))}
+                                    }
+                                />
+
+                                <div className="-mx-1 mt-4 overflow-x-auto px-1 pb-1">
+                                    <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-8 md:pr-0">
+                                        {palette.map((color, index) => (
+                                            <button
+                                                key={`${color}-${index}`}
+                                                type="button"
+                                                onClick={() => copyWithStatus(color, `color-${index}`)}
+                                                className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
+                                                style={{ backgroundColor: color }}
+                                                aria-label={`${t.common.copy} ${color}`}
+                                            >
+                                                <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
+                                                    {copiedTarget === `color-${index}`
+                                                        ? t.common.copied.toUpperCase()
+                                                        : color.toUpperCase()}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
 
-                    {/* 这里保留 PC 的 Copy / Download，移动端隐藏 */}
-                    <div className="hidden grid-cols-2 gap-3 md:grid">
-                        <button
-                            type="button"
-                            onClick={handleCopyPalette}
-                            className="rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
-                        >
-                            {copiedTarget === "palette" ? t.common.copied : text.copyPalette}
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={handleDownloadPng}
-                            className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                        >
-                            {text.downloadPng}
-                        </button>
-                    </div>
-
-                    {/* 这里就是你说的那根横线来源，手机端删掉，只在 PC 保留 */}
-                    <div className="pt-1 md:border-t md:border-[#F1E5DF] md:pt-5">
-                        <SectionTitle
-                            title={text.cssOutput}
-                            right={
+                            <div className="hidden grid-cols-2 gap-3 md:grid">
                                 <button
                                     type="button"
-                                    onClick={handleCopyCss}
-                                    className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                    onClick={handleCopyPalette}
+                                    className="rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
                                 >
-                                    {copiedTarget === "css" ? t.common.copied : text.copyCss}
+                                    {copiedTarget === "palette" ? t.common.copied : text.copyPalette}
                                 </button>
-                            }
-                        />
 
-                        <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
-                            <code>{cssOutput}</code>
-                        </pre>
-                    </div>
-                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleDownloadPng}
+                                    className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                >
+                                    {text.downloadPng}
+                                </button>
+                            </div>
 
-                {/* Right column - desktop settings */}
-                <div className="hidden md:block">
-                    <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                            <div>
+                                <SectionTitle
+                                    title={text.cssOutput}
+                                    right={
+                                        <button
+                                            type="button"
+                                            onClick={handleCopyCss}
+                                            className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                        >
+                                            {copiedTarget === "css" ? t.common.copied : text.copyCss}
+                                        </button>
+                                    }
+                                />
+
+                                <pre className="mt-4 max-h-80 overflow-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
+                                    <code>{cssOutput}</code>
+                                </pre>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Right column - Desktop Settings */}
+                    <section className="hidden min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm md:block">
                         <SectionTitle title={settingsTitle} />
+
                         <div className="mt-5 space-y-5">
                             {renderColorPickerPanel("desktop", desktopWheelRef)}
                             {renderPaletteControls(false)}
                             {renderRandomButtons(false)}
                         </div>
-                    </div>
+                    </section>
                 </div>
             </div>
 
