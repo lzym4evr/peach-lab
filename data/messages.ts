@@ -857,8 +857,9 @@ export const messages = {
 
         borderRadiusGenerator: {
             previewTitle: "Live Preview",
-            controlsTitle: "Controls",
+            controlsTitle: "Border Radius Settings",
             outputTitle: "CSS Output",
+            settingsButton: "Settings",
 
             previewDescription: "Create custom CSS border radius styles for cards, buttons, images, and UI blocks.",
             boxWidthLabel: "Box Width",
@@ -866,13 +867,14 @@ export const messages = {
             boxColorLabel: "Box Color",
             backgroundColorLabel: "Background Color",
 
+            allCornersLabel: "All Corners",
             topLeftLabel: "Top Left",
             topRightLabel: "Top Right",
             bottomRightLabel: "Bottom Right",
             bottomLeftLabel: "Bottom Left",
 
             shuffle: "Shuffle",
-            randomAll: "Random All",
+            randomAll: "Random",
             copyCss: "Copy CSS",
             reset: "Reset",
             copied: "Copied",
