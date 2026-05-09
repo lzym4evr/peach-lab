@@ -115,6 +115,19 @@ function getBlobFill({
     return fillType === "gradient" ? "url(#blobGradient)" : solidColor;
 }
 
+function getRandomHexColor() {
+    const value = Math.floor(Math.random() * 16777215)
+        .toString(16)
+        .padStart(6, "0")
+        .toUpperCase();
+
+    return `#${value}`;
+}
+
+function getRandomNumber(min: number, max: number) {
+    return Math.floor(min + Math.random() * (max - min + 1));
+}
+
 export default function BlobGeneratorTool() {
     const text = t.blobGenerator;
     const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -152,6 +165,9 @@ export default function BlobGeneratorTool() {
 
     const gradientAngleText =
         (text as { gradientAngle?: string }).gradientAngle ?? "Gradient Angle";
+
+    const shuffleText = (text as { shuffle?: string }).shuffle ?? "Shuffle";
+    const randomText = (text as { randomAll?: string }).randomAll ?? "Random";
 
     const clickToAddPointText =
         (text as { clickToAddPoint?: string }).clickToAddPoint ??
@@ -234,6 +250,15 @@ export default function BlobGeneratorTool() {
         setCopyError("");
     }
 
+    function clearCustomState() {
+        setIsCustomPoints(false);
+        setCustomPointsDraft([]);
+        setCustomHistory([]);
+        setCustomFuture([]);
+        customPointsRef.current = [];
+        setIsCustomDraftDirty(false);
+    }
+
     function setCustomPointsWithHistory(nextPoints: Point[]) {
         const currentPoints = customPointsRef.current;
 
@@ -263,6 +288,31 @@ export default function BlobGeneratorTool() {
         const nextPoints = createRandomPoints(pointsCount, 80, 125);
 
         setPoints(nextPoints);
+        clearCopyState();
+    }
+
+    function shuffleBlob() {
+        clearCustomState();
+
+        setPoints(createRandomPoints(pointsCount, 80, 125));
+        setSmoothness(getRandomNumber(14, 42));
+        clearCopyState();
+    }
+
+    function randomBlob() {
+        const nextPointsCount = getRandomNumber(5, 14);
+        const nextFillType: FillType = Math.random() > 0.5 ? "solid" : "gradient";
+
+        clearCustomState();
+
+        setPointsCount(nextPointsCount);
+        setSmoothness(getRandomNumber(10, 45));
+        setFillType(nextFillType);
+        setColor(getRandomHexColor());
+        setGradientColor1(getRandomHexColor());
+        setGradientColor2(getRandomHexColor());
+        setGradientAngle(getRandomNumber(0, 360));
+        setPoints(createRandomPoints(nextPointsCount, 70, 128));
         clearCopyState();
     }
 
@@ -488,11 +538,13 @@ export default function BlobGeneratorTool() {
             gradientColor1Text={gradientColor1Text}
             gradientColor2Text={gradientColor2Text}
             gradientAngleText={gradientAngleText}
-            isCustomPoints={isCustomPoints}
             customPointsText={customPointsText}
             clearPointsText={clearPointsText}
             undoText={undoText}
             redoText={redoText}
+            shuffleText={shuffleText}
+            randomText={randomText}
+            isCustomPoints={isCustomPoints}
             canUndo={customHistory.length > 0}
             canRedo={customFuture.length > 0}
             setPointsCount={setPointsCount}
@@ -508,6 +560,8 @@ export default function BlobGeneratorTool() {
             onClearCustomPoints={clearCustomPoints}
             onUndo={undoCustomPoints}
             onRedo={redoCustomPoints}
+            onShuffle={shuffleBlob}
+            onRandom={randomBlob}
             clearCopyState={clearCopyState}
             compact={false}
         />
@@ -529,11 +583,13 @@ export default function BlobGeneratorTool() {
             gradientColor1Text={gradientColor1Text}
             gradientColor2Text={gradientColor2Text}
             gradientAngleText={gradientAngleText}
-            isCustomPoints={isCustomPoints}
             customPointsText={customPointsText}
             clearPointsText={clearPointsText}
             undoText={undoText}
             redoText={redoText}
+            shuffleText={shuffleText}
+            randomText={randomText}
+            isCustomPoints={isCustomPoints}
             canUndo={customHistory.length > 0}
             canRedo={customFuture.length > 0}
             setPointsCount={setPointsCount}
@@ -549,6 +605,8 @@ export default function BlobGeneratorTool() {
             onClearCustomPoints={clearCustomPoints}
             onUndo={undoCustomPoints}
             onRedo={redoCustomPoints}
+            onShuffle={shuffleBlob}
+            onRandom={randomBlob}
             clearCopyState={clearCopyState}
             compact
         />
@@ -737,9 +795,14 @@ function BlobMiniPreview({
     onRemovePoint: (pointIndex: number) => void;
 }) {
     return (
-        <div className="relative flex h-36 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-3">
+        <div
+            className={`relative flex w-full items-center justify-center border border-[#F1E5DF] bg-[#FFF7F3] ${isCustomPoints
+                    ? "aspect-square rounded-2xl p-1.5"
+                    : "h-36 rounded-2xl p-3"
+                }`}
+        >
             {isCustomPoints ? (
-                <p className="absolute left-3 right-3 top-3 z-10 rounded-2xl bg-white/80 px-3 py-2 text-center text-[11px] font-medium leading-4 text-[#7A5A4F] backdrop-blur">
+                <p className="absolute left-2 right-2 top-2 z-10 rounded-xl bg-white/85 px-2 py-1.5 text-center text-[10px] font-medium leading-4 text-[#7A5A4F] backdrop-blur">
                     {clickToAddPointText}
                 </p>
             ) : null}
@@ -758,7 +821,9 @@ function BlobMiniPreview({
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
                 onRemovePoint={onRemovePoint}
-                className={`h-full max-h-32 w-full max-w-32 drop-shadow-sm ${isCustomPoints ? "cursor-crosshair touch-none" : ""
+                className={`h-full w-full drop-shadow-sm ${isCustomPoints
+                        ? "max-h-full max-w-full cursor-crosshair touch-none"
+                        : "max-h-32 max-w-32"
                     }`}
             />
         </div>
@@ -900,11 +965,13 @@ function BlobSettingsPanel({
     gradientColor1Text,
     gradientColor2Text,
     gradientAngleText,
-    isCustomPoints,
     customPointsText,
     clearPointsText,
     undoText,
     redoText,
+    shuffleText,
+    randomText,
+    isCustomPoints,
     canUndo,
     canRedo,
     setPointsCount,
@@ -920,6 +987,8 @@ function BlobSettingsPanel({
     onClearCustomPoints,
     onUndo,
     onRedo,
+    onShuffle,
+    onRandom,
     clearCopyState,
     compact = false,
 }: {
@@ -937,11 +1006,13 @@ function BlobSettingsPanel({
     gradientColor1Text: string;
     gradientColor2Text: string;
     gradientAngleText: string;
-    isCustomPoints: boolean;
     customPointsText: string;
     clearPointsText: string;
     undoText: string;
     redoText: string;
+    shuffleText: string;
+    randomText: string;
+    isCustomPoints: boolean;
     canUndo: boolean;
     canRedo: boolean;
     setPointsCount: (value: number) => void;
@@ -957,6 +1028,8 @@ function BlobSettingsPanel({
     onClearCustomPoints: () => void;
     onUndo: () => void;
     onRedo: () => void;
+    onShuffle: () => void;
+    onRandom: () => void;
     clearCopyState: () => void;
     compact?: boolean;
 }) {
@@ -980,6 +1053,26 @@ function BlobSettingsPanel({
                         }`}
                 >
                     {clearPointsText}
+                </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+                <button
+                    type="button"
+                    onClick={onShuffle}
+                    className={`w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
+                        }`}
+                >
+                    {shuffleText}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onRandom}
+                    className={`w-full rounded-2xl bg-[#F28C6F] font-semibold text-white transition hover:bg-[#E6765B] ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
+                        }`}
+                >
+                    {randomText}
                 </button>
             </div>
 
@@ -1201,8 +1294,8 @@ function ColorInput({
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
                     className={`w-full rounded-xl border border-[#F1E5DF] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
-                        ? "h-10 px-2 text-[11px]"
-                        : "h-12 px-4 text-sm"
+                            ? "h-10 px-2 text-[11px]"
+                            : "h-12 px-4 text-sm"
                         }`}
                 />
             </div>

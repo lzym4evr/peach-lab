@@ -808,6 +808,9 @@ export const messages = {
             points: "Points",
             smoothness: "Smoothness",
 
+            shuffle: "Shuffle",
+            randomAll: "Random",
+
             copySvg: "Copy SVG",
             downloadSvg: "Download SVG",
             actionDownload: "Download",
