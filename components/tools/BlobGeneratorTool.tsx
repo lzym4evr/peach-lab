@@ -15,6 +15,8 @@ type Point = {
     y: number;
 };
 
+type FillType = "solid" | "gradient";
+
 function createRandomPoints(count: number, minRadius: number, maxRadius: number) {
     const points: Point[] = [];
     const centerX = 150;
@@ -85,6 +87,34 @@ function getSvgPoint(event: ReactPointerEvent<SVGSVGElement>) {
     };
 }
 
+function getGradientCoordinates(angle: number) {
+    const radians = ((angle - 90) * Math.PI) / 180;
+    const x = Math.cos(radians);
+    const y = Math.sin(radians);
+
+    const x1 = 50 - x * 50;
+    const y1 = 50 - y * 50;
+    const x2 = 50 + x * 50;
+    const y2 = 50 + y * 50;
+
+    return {
+        x1: `${x1.toFixed(2)}%`,
+        y1: `${y1.toFixed(2)}%`,
+        x2: `${x2.toFixed(2)}%`,
+        y2: `${y2.toFixed(2)}%`,
+    };
+}
+
+function getBlobFill({
+    fillType,
+    solidColor,
+}: {
+    fillType: FillType;
+    solidColor: string;
+}) {
+    return fillType === "gradient" ? "url(#blobGradient)" : solidColor;
+}
+
 export default function BlobGeneratorTool() {
     const text = t.blobGenerator;
     const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -108,6 +138,21 @@ export default function BlobGeneratorTool() {
     const undoText = (text as { undo?: string }).undo ?? "Undo";
     const redoText = (text as { redo?: string }).redo ?? "Redo";
 
+    const fillTypeText = (text as { fillType?: string }).fillType ?? "Fill Type";
+    const solidText = (text as { solid?: string }).solid ?? "Solid";
+    const gradientText = (text as { gradient?: string }).gradient ?? "Gradient";
+
+    const gradientColor1Text =
+        (text as { gradientColor1?: string }).gradientColor1 ??
+        "Gradient Color 1";
+
+    const gradientColor2Text =
+        (text as { gradientColor2?: string }).gradientColor2 ??
+        "Gradient Color 2";
+
+    const gradientAngleText =
+        (text as { gradientAngle?: string }).gradientAngle ?? "Gradient Angle";
+
     const clickToAddPointText =
         (text as { clickToAddPoint?: string }).clickToAddPoint ??
         "Click or tap the preview to add points. Drag points to adjust the shape, then click Generate.";
@@ -118,12 +163,15 @@ export default function BlobGeneratorTool() {
 
     const [pointsCount, setPointsCount] = useState(8);
     const [smoothness, setSmoothness] = useState(28);
-    const [color, setColor] = useState("#F28C6F");
 
-    // 真正已经生成出来的 blob 点位
+    const [fillType, setFillType] = useState<FillType>("solid");
+    const [color, setColor] = useState("#F28C6F");
+    const [gradientColor1, setGradientColor1] = useState("#F28C6F");
+    const [gradientColor2, setGradientColor2] = useState("#FFD6C8");
+    const [gradientAngle, setGradientAngle] = useState(135);
+
     const [points, setPoints] = useState(() => createRandomPoints(8, 80, 125));
 
-    // Custom Points 草稿点位：点击/拖动只改这里，不直接生成 blob
     const [customPointsDraft, setCustomPointsDraft] = useState<Point[]>([]);
     const [customHistory, setCustomHistory] = useState<Point[][]>([]);
     const [customFuture, setCustomFuture] = useState<Point[][]>([]);
@@ -138,18 +186,6 @@ export default function BlobGeneratorTool() {
         customPointsRef.current = customPointsDraft;
     }, [customPointsDraft]);
 
-    const generatedPath = useMemo(() => {
-        return createSmoothPath(points, smoothness);
-    }, [points, smoothness]);
-
-    const visiblePath = isCustomPoints && isCustomDraftDirty ? "" : generatedPath;
-
-    const svgCode = useMemo(() => {
-        return `<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-  <path d="${visiblePath}" fill="${color}" />
-</svg>`;
-    }, [visiblePath, color]);
-
     useEffect(() => {
         return () => {
             if (copyTimerRef.current) {
@@ -157,6 +193,41 @@ export default function BlobGeneratorTool() {
             }
         };
     }, []);
+
+    const generatedPath = useMemo(() => {
+        return createSmoothPath(points, smoothness);
+    }, [points, smoothness]);
+
+    const visiblePath = isCustomPoints && isCustomDraftDirty ? "" : generatedPath;
+
+    const gradientCoordinates = useMemo(() => {
+        return getGradientCoordinates(gradientAngle);
+    }, [gradientAngle]);
+
+    const svgCode = useMemo(() => {
+        if (fillType === "gradient") {
+            return `<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="blobGradient" x1="${gradientCoordinates.x1}" y1="${gradientCoordinates.y1}" x2="${gradientCoordinates.x2}" y2="${gradientCoordinates.y2}">
+      <stop offset="0%" stop-color="${gradientColor1}" />
+      <stop offset="100%" stop-color="${gradientColor2}" />
+    </linearGradient>
+  </defs>
+  <path d="${visiblePath}" fill="url(#blobGradient)" />
+</svg>`;
+        }
+
+        return `<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <path d="${visiblePath}" fill="${color}" />
+</svg>`;
+    }, [
+        visiblePath,
+        color,
+        fillType,
+        gradientColor1,
+        gradientColor2,
+        gradientCoordinates,
+    ]);
 
     function clearCopyState() {
         setCopied(false);
@@ -294,7 +365,10 @@ export default function BlobGeneratorTool() {
 
         if (dragIndexRef.current !== null) {
             if (didDragRef.current && dragStartPointsRef.current) {
-                setCustomHistory((current) => [...current, dragStartPointsRef.current!]);
+                setCustomHistory((current) => [
+                    ...current,
+                    dragStartPointsRef.current!,
+                ]);
                 setCustomFuture([]);
             }
 
@@ -357,10 +431,19 @@ export default function BlobGeneratorTool() {
         URL.revokeObjectURL(url);
     }
 
+    const blobFill = getBlobFill({
+        fillType,
+        solidColor: color,
+    });
+
     const previewPanel = (
         <BlobPreview
             path={visiblePath}
-            color={color}
+            fill={blobFill}
+            fillType={fillType}
+            gradientColor1={gradientColor1}
+            gradientColor2={gradientColor2}
+            gradientCoordinates={gradientCoordinates}
             customPointsDraft={customPointsDraft}
             isCustomPoints={isCustomPoints}
             clickToAddPointText={clickToAddPointText}
@@ -376,7 +459,17 @@ export default function BlobGeneratorTool() {
             text={text}
             pointsCount={pointsCount}
             smoothness={smoothness}
+            fillType={fillType}
             color={color}
+            gradientColor1={gradientColor1}
+            gradientColor2={gradientColor2}
+            gradientAngle={gradientAngle}
+            fillTypeText={fillTypeText}
+            solidText={solidText}
+            gradientText={gradientText}
+            gradientColor1Text={gradientColor1Text}
+            gradientColor2Text={gradientColor2Text}
+            gradientAngleText={gradientAngleText}
             isCustomPoints={isCustomPoints}
             customPointsText={customPointsText}
             clearPointsText={clearPointsText}
@@ -386,7 +479,11 @@ export default function BlobGeneratorTool() {
             canRedo={customFuture.length > 0}
             setPointsCount={setPointsCount}
             setSmoothness={setSmoothness}
+            setFillType={setFillType}
             setColor={setColor}
+            setGradientColor1={setGradientColor1}
+            setGradientColor2={setGradientColor2}
+            setGradientAngle={setGradientAngle}
             setPoints={setPoints}
             onCustomModeChange={handleCustomModeChange}
             onGenerateBlob={generateBlob}
@@ -403,7 +500,17 @@ export default function BlobGeneratorTool() {
             text={text}
             pointsCount={pointsCount}
             smoothness={smoothness}
+            fillType={fillType}
             color={color}
+            gradientColor1={gradientColor1}
+            gradientColor2={gradientColor2}
+            gradientAngle={gradientAngle}
+            fillTypeText={fillTypeText}
+            solidText={solidText}
+            gradientText={gradientText}
+            gradientColor1Text={gradientColor1Text}
+            gradientColor2Text={gradientColor2Text}
+            gradientAngleText={gradientAngleText}
             isCustomPoints={isCustomPoints}
             customPointsText={customPointsText}
             clearPointsText={clearPointsText}
@@ -413,7 +520,11 @@ export default function BlobGeneratorTool() {
             canRedo={customFuture.length > 0}
             setPointsCount={setPointsCount}
             setSmoothness={setSmoothness}
+            setFillType={setFillType}
             setColor={setColor}
+            setGradientColor1={setGradientColor1}
+            setGradientColor2={setGradientColor2}
+            setGradientAngle={setGradientAngle}
             setPoints={setPoints}
             onCustomModeChange={handleCustomModeChange}
             onGenerateBlob={generateBlob}
@@ -498,7 +609,11 @@ export default function BlobGeneratorTool() {
                     <div className="space-y-3">
                         <BlobMiniPreview
                             path={visiblePath}
-                            color={color}
+                            fill={blobFill}
+                            fillType={fillType}
+                            gradientColor1={gradientColor1}
+                            gradientColor2={gradientColor2}
+                            gradientCoordinates={gradientCoordinates}
                             customPointsDraft={customPointsDraft}
                             isCustomPoints={isCustomPoints}
                             clickToAddPointText={clickToAddPointText}
@@ -518,7 +633,11 @@ export default function BlobGeneratorTool() {
 
 function BlobPreview({
     path,
-    color,
+    fill,
+    fillType,
+    gradientColor1,
+    gradientColor2,
+    gradientCoordinates,
     customPointsDraft,
     isCustomPoints,
     clickToAddPointText,
@@ -528,7 +647,16 @@ function BlobPreview({
     onRemovePoint,
 }: {
     path: string;
-    color: string;
+    fill: string;
+    fillType: FillType;
+    gradientColor1: string;
+    gradientColor2: string;
+    gradientCoordinates: {
+        x1: string;
+        y1: string;
+        x2: string;
+        y2: string;
+    };
     customPointsDraft: Point[];
     isCustomPoints: boolean;
     clickToAddPointText: string;
@@ -561,7 +689,22 @@ function BlobPreview({
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
             >
-                {path ? <path d={path} fill={color} /> : null}
+                {fillType === "gradient" ? (
+                    <defs>
+                        <linearGradient
+                            id="blobPreviewGradient"
+                            x1={gradientCoordinates.x1}
+                            y1={gradientCoordinates.y1}
+                            x2={gradientCoordinates.x2}
+                            y2={gradientCoordinates.y2}
+                        >
+                            <stop offset="0%" stopColor={gradientColor1} />
+                            <stop offset="100%" stopColor={gradientColor2} />
+                        </linearGradient>
+                    </defs>
+                ) : null}
+
+                {path ? <path d={path} fill={fillType === "gradient" ? "url(#blobPreviewGradient)" : fill} /> : null}
 
                 {isCustomPoints
                     ? customPointsDraft.map((point, index) => (
@@ -612,7 +755,11 @@ function BlobPreview({
 
 function BlobMiniPreview({
     path,
-    color,
+    fill,
+    fillType,
+    gradientColor1,
+    gradientColor2,
+    gradientCoordinates,
     customPointsDraft,
     isCustomPoints,
     clickToAddPointText,
@@ -622,7 +769,16 @@ function BlobMiniPreview({
     onRemovePoint,
 }: {
     path: string;
-    color: string;
+    fill: string;
+    fillType: FillType;
+    gradientColor1: string;
+    gradientColor2: string;
+    gradientCoordinates: {
+        x1: string;
+        y1: string;
+        x2: string;
+        y2: string;
+    };
     customPointsDraft: Point[];
     isCustomPoints: boolean;
     clickToAddPointText: string;
@@ -655,7 +811,22 @@ function BlobMiniPreview({
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
             >
-                {path ? <path d={path} fill={color} /> : null}
+                {fillType === "gradient" ? (
+                    <defs>
+                        <linearGradient
+                            id="blobMiniPreviewGradient"
+                            x1={gradientCoordinates.x1}
+                            y1={gradientCoordinates.y1}
+                            x2={gradientCoordinates.x2}
+                            y2={gradientCoordinates.y2}
+                        >
+                            <stop offset="0%" stopColor={gradientColor1} />
+                            <stop offset="100%" stopColor={gradientColor2} />
+                        </linearGradient>
+                    </defs>
+                ) : null}
+
+                {path ? <path d={path} fill={fillType === "gradient" ? "url(#blobMiniPreviewGradient)" : fill} /> : null}
 
                 {isCustomPoints
                     ? customPointsDraft.map((point, index) => (
@@ -708,7 +879,17 @@ function BlobSettingsPanel({
     text,
     pointsCount,
     smoothness,
+    fillType,
     color,
+    gradientColor1,
+    gradientColor2,
+    gradientAngle,
+    fillTypeText,
+    solidText,
+    gradientText,
+    gradientColor1Text,
+    gradientColor2Text,
+    gradientAngleText,
     isCustomPoints,
     customPointsText,
     clearPointsText,
@@ -718,7 +899,11 @@ function BlobSettingsPanel({
     canRedo,
     setPointsCount,
     setSmoothness,
+    setFillType,
     setColor,
+    setGradientColor1,
+    setGradientColor2,
+    setGradientAngle,
     setPoints,
     onCustomModeChange,
     onGenerateBlob,
@@ -731,7 +916,17 @@ function BlobSettingsPanel({
     text: typeof t.blobGenerator;
     pointsCount: number;
     smoothness: number;
+    fillType: FillType;
     color: string;
+    gradientColor1: string;
+    gradientColor2: string;
+    gradientAngle: number;
+    fillTypeText: string;
+    solidText: string;
+    gradientText: string;
+    gradientColor1Text: string;
+    gradientColor2Text: string;
+    gradientAngleText: string;
     isCustomPoints: boolean;
     customPointsText: string;
     clearPointsText: string;
@@ -741,7 +936,11 @@ function BlobSettingsPanel({
     canRedo: boolean;
     setPointsCount: (value: number) => void;
     setSmoothness: (value: number) => void;
+    setFillType: (value: FillType) => void;
     setColor: (value: string) => void;
+    setGradientColor1: (value: string) => void;
+    setGradientColor2: (value: string) => void;
+    setGradientAngle: (value: number) => void;
     setPoints: (value: Point[]) => void;
     onCustomModeChange: (value: boolean) => void;
     onGenerateBlob: () => void;
@@ -810,24 +1009,124 @@ function BlobSettingsPanel({
                 />
             </label>
 
-            {compact ? (
-                <CompactColorInput
-                    label={text.fillColor}
-                    value={color}
-                    onChange={(value) => {
-                        setColor(value);
-                        clearCopyState();
-                    }}
-                />
+            <div>
+                <span
+                    className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                        }`}
+                >
+                    {fillTypeText}
+                </span>
+
+                <div className="grid grid-cols-2 gap-2">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setFillType("solid");
+                            clearCopyState();
+                        }}
+                        className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${fillType === "solid"
+                                ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                                : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                            }`}
+                    >
+                        {solidText}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setFillType("gradient");
+                            clearCopyState();
+                        }}
+                        className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${fillType === "gradient"
+                                ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                                : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                            }`}
+                    >
+                        {gradientText}
+                    </button>
+                </div>
+            </div>
+
+            {fillType === "solid" ? (
+                compact ? (
+                    <CompactColorInput
+                        label={text.fillColor}
+                        value={color}
+                        onChange={(value) => {
+                            setColor(value);
+                            clearCopyState();
+                        }}
+                    />
+                ) : (
+                    <ColorInput
+                        label={text.fillColor}
+                        value={color}
+                        onChange={(value) => {
+                            setColor(value);
+                            clearCopyState();
+                        }}
+                    />
+                )
             ) : (
-                <ColorInput
-                    label={text.fillColor}
-                    value={color}
-                    onChange={(value) => {
-                        setColor(value);
-                        clearCopyState();
-                    }}
-                />
+                <>
+                    <div className={compact ? "grid grid-cols-2 gap-2" : "space-y-5"}>
+                        {compact ? (
+                            <>
+                                <CompactColorInput
+                                    label={gradientColor1Text}
+                                    value={gradientColor1}
+                                    onChange={(value) => {
+                                        setGradientColor1(value);
+                                        clearCopyState();
+                                    }}
+                                />
+
+                                <CompactColorInput
+                                    label={gradientColor2Text}
+                                    value={gradientColor2}
+                                    onChange={(value) => {
+                                        setGradientColor2(value);
+                                        clearCopyState();
+                                    }}
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <ColorInput
+                                    label={gradientColor1Text}
+                                    value={gradientColor1}
+                                    onChange={(value) => {
+                                        setGradientColor1(value);
+                                        clearCopyState();
+                                    }}
+                                />
+
+                                <ColorInput
+                                    label={gradientColor2Text}
+                                    value={gradientColor2}
+                                    onChange={(value) => {
+                                        setGradientColor2(value);
+                                        clearCopyState();
+                                    }}
+                                />
+                            </>
+                        )}
+                    </div>
+
+                    <RangeInput
+                        label={gradientAngleText}
+                        value={gradientAngle}
+                        min={0}
+                        max={360}
+                        suffix="°"
+                        compact={compact}
+                        onChange={(value) => {
+                            setGradientAngle(value);
+                            clearCopyState();
+                        }}
+                    />
+                </>
             )}
 
             {!isCustomPoints ? (

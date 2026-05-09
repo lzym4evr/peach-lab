@@ -794,9 +794,17 @@ export const messages = {
             clearPoints: "Clear Points",
             undo: "Undo",
             redo: "Redo",
-            clickToAddPoint: "Click or tap the preview to add points. Drag points to adjust the shape, then click Generate.",
+            clickToAddPoint:
+                "Click or tap the preview to add points. Drag points to adjust the shape, then click Generate.",
 
+            fillType: "Fill Type",
+            solid: "Solid",
+            gradient: "Gradient",
             fillColor: "Fill Color",
+            gradientColor1: "Gradient Color 1",
+            gradientColor2: "Gradient Color 2",
+            gradientAngle: "Gradient Angle",
+
             points: "Points",
             smoothness: "Smoothness",
 
