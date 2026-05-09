@@ -569,7 +569,7 @@ function BlobPreview({
                             <circle
                                 cx={point.x}
                                 cy={point.y}
-                                r="8"
+                                r="12"
                                 fill="#FFFFFF"
                                 stroke="#F28C6F"
                                 strokeWidth="3"
@@ -590,13 +590,18 @@ function BlobPreview({
                                     onRemovePoint(index);
                                 }}
                             />
-                            <circle
-                                cx={point.x}
-                                cy={point.y}
-                                r="3"
-                                fill="#F28C6F"
+
+                            <text
+                                x={point.x}
+                                y={point.y}
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                className="select-none text-[10px] font-bold"
+                                fill="#E6765B"
                                 pointerEvents="none"
-                            />
+                            >
+                                {index + 1}
+                            </text>
                         </g>
                     ))
                     : null}
@@ -658,7 +663,7 @@ function BlobMiniPreview({
                             <circle
                                 cx={point.x}
                                 cy={point.y}
-                                r="8"
+                                r="12"
                                 fill="#FFFFFF"
                                 stroke="#F28C6F"
                                 strokeWidth="3"
@@ -679,13 +684,18 @@ function BlobMiniPreview({
                                     onRemovePoint(index);
                                 }}
                             />
-                            <circle
-                                cx={point.x}
-                                cy={point.y}
-                                r="3"
-                                fill="#F28C6F"
+
+                            <text
+                                x={point.x}
+                                y={point.y}
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                className="select-none text-[10px] font-bold"
+                                fill="#E6765B"
                                 pointerEvents="none"
-                            />
+                            >
+                                {index + 1}
+                            </text>
                         </g>
                     ))
                     : null}
