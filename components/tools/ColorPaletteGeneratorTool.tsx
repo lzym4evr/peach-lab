@@ -1,7 +1,6 @@
 "use client";
 
-import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { type RefObject, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import SectionTitle from "@/components/ui/SectionTitle";
 import { t } from "@/data/messages";
 
@@ -150,11 +149,7 @@ const hexToHsl = (hex: string) => {
     return rgbToHsl(rgb.r, rgb.g, rgb.b);
 };
 
-const generatePalette = (
-    baseColor: string,
-    type: PaletteType,
-    count: number,
-) => {
+const generatePalette = (baseColor: string, type: PaletteType, count: number) => {
     const hsl = hexToHsl(baseColor);
     const colors: string[] = [];
 
@@ -365,7 +360,7 @@ const drawSimplePeachLogo = (
     ctx.fill();
 };
 
-export default function ColorPaletteGenerator() {
+export default function ColorPaletteGeneratorTool() {
     const text = t.colorPaletteGenerator;
 
     const PALETTE_TYPES: { label: string; value: PaletteType }[] = [
@@ -392,13 +387,10 @@ export default function ColorPaletteGenerator() {
     const [copiedTarget, setCopiedTarget] = useState<string | null>(null);
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    const [draftHsl, setDraftHsl] = useState<HslColor>(() =>
-        hexToHsl(DEFAULT_BASE_COLOR),
-    );
+    const [draftHsl, setDraftHsl] = useState<HslColor>(() => hexToHsl(DEFAULT_BASE_COLOR));
     const [draftHex, setDraftHex] = useState(DEFAULT_BASE_COLOR);
 
     const mobileActionBarRef = useRef<HTMLDivElement | null>(null);
-    const mobileSettingsPanelRef = useRef<HTMLDivElement | null>(null);
     const mobileWheelRef = useRef<HTMLDivElement | null>(null);
     const desktopWheelRef = useRef<HTMLDivElement | null>(null);
 
@@ -411,10 +403,7 @@ export default function ColorPaletteGenerator() {
     }, [baseColor, paletteType, colorCount]);
 
     const cssOutput = useMemo(() => {
-        const lines = palette.map(
-            (color, index) => `  --color-${index + 1}: ${color};`,
-        );
-
+        const lines = palette.map((color, index) => `  --color-${index + 1}: ${color};`);
         return `.palette {\n${lines.join("\n")}\n}`;
     }, [palette]);
 
@@ -429,11 +418,10 @@ export default function ColorPaletteGenerator() {
             if (!element) return;
 
             const rect = element.getBoundingClientRect();
-            const space = Math.ceil(rect.height + 28);
 
             document.documentElement.style.setProperty(
                 "--mobile-action-bar-space",
-                `${space}px`,
+                `${Math.ceil(rect.height + 24)}px`,
             );
         };
 
@@ -453,42 +441,18 @@ export default function ColorPaletteGenerator() {
             window.removeEventListener("resize", updateActionBarSpace);
             document.documentElement.style.removeProperty("--mobile-action-bar-space");
         };
-    }, [isSettingsOpen]);
+    }, []);
 
     useEffect(() => {
-        if (!isSettingsOpen) return;
-
-        const preventBackgroundTouchMove = (event: TouchEvent) => {
-            const panel = mobileSettingsPanelRef.current;
-            const target = event.target;
-
-            if (panel && target instanceof Node && panel.contains(target)) {
-                return;
-            }
-
-            event.preventDefault();
-        };
-
-        window.addEventListener("touchmove", preventBackgroundTouchMove, {
-            passive: false,
-        });
-
-        return () => {
-            window.removeEventListener("touchmove", preventBackgroundTouchMove);
-        };
-    }, [isSettingsOpen]);
-
-    useEffect(() => {
-        if (isSettingsOpen) return;
-
-        const currentHsl = hexToHsl(baseColor);
-        setDraftHsl(currentHsl);
-        setDraftHex(baseColor);
-    }, [baseColor, isSettingsOpen]);
+        if (isSettingsOpen) {
+            const currentHsl = hexToHsl(baseColor);
+            setDraftHsl(currentHsl);
+            setDraftHex(baseColor);
+        }
+    }, [isSettingsOpen, baseColor]);
 
     const setCopied = (target: string) => {
         setCopiedTarget(target);
-
         window.setTimeout(() => {
             setCopiedTarget((current) => (current === target ? null : current));
         }, 1500);
@@ -500,9 +464,6 @@ export default function ColorPaletteGenerator() {
     };
 
     const openSettings = () => {
-        const currentHsl = hexToHsl(baseColor);
-        setDraftHsl(currentHsl);
-        setDraftHex(baseColor);
         setIsSettingsOpen(true);
     };
 
@@ -747,7 +708,7 @@ export default function ColorPaletteGenerator() {
                     </span>
                 </div>
 
-                <div className="flex h-24 overflow-hidden rounded-2xl border border-white shadow-sm">
+                <div className="flex h-20 overflow-hidden rounded-2xl border border-white shadow-sm">
                     {palette.map((color, index) => (
                         <button
                             key={`${color}-mini-${index}`}
@@ -800,9 +761,7 @@ export default function ColorPaletteGenerator() {
 
                     <select
                         value={paletteType}
-                        onChange={(event) =>
-                            setPaletteType(event.target.value as PaletteType)
-                        }
+                        onChange={(event) => setPaletteType(event.target.value as PaletteType)}
                         className={`w-full rounded-2xl border border-[#F1E5DF] bg-white text-sm font-medium text-[#2A1F1B] outline-none focus:border-[#F28C6F] ${compact ? "h-10 px-3" : "px-4 py-3"
                             }`}
                         aria-label={text.paletteTypeLabel}
@@ -834,13 +793,9 @@ export default function ColorPaletteGenerator() {
                                     onClick={() => setColorCount(count)}
                                     className={
                                         active
-                                            ? `rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] font-semibold text-[#E6765B] ${compact
-                                                ? "px-1 py-2 text-xs"
-                                                : "px-2 py-3 text-sm"
+                                            ? `rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] font-semibold text-[#E6765B] ${compact ? "px-1 py-2 text-xs" : "px-2 py-3 text-sm"
                                             }`
-                                            : `rounded-2xl border border-[#F1E5DF] bg-white font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] ${compact
-                                                ? "px-1 py-2 text-xs"
-                                                : "px-2 py-3 text-sm"
+                                            : `rounded-2xl border border-[#F1E5DF] bg-white font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] ${compact ? "px-1 py-2 text-xs" : "px-2 py-3 text-sm"
                                             }`
                                     }
                                 >
@@ -862,33 +817,25 @@ export default function ColorPaletteGenerator() {
 
         return (
             <div className="min-w-0 overflow-x-hidden">
-                <div
-                    className={
-                        isDesktop
-                            ? "mb-5 flex min-w-0 items-center justify-between gap-4"
-                            : "mb-3"
-                    }
-                >
-                    <div className="min-w-0">
-                        <h2
-                            className={
-                                isDesktop
-                                    ? "text-xl font-semibold text-[#2A1F1B] md:text-2xl"
-                                    : "text-base font-semibold text-[#2A1F1B]"
-                            }
-                        >
-                            {text.chooseBaseColor}
-                        </h2>
-                        <p
-                            className={
-                                isDesktop
-                                    ? "mt-1 text-sm text-gray-500"
-                                    : "mt-0.5 text-xs text-gray-500"
-                            }
-                        >
-                            {text.chooseBaseColorDescription}
-                        </p>
-                    </div>
+                <div className={isDesktop ? "mb-5" : "mb-2"}>
+                    <h2
+                        className={
+                            isDesktop
+                                ? "text-xl font-semibold text-[#2A1F1B] md:text-2xl"
+                                : "text-base font-semibold text-[#2A1F1B]"
+                        }
+                    >
+                        {text.chooseBaseColor}
+                    </h2>
+                    <p
+                        className={
+                            isDesktop
+                                ? "mt-1 text-sm text-gray-500"
+                                : "mt-0.5 text-xs text-gray-500"
+                        }
+                    >
+                        {text.chooseBaseColorDescription}
+                    </p>
                 </div>
 
                 {isDesktop ? (
@@ -898,11 +845,7 @@ export default function ColorPaletteGenerator() {
 
                             <HexInput
                                 value={draftHex}
-                                copyLabel={
-                                    copiedTarget === "picker"
-                                        ? t.common.copied
-                                        : t.common.copy
-                                }
+                                copyLabel={copiedTarget === "picker" ? t.common.copied : t.common.copy}
                                 onChange={updateDraftFromHex}
                                 onBlur={() => {
                                     if (!isValidHex(draftHex)) {
@@ -967,7 +910,7 @@ export default function ColorPaletteGenerator() {
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        <div className="grid grid-cols-[minmax(0,1fr)_72px] gap-3">
+                        <div className="grid grid-cols-[minmax(0,1fr)_70px] gap-3">
                             {renderColorWheel(wheelRef, false)}
 
                             <div className="grid grid-cols-3 gap-1.5">
@@ -1002,9 +945,7 @@ export default function ColorPaletteGenerator() {
 
                         <HexInput
                             value={draftHex}
-                            copyLabel={
-                                copiedTarget === "picker" ? t.common.copied : t.common.copy
-                            }
+                            copyLabel={copiedTarget === "picker" ? t.common.copied : t.common.copy}
                             onChange={updateDraftFromHex}
                             onBlur={() => {
                                 if (!isValidHex(draftHex)) {
@@ -1060,7 +1001,7 @@ export default function ColorPaletteGenerator() {
                 className={
                     isDesktop
                         ? "relative mx-auto aspect-square w-full max-w-[280px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)] md:max-w-[360px]"
-                        : "relative mx-auto aspect-square w-full max-w-[240px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)]"
+                        : "relative mx-auto aspect-square w-full max-w-[214px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)]"
                 }
                 style={{
                     background:
@@ -1074,15 +1015,9 @@ export default function ColorPaletteGenerator() {
                             : "absolute h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md"
                     }
                     style={{
-                        left: `${50 +
-                            Math.cos((draftHsl.h * Math.PI) / 180) *
-                            (draftHsl.s / 100) *
-                            42
+                        left: `${50 + Math.cos((draftHsl.h * Math.PI) / 180) * (draftHsl.s / 100) * 42
                             }%`,
-                        top: `${50 +
-                            Math.sin((draftHsl.h * Math.PI) / 180) *
-                            (draftHsl.s / 100) *
-                            42
+                        top: `${50 + Math.sin((draftHsl.h * Math.PI) / 180) * (draftHsl.s / 100) * 42
                             }%`,
                         backgroundColor: draftColor,
                     }}
@@ -1106,9 +1041,7 @@ export default function ColorPaletteGenerator() {
                         <p className="truncate text-sm font-semibold text-[#2A1F1B]">
                             {draftColor}
                         </p>
-                        <p className="text-xs text-gray-500">
-                            {text.selectedBaseColor}
-                        </p>
+                        <p className="text-xs text-gray-500">{text.selectedBaseColor}</p>
                     </div>
                 </div>
             </div>
@@ -1154,205 +1087,256 @@ export default function ColorPaletteGenerator() {
     };
 
     return (
-        <div className="space-y-6 pb-1 md:pb-0">
-            <div className="pb-2">
-                <SectionTitle
-                    title={text.palettePreview}
-                    right={
-                        <span className="text-xs text-gray-400">
-                            {text.palettePreviewHint}
-                        </span>
-                    }
-                />
-
-                <div className="-mx-1 mt-3 overflow-x-auto px-1 pb-1">
-                    <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-8">
-                        {palette.map((color, index) => (
-                            <button
-                                key={`${color}-${index}`}
-                                type="button"
-                                onClick={() => copyWithStatus(color, `color-${index}`)}
-                                className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
-                                style={{ backgroundColor: color }}
-                                aria-label={`${t.common.copy} ${color}`}
-                            >
-                                <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
-                                    {copiedTarget === `color-${index}`
-                                        ? t.common.copied.toUpperCase()
-                                        : color.toUpperCase()}
+        <>
+            <div className="space-y-6 pb-1 md:space-y-0 md:grid md:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)] md:gap-6">
+                {/* Left column */}
+                <div className="space-y-6">
+                    <div className="pb-2">
+                        <SectionTitle
+                            title={text.palettePreview}
+                            right={
+                                <span className="text-xs text-gray-400">
+                                    {text.palettePreviewHint}
                                 </span>
-                            </button>
-                        ))}
+                            }
+                        />
+
+                        <div className="-mx-1 mt-3 overflow-x-auto px-1 pb-1">
+                            <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-8 md:pr-0">
+                                {palette.map((color, index) => (
+                                    <button
+                                        key={`${color}-${index}`}
+                                        type="button"
+                                        onClick={() => copyWithStatus(color, `color-${index}`)}
+                                        className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
+                                        style={{ backgroundColor: color }}
+                                        aria-label={`${t.common.copy} ${color}`}
+                                    >
+                                        <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
+                                            {copiedTarget === `color-${index}`
+                                                ? t.common.copied.toUpperCase()
+                                                : color.toUpperCase()}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <div className="hidden space-y-5 md:block">
-                {renderColorPickerPanel("desktop", desktopWheelRef)}
-                {renderPaletteControls(false)}
-                {renderRandomButtons(false)}
-            </div>
-
-            <div className="hidden grid-cols-2 gap-3 md:grid">
-                <button
-                    type="button"
-                    onClick={handleCopyPalette}
-                    className="rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
-                >
-                    {copiedTarget === "palette" ? t.common.copied : text.copyPalette}
-                </button>
-
-                <button
-                    type="button"
-                    onClick={handleDownloadPng}
-                    className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                >
-                    {text.downloadPng}
-                </button>
-            </div>
-
-            <div className="border-t border-[#F1E5DF] pt-5">
-                <SectionTitle
-                    title={text.cssOutput}
-                    right={
+                    {/* 这里保留 PC 的 Copy / Download，移动端隐藏 */}
+                    <div className="hidden grid-cols-2 gap-3 md:grid">
                         <button
                             type="button"
-                            onClick={handleCopyCss}
-                            className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                            onClick={handleCopyPalette}
+                            className="rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
                         >
-                            {copiedTarget === "css" ? t.common.copied : text.copyCss}
+                            {copiedTarget === "palette" ? t.common.copied : text.copyPalette}
                         </button>
-                    }
-                />
 
-                <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
-                    <code>{cssOutput}</code>
-                </pre>
-            </div>
-
-            {isSettingsOpen ? (
-                <button
-                    type="button"
-                    aria-label={text.cancel}
-                    onClick={closeSettings}
-                    className="fixed inset-0 z-40 bg-[#2A1F1B]/35 backdrop-blur-[2px] md:hidden"
-                />
-            ) : null}
-
-            <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 md:hidden">
-                <div
-                    ref={mobileActionBarRef}
-                    className={[
-                        "pointer-events-auto mx-auto max-w-md overflow-hidden rounded-[30px] border border-[#F1E5DF] bg-white/95 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur",
-                        "transition-all duration-300 ease-out",
-                        isSettingsOpen
-                            ? "origin-bottom animate-[paletteExpand_260ms_ease-out]"
-                            : "",
-                    ].join(" ")}
-                >
-                    <div
-                        ref={mobileSettingsPanelRef}
-                        className={[
-                            "overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-out",
-                            isSettingsOpen
-                                ? "max-h-[72vh] translate-y-0 opacity-100"
-                                : "max-h-0 translate-y-4 opacity-0",
-                        ].join(" ")}
-                    >
-                        <div className="max-h-[72vh] space-y-3 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pb-4 pt-4">
-                            <div className="flex items-center justify-between gap-3">
-                                <div className="min-w-0">
-                                    <h3 className="truncate text-base font-semibold text-[#2A1F1B]">
-                                        {settingsTitle}
-                                    </h3>
-                                    <p className="mt-0.5 truncate text-xs text-gray-500">
-                                        {text.controlsDescription}
-                                    </p>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    onClick={closeSettings}
-                                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-[#2A1F1B] transition hover:bg-[#FFEDE6]"
-                                    aria-label={text.cancel}
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
-                            </div>
-
-                            {renderMobilePalettePreview()}
-                            {renderRandomButtons(true)}
-                            {renderPaletteControls(true)}
-                            {renderColorPickerPanel("mobile", mobileWheelRef)}
-                        </div>
+                        <button
+                            type="button"
+                            onClick={handleDownloadPng}
+                            className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                        >
+                            {text.downloadPng}
+                        </button>
                     </div>
 
-                    <div
-                        className={[
-                            "transition-[max-height,opacity,transform] duration-300 ease-out",
-                            isSettingsOpen
-                                ? "pointer-events-none max-h-0 translate-y-4 overflow-hidden opacity-0"
-                                : "max-h-[120px] translate-y-0 opacity-100",
-                        ].join(" ")}
-                    >
-                        <div className="grid grid-cols-3 gap-2 p-3">
-                            <button
-                                type="button"
-                                onClick={openSettings}
-                                className="rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
-                            >
-                                <span className="block text-xs font-semibold text-white">
-                                    {settingsButtonText}
-                                </span>
-                                <span className="mt-0.5 block text-[10px] text-white/85">
-                                    {text.baseColorLabel}
-                                </span>
-                            </button>
+                    {/* 这里就是你说的那根横线来源，手机端删掉，只在 PC 保留 */}
+                    <div className="pt-1 md:border-t md:border-[#F1E5DF] md:pt-5">
+                        <SectionTitle
+                            title={text.cssOutput}
+                            right={
+                                <button
+                                    type="button"
+                                    onClick={handleCopyCss}
+                                    className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                >
+                                    {copiedTarget === "css" ? t.common.copied : text.copyCss}
+                                </button>
+                            }
+                        />
 
-                            <button
-                                type="button"
-                                onClick={handleCopyPalette}
-                                className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center"
-                            >
-                                <span className="block text-xs font-semibold text-[#2A1F1B]">
-                                    {copiedTarget === "palette"
-                                        ? t.common.copied
-                                        : t.common.copy}
-                                </span>
-                                <span className="mt-0.5 block text-[10px] text-gray-500">
-                                    {paletteShortLabel}
-                                </span>
-                            </button>
+                        <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
+                            <code>{cssOutput}</code>
+                        </pre>
+                    </div>
+                </div>
 
-                            <button
-                                type="button"
-                                onClick={handleDownloadPng}
-                                className="rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
-                            >
-                                <span className="block text-xs font-semibold text-white">
-                                    {text.download}
-                                </span>
-                                <span className="mt-0.5 block text-[10px] text-white/85">
-                                    {text.png}
-                                </span>
-                            </button>
+                {/* Right column - desktop settings */}
+                <div className="hidden md:block">
+                    <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                        <SectionTitle title={settingsTitle} />
+                        <div className="mt-5 space-y-5">
+                            {renderColorPickerPanel("desktop", desktopWheelRef)}
+                            {renderPaletteControls(false)}
+                            {renderRandomButtons(false)}
                         </div>
                     </div>
                 </div>
             </div>
 
-            <style jsx global>{`
-                @keyframes paletteExpand {
-                    0% {
-                        transform: translateY(18px) scale(0.98);
-                        opacity: 0.88;
-                    }
-                    100% {
-                        transform: translateY(0) scale(1);
-                        opacity: 1;
-                    }
-                }
-            `}</style>
+            <MobileActionBar
+                refElement={mobileActionBarRef}
+                settingsText={settingsButtonText}
+                copyText={copiedTarget === "palette" ? t.common.copied : t.common.copy}
+                copySubText={paletteShortLabel}
+                downloadText={text.download}
+                downloadSubText={text.png}
+                onOpenSettings={openSettings}
+                onCopy={handleCopyPalette}
+                onDownload={handleDownloadPng}
+            />
+
+            {isSettingsOpen ? (
+                <MobileSettingsSheet title={settingsTitle} onClose={closeSettings}>
+                    <div className="space-y-3">
+                        {renderMobilePalettePreview()}
+                        {renderRandomButtons(true)}
+                        {renderPaletteControls(true)}
+                        {renderColorPickerPanel("mobile", mobileWheelRef)}
+                    </div>
+                </MobileSettingsSheet>
+            ) : null}
+        </>
+    );
+}
+
+function MobileActionBar({
+    refElement,
+    settingsText,
+    copyText,
+    copySubText,
+    downloadText,
+    downloadSubText,
+    onOpenSettings,
+    onCopy,
+    onDownload,
+}: {
+    refElement: RefObject<HTMLDivElement | null>;
+    settingsText: string;
+    copyText: string;
+    copySubText: string;
+    downloadText: string;
+    downloadSubText: string;
+    onOpenSettings: () => void;
+    onCopy: () => void;
+    onDownload: () => void;
+}) {
+    return (
+        <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 md:hidden">
+            <div
+                ref={refElement}
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-3 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+            >
+                <button
+                    type="button"
+                    onClick={onOpenSettings}
+                    className="rounded-2xl bg-[#F28C6F] px-2 py-2.5 text-center shadow-sm"
+                >
+                    <span className="block text-xs font-semibold leading-tight text-white">
+                        {settingsText}
+                    </span>
+                    <span className="mt-0.5 block text-[10px] leading-tight text-white/85">
+                        Base Color
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onCopy}
+                    className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-2.5 text-center transition hover:bg-[#FFF7F3]"
+                >
+                    <span className="block text-xs font-semibold leading-tight text-[#2A1F1B]">
+                        {copyText}
+                    </span>
+                    <span className="mt-0.5 block text-[10px] leading-tight text-gray-500">
+                        {copySubText}
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onDownload}
+                    className="rounded-2xl bg-[#F28C6F] px-2 py-2.5 text-center shadow-sm"
+                >
+                    <span className="block text-xs font-semibold leading-tight text-white">
+                        {downloadText}
+                    </span>
+                    <span className="mt-0.5 block text-[10px] leading-tight text-white/85">
+                        {downloadSubText}
+                    </span>
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function MobileSettingsSheet({
+    title,
+    children,
+    onClose,
+}: {
+    title: string;
+    children: ReactNode;
+    onClose: () => void;
+}) {
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        const frame = requestAnimationFrame(() => {
+            setIsVisible(true);
+        });
+
+        return () => {
+            cancelAnimationFrame(frame);
+            document.body.style.overflow = previousOverflow;
+        };
+    }, []);
+
+    function handleClose() {
+        setIsVisible(false);
+
+        window.setTimeout(() => {
+            onClose();
+        }, 180);
+    }
+
+    return (
+        <div
+            className={`fixed inset-0 z-[80] bg-[#2A1F1B]/35 px-3 pb-3 pt-8 backdrop-blur-sm transition-opacity duration-200 md:hidden ${isVisible ? "opacity-100" : "opacity-0"
+                }`}
+            onClick={handleClose}
+        >
+            <div
+                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                    }`}
+                onClick={(event) => event.stopPropagation()}
+            >
+                <div className="flex items-center justify-between gap-4 px-4 pb-2 pt-4">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
+                        <h3 className="truncate text-lg font-semibold text-gray-900">
+                            {title}
+                        </h3>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-2">
+                    {children}
+                </div>
+            </div>
         </div>
     );
 }
@@ -1462,7 +1446,7 @@ function VerticalSlider({
             <span className="text-[10px] font-semibold text-gray-500">{label}</span>
 
             <div
-                className="relative h-full min-h-[210px] w-5 rounded-full border border-white shadow-sm"
+                className="relative h-full min-h-[214px] w-5 rounded-full border border-white shadow-sm"
                 style={{ background: gradient }}
             >
                 <input
