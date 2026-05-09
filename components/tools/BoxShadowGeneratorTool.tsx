@@ -660,7 +660,7 @@ function BoxShadowSettingsPanel({
 
             {compact ? (
                 <>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                         <CompactColorInput
                             label={text.boxColorLabel}
                             value={settings.boxColor}
@@ -676,16 +676,16 @@ function BoxShadowSettingsPanel({
                                 updateSetting("shadowColor", value)
                             }
                         />
-                    </div>
 
-                    <CompactColorInput
-                        label={text.backgroundColorLabel}
-                        value={settings.backgroundColor}
-                        fallback="#FFF7F3"
-                        onChange={(value) =>
-                            updateSetting("backgroundColor", value)
-                        }
-                    />
+                        <CompactColorInput
+                            label={text.backgroundColorLabel}
+                            value={settings.backgroundColor}
+                            fallback="#FFF7F3"
+                            onChange={(value) =>
+                                updateSetting("backgroundColor", value)
+                            }
+                        />
+                    </div>
 
                     <div className="grid grid-cols-2 gap-3">
                         <NumberInput
@@ -944,18 +944,18 @@ function CompactColorInput({
                 {label}
             </span>
 
-            <div className="grid grid-cols-[34px_1fr] gap-1.5">
+            <div className="grid grid-cols-[30px_1fr] gap-1.5">
                 <input
                     type="color"
                     value={colorPickerValue}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-10 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
+                    className="h-9 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
                 />
 
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-10 min-w-0 rounded-xl border border-[#F1E5DF] px-2 text-[10px] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                    className="h-9 min-w-0 rounded-xl border border-[#F1E5DF] px-1.5 text-[9px] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
                 />
             </div>
         </label>
