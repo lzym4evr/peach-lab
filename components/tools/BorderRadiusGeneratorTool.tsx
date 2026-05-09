@@ -236,6 +236,7 @@ export default function BorderRadiusGeneratorTool() {
             ...current,
             ...preset,
         }));
+
         setActiveStyle(style);
         setCopied(false);
         setCopyError("");
@@ -430,12 +431,14 @@ export default function BorderRadiusGeneratorTool() {
                     title={text.controlsTitle}
                     onClose={() => setIsMobileSettingsOpen(false)}
                 >
-                    <div className="space-y-4">
-                        <div className="sticky top-0 z-20 bg-white pb-4">
+                    <div className="flex h-full min-h-0 flex-col">
+                        <div className="shrink-0 bg-white pb-3">
                             {previewPanel}
                         </div>
 
-                        {mobileSettingsPanel}
+                        <div className="min-h-0 flex-1 overflow-y-auto pt-1">
+                            {mobileSettingsPanel}
+                        </div>
                     </div>
                 </MobileSettingsSheet>
             ) : null}
@@ -456,7 +459,7 @@ function RadiusPreview({
 }) {
     return (
         <div
-            className="flex aspect-square w-full items-center justify-center rounded-3xl border border-[#F1E5DF] p-5 md:min-h-[360px] md:aspect-auto md:p-8"
+            className="flex aspect-square w-full items-center justify-center rounded-3xl border border-[#F1E5DF] p-5 md:aspect-auto md:min-h-[360px] md:p-8"
             style={{ backgroundColor: safeBackgroundColor }}
         >
             <div
@@ -510,13 +513,22 @@ function RadiusSettingsPanel({
     compact?: boolean;
 }) {
     return (
-        <div className={compact ? "space-y-4" : "space-y-5"}>
+        <div className={compact ? "space-y-3" : "space-y-5"}>
             <div>
-                <span className="mb-3 block text-sm font-semibold text-gray-800">
+                <span
+                    className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                        }`}
+                >
                     {radiusStyleLabel}
                 </span>
 
-                <div className={compact ? "grid grid-cols-2 gap-2" : "grid grid-cols-2 gap-3"}>
+                <div
+                    className={
+                        compact
+                            ? "grid grid-cols-2 gap-2"
+                            : "grid grid-cols-2 gap-3"
+                    }
+                >
                     {radiusStyles.map((style) => {
                         const isActive = activeStyle === style;
 
@@ -525,7 +537,7 @@ function RadiusSettingsPanel({
                                 key={style}
                                 type="button"
                                 onClick={() => onApplyStyle(style)}
-                                className={`rounded-2xl border font-semibold transition ${compact ? "px-3 py-3 text-sm" : "px-4 py-3 text-sm"
+                                className={`rounded-2xl border font-semibold transition ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
                                     } ${isActive
                                         ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
                                         : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
@@ -538,11 +550,17 @@ function RadiusSettingsPanel({
                 </div>
             </div>
 
-            <div className={compact ? "grid grid-cols-3 gap-2.5" : "grid grid-cols-3 gap-3"}>
+            <div
+                className={
+                    compact
+                        ? "grid grid-cols-3 gap-2"
+                        : "grid grid-cols-3 gap-3"
+                }
+            >
                 <button
                     type="button"
                     onClick={onShuffle}
-                    className={`rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] ${compact ? "px-3 py-3 text-sm" : "px-4 py-3 text-sm"
+                    className={`rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
                         }`}
                 >
                     {text.shuffle}
@@ -551,7 +569,7 @@ function RadiusSettingsPanel({
                 <button
                     type="button"
                     onClick={onRandom}
-                    className={`rounded-2xl bg-[#F28C6F] font-semibold text-white transition hover:bg-[#E6765B] ${compact ? "px-3 py-3 text-sm" : "px-4 py-3 text-sm"
+                    className={`rounded-2xl bg-[#F28C6F] font-semibold text-white transition hover:bg-[#E6765B] ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
                         }`}
                 >
                     {text.randomAll}
@@ -560,11 +578,31 @@ function RadiusSettingsPanel({
                 <button
                     type="button"
                     onClick={onReset}
-                    className={`rounded-2xl border border-[#F4C8BA] bg-white font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] ${compact ? "px-3 py-3 text-sm" : "px-4 py-3 text-sm"
+                    className={`rounded-2xl border border-[#F4C8BA] bg-white font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
                         }`}
                 >
                     {text.reset}
                 </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+                <ColorInput
+                    label={text.boxColorLabel}
+                    value={settings.boxColor}
+                    fallback="#F28C6F"
+                    compact={compact}
+                    onChange={(value) => onUpdateSetting("boxColor", value)}
+                />
+
+                <ColorInput
+                    label={text.backgroundColorLabel}
+                    value={settings.backgroundColor}
+                    fallback="#FFF7F3"
+                    compact={compact}
+                    onChange={(value) =>
+                        onUpdateSetting("backgroundColor", value)
+                    }
+                />
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -584,26 +622,6 @@ function RadiusSettingsPanel({
                     max={400}
                     compact={compact}
                     onChange={(value) => onUpdateSetting("boxHeight", value)}
-                />
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-                <ColorInput
-                    label={text.boxColorLabel}
-                    value={settings.boxColor}
-                    fallback="#F28C6F"
-                    compact={compact}
-                    onChange={(value) => onUpdateSetting("boxColor", value)}
-                />
-
-                <ColorInput
-                    label={text.backgroundColorLabel}
-                    value={settings.backgroundColor}
-                    fallback="#FFF7F3"
-                    compact={compact}
-                    onChange={(value) =>
-                        onUpdateSetting("backgroundColor", value)
-                    }
                 />
             </div>
 
@@ -743,12 +761,12 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-14 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-2 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
         >
             <div
-                className={`ml-auto flex h-full max-h-[88vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
@@ -769,7 +787,9 @@ function MobileSettingsSheet({
                     </button>
                 </div>
 
-                <div className="overflow-y-auto px-4 pb-4 pt-2">{children}</div>
+                <div className="min-h-0 flex-1 overflow-hidden px-4 pb-4 pt-2">
+                    {children}
+                </div>
             </div>
         </div>
     );
@@ -799,9 +819,32 @@ function NumberInput({
     compact?: boolean;
     onChange: (value: number) => void;
 }) {
+    const [inputValue, setInputValue] = useState(String(value));
+
+    useEffect(() => {
+        setInputValue(String(value));
+    }, [value]);
+
+    function handleChange(nextValue: string) {
+        setInputValue(nextValue);
+
+        if (nextValue.trim() === "") {
+            return;
+        }
+
+        const parsedValue = Number(nextValue);
+
+        if (!Number.isNaN(parsedValue)) {
+            onChange(parsedValue);
+        }
+    }
+
     return (
-        <label className="block">
-            <span className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-sm" : "text-sm"}`}>
+        <label className="block min-w-0">
+            <span
+                className={`mb-2 block truncate font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                    }`}
+            >
                 {label}
             </span>
 
@@ -809,9 +852,14 @@ function NumberInput({
                 type="number"
                 min={min}
                 max={max}
-                value={value}
-                onChange={(event) => onChange(Number(event.target.value))}
-                className={`w-full rounded-xl border border-[#F1E5DF] px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-11" : "h-12"
+                value={inputValue}
+                onChange={(event) => handleChange(event.target.value)}
+                onBlur={() => {
+                    if (inputValue.trim() === "") {
+                        setInputValue(String(value));
+                    }
+                }}
+                className={`w-full rounded-xl border border-[#F1E5DF] px-3 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-10" : "h-12"
                     }`}
             />
         </label>
@@ -834,24 +882,32 @@ function ColorInput({
     const colorPickerValue = isValidHexColor(value) ? value : fallback;
 
     return (
-        <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-gray-800">
+        <label className="block min-w-0">
+            <span
+                className={`mb-1.5 block truncate font-semibold text-gray-800 ${compact ? "text-[10px]" : "text-sm"
+                    }`}
+            >
                 {label}
             </span>
 
-            <div className={`grid gap-2.5 ${compact ? "grid-cols-[50px_1fr]" : "grid-cols-[58px_1fr]"}`}>
+            <div
+                className={`grid gap-1.5 ${compact ? "grid-cols-[34px_1fr]" : "grid-cols-[58px_1fr]"
+                    }`}
+            >
                 <input
                     type="color"
                     value={colorPickerValue}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-11" : "h-12"
+                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-10" : "h-12"
                         }`}
                 />
 
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className={`w-full rounded-xl border border-[#F1E5DF] px-3 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-11" : "h-12 px-4"
+                    className={`w-full rounded-xl border border-[#F1E5DF] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
+                            ? "h-10 px-2 text-[11px]"
+                            : "h-12 px-4 text-sm"
                         }`}
                 />
             </div>
@@ -877,16 +933,31 @@ function RangeInput({
     onChange: (value: number) => void;
 }) {
     return (
-        <label className="block">
-            <div className={`mb-2 flex items-center justify-between gap-3 ${compact ? "min-h-[24px]" : ""}`}>
+        <label className="block min-w-0">
+            <div
+                className={
+                    compact
+                        ? "mb-1 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5"
+                        : "mb-2 flex items-center justify-between gap-4"
+                }
+            >
                 <span
-                    className={`font-semibold text-gray-800 ${compact ? "text-sm" : "text-sm"
-                        }`}
+                    className={
+                        compact
+                            ? "min-w-0 truncate whitespace-nowrap text-[11px] font-semibold leading-5 text-gray-800"
+                            : "text-sm font-semibold text-gray-800"
+                    }
                 >
                     {label}
                 </span>
 
-                <span className="shrink-0 rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
+                <span
+                    className={
+                        compact
+                            ? "min-w-[40px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-0.5 text-center text-[11px] font-semibold leading-5 text-[#7A5A4F]"
+                            : "rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]"
+                    }
+                >
                     {value}
                     {suffix}
                 </span>
