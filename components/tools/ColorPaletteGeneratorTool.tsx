@@ -1,7 +1,7 @@
 "use client";
 
 import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
-import { Copy, Download, Dices, Shuffle, X } from "lucide-react";
+import { X } from "lucide-react";
 import SectionTitle from "@/components/ui/SectionTitle";
 import { t } from "@/data/messages";
 
@@ -775,22 +775,87 @@ export default function ColorPaletteGenerator() {
                 <button
                     type="button"
                     onClick={handleShuffle}
-                    className={`inline-flex items-center justify-center gap-2 rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6] ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
+                    className={`rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6] ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
                         }`}
                 >
-                    <Shuffle className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
                     {text.shuffle}
                 </button>
 
                 <button
                     type="button"
                     onClick={handleRandomAll}
-                    className={`inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] font-semibold text-white shadow-sm transition hover:bg-[#E6765B] ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
+                    className={`rounded-2xl bg-[#F28C6F] font-semibold text-white shadow-sm transition hover:bg-[#E6765B] ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
                         }`}
                 >
-                    <Dices className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
                     {text.random}
                 </button>
+            </div>
+        );
+    };
+
+    const renderPaletteControls = (compact = false) => {
+        return (
+            <div className={compact ? "space-y-3" : "space-y-5"}>
+                <div>
+                    <label
+                        className={`mb-2 block font-medium text-[#2A1F1B] ${compact ? "text-xs" : "text-sm"
+                            }`}
+                    >
+                        {text.paletteTypeLabel}
+                    </label>
+
+                    <select
+                        value={paletteType}
+                        onChange={(event) =>
+                            setPaletteType(event.target.value as PaletteType)
+                        }
+                        className={`w-full rounded-2xl border border-[#F1E5DF] bg-white text-sm font-medium text-[#2A1F1B] outline-none focus:border-[#F28C6F] ${compact ? "h-10 px-3" : "px-4 py-3"
+                            }`}
+                        aria-label={text.paletteTypeLabel}
+                    >
+                        {PALETTE_TYPES.map((type) => (
+                            <option key={type.value} value={type.value}>
+                                {type.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label
+                        className={`mb-2 block font-medium text-[#2A1F1B] ${compact ? "text-xs" : "text-sm"
+                            }`}
+                    >
+                        {text.colorCountLabel}
+                    </label>
+
+                    <div className="grid grid-cols-6 gap-2">
+                        {COLOR_COUNTS.map((count) => {
+                            const active = colorCount === count;
+
+                            return (
+                                <button
+                                    key={count}
+                                    type="button"
+                                    onClick={() => setColorCount(count)}
+                                    className={
+                                        active
+                                            ? `rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] font-semibold text-[#E6765B] ${compact
+                                                ? "px-1 py-2 text-xs"
+                                                : "px-2 py-3 text-sm"
+                                            }`
+                                            : `rounded-2xl border border-[#F1E5DF] bg-white font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] ${compact
+                                                ? "px-1 py-2 text-xs"
+                                                : "px-2 py-3 text-sm"
+                                            }`
+                                    }
+                                >
+                                    {count}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
             </div>
         );
     };
@@ -935,7 +1000,15 @@ export default function ColorPaletteGenerator() {
                                     className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
                                     aria-label={text.copySelectedColor}
                                 >
-                                    <Copy className="h-4 w-4" />
+                                    {copiedTarget === "picker" ? (
+                                        <span className="text-[10px] font-semibold">
+                                            {t.common.copied}
+                                        </span>
+                                    ) : (
+                                        <span className="text-[10px] font-semibold">
+                                            {t.common.copy}
+                                        </span>
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -1054,167 +1127,79 @@ export default function ColorPaletteGenerator() {
 
     return (
         <div className="space-y-6 pb-1 md:pb-0">
-            <div>
-                <SectionTitle title={settingsTitle} />
-                <p className="mt-2 text-sm leading-6 text-gray-500">
-                    {text.controlsDescription}
-                </p>
+            <div className="border-b border-[#F1E5DF] pb-5">
+                <SectionTitle
+                    title={text.palettePreview}
+                    right={
+                        <span className="text-xs text-gray-400">
+                            {text.palettePreviewHint}
+                        </span>
+                    }
+                />
+
+                <div className="-mx-1 mt-3 overflow-x-auto px-1 pb-1">
+                    <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-8">
+                        {palette.map((color, index) => (
+                            <button
+                                key={`${color}-${index}`}
+                                type="button"
+                                onClick={() => copyWithStatus(color, `color-${index}`)}
+                                className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
+                                style={{ backgroundColor: color }}
+                                aria-label={`${t.common.copy} ${color}`}
+                            >
+                                <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
+                                    {copiedTarget === `color-${index}`
+                                        ? t.common.copied.toUpperCase()
+                                        : color.toUpperCase()}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
             </div>
 
-            <div className="space-y-5">
-                <div className="grid grid-cols-2 gap-3 md:block md:space-y-5">
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
-                            {text.baseColorLabel}
-                        </label>
+            <div className="hidden space-y-5 md:block">
+                {renderColorPickerPanel("desktop", desktopWheelRef)}
+                {renderPaletteControls(false)}
+                {renderRandomButtons(false)}
+            </div>
 
+            <div className="hidden grid-cols-2 gap-3 md:grid">
+                <button
+                    type="button"
+                    onClick={handleCopyPalette}
+                    className="rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                >
+                    {copiedTarget === "palette" ? t.common.copied : text.copyPalette}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={handleDownloadPng}
+                    className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                >
+                    {text.downloadPng}
+                </button>
+            </div>
+
+            <div className="border-t border-[#F1E5DF] pt-5">
+                <SectionTitle
+                    title={text.cssOutput}
+                    right={
                         <button
                             type="button"
-                            onClick={openSettings}
-                            className="flex h-12 w-full items-center rounded-2xl border border-[#F1E5DF] bg-white px-3 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] md:hidden"
+                            onClick={handleCopyCss}
+                            className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                         >
-                            <div className="flex min-w-0 items-center gap-3">
-                                <span
-                                    className="h-8 w-8 shrink-0 rounded-xl shadow-sm"
-                                    style={{ backgroundColor: baseColor }}
-                                />
-                                <span className="truncate text-sm font-medium text-[#2A1F1B]">
-                                    {baseColor}
-                                </span>
-                            </div>
+                            {copiedTarget === "css" ? t.common.copied : text.copyCss}
                         </button>
+                    }
+                />
 
-                        <div className="hidden md:block">
-                            {renderColorPickerPanel("desktop", desktopWheelRef)}
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
-                            {text.paletteTypeLabel}
-                        </label>
-
-                        <select
-                            value={paletteType}
-                            onChange={(event) =>
-                                setPaletteType(event.target.value as PaletteType)
-                            }
-                            className="h-12 w-full rounded-2xl border border-[#F1E5DF] bg-white px-3 text-sm font-medium text-[#2A1F1B] outline-none focus:border-[#F28C6F] md:h-auto md:px-4 md:py-3"
-                            aria-label={text.paletteTypeLabel}
-                        >
-                            {PALETTE_TYPES.map((type) => (
-                                <option key={type.value} value={type.value}>
-                                    {type.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label className="mb-2 block text-sm font-medium text-[#2A1F1B]">
-                        {text.colorCountLabel}
-                    </label>
-
-                    <div className="grid grid-cols-6 gap-2">
-                        {COLOR_COUNTS.map((count) => {
-                            const active = colorCount === count;
-
-                            return (
-                                <button
-                                    key={count}
-                                    type="button"
-                                    onClick={() => setColorCount(count)}
-                                    className={
-                                        active
-                                            ? "rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-3 text-sm font-semibold text-[#E6765B]"
-                                            : "rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
-                                    }
-                                >
-                                    {count}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                <div className="hidden md:block">{renderRandomButtons(false)}</div>
-
-                <div className="border-t border-[#F1E5DF] pt-5">
-                    <SectionTitle
-                        title={text.palettePreview}
-                        right={
-                            <span className="text-xs text-gray-400">
-                                {text.palettePreviewHint}
-                            </span>
-                        }
-                    />
-
-                    <div className="-mx-1 mt-3 overflow-x-auto px-1 pb-1">
-                        <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-8">
-                            {palette.map((color, index) => (
-                                <button
-                                    key={`${color}-${index}`}
-                                    type="button"
-                                    onClick={() => copyWithStatus(color, `color-${index}`)}
-                                    className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
-                                    style={{ backgroundColor: color }}
-                                    aria-label={`${t.common.copy} ${color}`}
-                                >
-                                    <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
-                                        {copiedTarget === `color-${index}`
-                                            ? t.common.copied.toUpperCase()
-                                            : color.toUpperCase()}
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="hidden grid-cols-2 gap-3 md:grid">
-                    <button
-                        type="button"
-                        onClick={handleCopyPalette}
-                        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
-                    >
-                        <Copy className="h-4 w-4" />
-                        {copiedTarget === "palette"
-                            ? t.common.copied
-                            : text.copyPalette}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={handleDownloadPng}
-                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                    >
-                        <Download className="h-4 w-4" />
-                        {text.downloadPng}
-                    </button>
-                </div>
-
-                <div className="border-t border-[#F1E5DF] pt-5">
-                    <SectionTitle
-                        title={text.cssOutput}
-                        right={
-                            <button
-                                type="button"
-                                onClick={handleCopyCss}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                            >
-                                <Copy className="h-4 w-4" />
-                                {copiedTarget === "css"
-                                    ? t.common.copied
-                                    : text.copyCss}
-                            </button>
-                        }
-                    />
-
-                    <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
-                        <code>{cssOutput}</code>
-                    </pre>
-                </div>
+                <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
+                    <code>{cssOutput}</code>
+                </pre>
             </div>
 
             {isSettingsOpen ? (
@@ -1268,9 +1253,8 @@ export default function ColorPaletteGenerator() {
                             </div>
 
                             {renderMobilePalettePreview()}
-
                             {renderRandomButtons(true)}
-
+                            {renderPaletteControls(true)}
                             {renderColorPickerPanel("mobile", mobileWheelRef)}
                         </div>
                     </div>
@@ -1287,12 +1271,12 @@ export default function ColorPaletteGenerator() {
                             <button
                                 type="button"
                                 onClick={openSettings}
-                                className="flex flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
+                                className="rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
                             >
-                                <span className="text-xs font-semibold text-white">
+                                <span className="block text-xs font-semibold text-white">
                                     {settingsButtonText}
                                 </span>
-                                <span className="mt-0.5 text-[10px] text-white/85">
+                                <span className="mt-0.5 block text-[10px] text-white/85">
                                     {text.baseColorLabel}
                                 </span>
                             </button>
@@ -1300,15 +1284,14 @@ export default function ColorPaletteGenerator() {
                             <button
                                 type="button"
                                 onClick={handleCopyPalette}
-                                className="flex flex-col items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center"
+                                className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-3 text-center"
                             >
-                                <Copy className="mb-1 h-5 w-5 text-[#2A1F1B]" />
-                                <span className="text-xs font-semibold text-[#2A1F1B]">
+                                <span className="block text-xs font-semibold text-[#2A1F1B]">
                                     {copiedTarget === "palette"
                                         ? t.common.copied
                                         : t.common.copy}
                                 </span>
-                                <span className="mt-0.5 text-[10px] text-gray-500">
+                                <span className="mt-0.5 block text-[10px] text-gray-500">
                                     {paletteShortLabel}
                                 </span>
                             </button>
@@ -1316,13 +1299,12 @@ export default function ColorPaletteGenerator() {
                             <button
                                 type="button"
                                 onClick={handleDownloadPng}
-                                className="flex flex-col items-center justify-center rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
+                                className="rounded-2xl bg-[#F28C6F] px-2 py-3 text-center shadow-sm"
                             >
-                                <Download className="mb-1 h-5 w-5 text-white" />
-                                <span className="text-xs font-semibold text-white">
+                                <span className="block text-xs font-semibold text-white">
                                     {text.download}
                                 </span>
-                                <span className="mt-0.5 text-[10px] text-white/85">
+                                <span className="mt-0.5 block text-[10px] text-white/85">
                                     {text.png}
                                 </span>
                             </button>
