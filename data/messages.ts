@@ -663,6 +663,8 @@ export const messages = {
             grain: "Grain",
             blobSize: "Blob Size",
             blur: "Blur",
+            offsetX: "Offset X",
+            offsetY: "Offset Y",
 
             shuffle: "Shuffle",
             randomAll: "Random",

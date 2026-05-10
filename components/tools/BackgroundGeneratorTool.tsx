@@ -12,6 +12,14 @@ const backgroundStyles: BackgroundStyle[] = [
     "spotlight",
 ];
 
+function isValidHexColor(value: string) {
+    return /^#[0-9A-Fa-f]{6}$/.test(value);
+}
+
+function getSafeHexColor(value: string, fallback: string) {
+    return isValidHexColor(value) ? value : fallback;
+}
+
 function getRandomHexColor() {
     const value = Math.floor(Math.random() * 16777215)
         .toString(16)
@@ -26,7 +34,8 @@ function getRandomNumber(min: number, max: number) {
 }
 
 function hexToRgb(hex: string) {
-    const cleanHex = hex.replace("#", "");
+    const safeHex = getSafeHexColor(hex, "#F28C6F");
+    const cleanHex = safeHex.replace("#", "");
 
     return {
         r: parseInt(cleanHex.slice(0, 2), 16),
@@ -96,6 +105,11 @@ export default function BackgroundGeneratorTool() {
             }
         };
     }, []);
+
+    function clearCopyState() {
+        setCopied(false);
+        setCopyError("");
+    }
 
     function drawSoftBlobBackground(context: CanvasRenderingContext2D) {
         const alpha = intensity / 100;
@@ -322,7 +336,9 @@ export default function BackgroundGeneratorTool() {
         const context = canvas.getContext("2d");
         if (!context) return;
 
-        context.fillStyle = baseColor;
+        const safeBaseColor = getSafeHexColor(baseColor, "#FFF7F3");
+
+        context.fillStyle = safeBaseColor;
         context.fillRect(0, 0, canvasWidth, canvasHeight);
 
         if (backgroundStyle === "mesh") {
@@ -360,8 +376,7 @@ export default function BackgroundGeneratorTool() {
 
     function showPreview() {
         setHasPreview(true);
-        setCopied(false);
-        setCopyError("");
+        clearCopyState();
     }
 
     function shuffleBackground() {
@@ -376,8 +391,7 @@ export default function BackgroundGeneratorTool() {
         setOffsetX(getRandomNumber(15, 70));
         setOffsetY(getRandomNumber(15, 70));
         setHasPreview(true);
-        setCopied(false);
-        setCopyError("");
+        clearCopyState();
     }
 
     function randomAll() {
@@ -405,42 +419,45 @@ export default function BackgroundGeneratorTool() {
         setOffsetX(getRandomNumber(15, 70));
         setOffsetY(getRandomNumber(15, 70));
         setHasPreview(true);
-        setCopied(false);
-        setCopyError("");
+        clearCopyState();
     }
 
     function getCssOutput() {
         const alpha = intensity / 100;
         const grainComment =
-            grain > 0 ? "\n/* Grain is included in PNG export only. */" : "";
+            grain > 0 ? `\n/* ${text.grainCssComment} */` : "";
+
+        const safeBaseColor = getSafeHexColor(baseColor, "#FFF7F3");
+        const safeAccentColor1 = getSafeHexColor(accentColor1, "#F28C6F");
+        const safeAccentColor2 = getSafeHexColor(accentColor2, "#FFD6C8");
 
         if (backgroundStyle === "mesh") {
             return `background:
-  radial-gradient(circle at ${offsetX}% ${offsetY}%, ${hexToRgba(accentColor1, 0.85 * alpha)} 0%, transparent ${blobSize}%),
-  radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${hexToRgba(accentColor2, 0.8 * alpha)} 0%, transparent ${blobSize}%),
-  radial-gradient(circle at 50% 18%, ${hexToRgba(accentColor2, 0.55 * alpha)} 0%, transparent ${blobSize}%),
-  radial-gradient(circle at 18% 82%, ${hexToRgba(accentColor1, 0.45 * alpha)} 0%, transparent ${blobSize}%),
-  ${baseColor};${grainComment}`;
+  radial-gradient(circle at ${offsetX}% ${offsetY}%, ${hexToRgba(safeAccentColor1, 0.85 * alpha)} 0%, transparent ${blobSize}%),
+  radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${hexToRgba(safeAccentColor2, 0.8 * alpha)} 0%, transparent ${blobSize}%),
+  radial-gradient(circle at 50% 18%, ${hexToRgba(safeAccentColor2, 0.55 * alpha)} 0%, transparent ${blobSize}%),
+  radial-gradient(circle at 18% 82%, ${hexToRgba(safeAccentColor1, 0.45 * alpha)} 0%, transparent ${blobSize}%),
+  ${safeBaseColor};${grainComment}`;
         }
 
         if (backgroundStyle === "aurora") {
             return `background:
-  linear-gradient(135deg, transparent 0%, ${hexToRgba(accentColor1, 0.75 * alpha)} 45%, transparent 100%),
-  linear-gradient(45deg, transparent 0%, ${hexToRgba(accentColor2, 0.7 * alpha)} 50%, transparent 100%),
-  ${baseColor};${grainComment}`;
+  linear-gradient(135deg, transparent 0%, ${hexToRgba(safeAccentColor1, 0.75 * alpha)} 45%, transparent 100%),
+  linear-gradient(45deg, transparent 0%, ${hexToRgba(safeAccentColor2, 0.7 * alpha)} 50%, transparent 100%),
+  ${safeBaseColor};${grainComment}`;
         }
 
         if (backgroundStyle === "spotlight") {
             return `background:
-  radial-gradient(circle at 50% 42%, ${hexToRgba(accentColor1, 0.85 * alpha)} 0%, ${hexToRgba(accentColor2, 0.35 * alpha)} 55%, transparent ${blobSize + 20}%),
-  radial-gradient(circle at 50% 50%, transparent 15%, ${hexToRgba(accentColor2, 0.32 * alpha)} 100%),
-  ${baseColor};${grainComment}`;
+  radial-gradient(circle at 50% 42%, ${hexToRgba(safeAccentColor1, 0.85 * alpha)} 0%, ${hexToRgba(safeAccentColor2, 0.35 * alpha)} 55%, transparent ${blobSize + 20}%),
+  radial-gradient(circle at 50% 50%, transparent 15%, ${hexToRgba(safeAccentColor2, 0.32 * alpha)} 100%),
+  ${safeBaseColor};${grainComment}`;
         }
 
         return `background:
-  radial-gradient(circle at ${offsetX}% ${offsetY}%, ${hexToRgba(accentColor1, 0.9 * alpha)} 0%, transparent ${blobSize}%),
-  radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${hexToRgba(accentColor2, 0.85 * alpha)} 0%, transparent ${blobSize}%),
-  ${baseColor};${grainComment}`;
+  radial-gradient(circle at ${offsetX}% ${offsetY}%, ${hexToRgba(safeAccentColor1, 0.9 * alpha)} 0%, transparent ${blobSize}%),
+  radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${hexToRgba(safeAccentColor2, 0.85 * alpha)} 0%, transparent ${blobSize}%),
+  ${safeBaseColor};${grainComment}`;
     }
 
     async function copyCss() {
@@ -504,6 +521,8 @@ export default function BackgroundGeneratorTool() {
             setGrain={setGrain}
             setBlobSize={setBlobSize}
             setBlur={setBlur}
+            setOffsetX={setOffsetX}
+            setOffsetY={setOffsetY}
             showPreview={showPreview}
             onShuffle={shuffleBackground}
             onRandom={randomAll}
@@ -536,6 +555,8 @@ export default function BackgroundGeneratorTool() {
             setGrain={setGrain}
             setBlobSize={setBlobSize}
             setBlur={setBlur}
+            setOffsetX={setOffsetX}
+            setOffsetY={setOffsetY}
             showPreview={showPreview}
             onShuffle={shuffleBackground}
             onRandom={randomAll}
@@ -587,7 +608,7 @@ export default function BackgroundGeneratorTool() {
                         </div>
 
                         <pre className="overflow-x-auto rounded-2xl bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-700">
-                            {getCssOutput()}
+                            <code>{getCssOutput()}</code>
                         </pre>
 
                         {copyError ? (
@@ -658,6 +679,8 @@ function SettingsPanel({
     setGrain,
     setBlobSize,
     setBlur,
+    setOffsetX,
+    setOffsetY,
     showPreview,
     onShuffle,
     onRandom,
@@ -686,6 +709,8 @@ function SettingsPanel({
     setGrain: (value: number) => void;
     setBlobSize: (value: number) => void;
     setBlur: (value: number) => void;
+    setOffsetX: (value: number) => void;
+    setOffsetY: (value: number) => void;
     showPreview: () => void;
     onShuffle: () => void;
     onRandom: () => void;
@@ -892,57 +917,85 @@ function SettingsPanel({
                 </>
             )}
 
-            <RangeInput
-                label={intensityLabel}
-                value={intensity}
-                min={0}
-                max={100}
-                suffix="%"
-                compact={compact}
-                onChange={(value) => {
-                    setIntensity(value);
-                    showPreview();
-                }}
-            />
+            <div className={compact ? "grid grid-cols-2 gap-3" : "space-y-5"}>
+                <RangeInput
+                    label={intensityLabel}
+                    value={intensity}
+                    min={0}
+                    max={100}
+                    suffix="%"
+                    compact={compact}
+                    onChange={(value) => {
+                        setIntensity(value);
+                        showPreview();
+                    }}
+                />
 
-            <RangeInput
-                label={grainLabel}
-                value={grain}
-                min={0}
-                max={30}
-                suffix="%"
-                compact={compact}
-                onChange={(value) => {
-                    setGrain(value);
-                    showPreview();
-                }}
-            />
+                <RangeInput
+                    label={grainLabel}
+                    value={grain}
+                    min={0}
+                    max={30}
+                    suffix="%"
+                    compact={compact}
+                    onChange={(value) => {
+                        setGrain(value);
+                        showPreview();
+                    }}
+                />
 
-            <RangeInput
-                label={text.blobSize}
-                value={blobSize}
-                min={10}
-                max={90}
-                suffix="%"
-                compact={compact}
-                onChange={(value) => {
-                    setBlobSize(value);
-                    showPreview();
-                }}
-            />
+                <RangeInput
+                    label={text.blobSize}
+                    value={blobSize}
+                    min={10}
+                    max={90}
+                    suffix="%"
+                    compact={compact}
+                    onChange={(value) => {
+                        setBlobSize(value);
+                        showPreview();
+                    }}
+                />
 
-            <RangeInput
-                label={text.blur}
-                value={blur}
-                min={0}
-                max={160}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => {
-                    setBlur(value);
-                    showPreview();
-                }}
-            />
+                <RangeInput
+                    label={text.blur}
+                    value={blur}
+                    min={0}
+                    max={160}
+                    suffix="px"
+                    compact={compact}
+                    onChange={(value) => {
+                        setBlur(value);
+                        showPreview();
+                    }}
+                />
+
+                <RangeInput
+                    label={text.offsetX}
+                    value={offsetX}
+                    min={0}
+                    max={100}
+                    suffix="%"
+                    compact={compact}
+                    onChange={(value) => {
+                        setOffsetX(value);
+                        showPreview();
+                    }}
+                />
+
+                <RangeInput
+                    label={text.offsetY}
+                    value={offsetY}
+                    min={0}
+                    max={100}
+                    suffix="%"
+                    compact={compact}
+                    onChange={(value) => {
+                        setOffsetY(value);
+                        showPreview();
+                    }}
+                />
+            </div>
         </div>
     );
 }
@@ -967,37 +1020,40 @@ function getCssBackgroundValue({
     offsetY: number;
 }) {
     const alpha = intensity / 100;
+    const safeBaseColor = getSafeHexColor(baseColor, "#FFF7F3");
+    const safeAccentColor1 = getSafeHexColor(accentColor1, "#F28C6F");
+    const safeAccentColor2 = getSafeHexColor(accentColor2, "#FFD6C8");
 
     if (backgroundStyle === "mesh") {
         return `
-            radial-gradient(circle at ${offsetX}% ${offsetY}%, ${hexToRgba(accentColor1, 0.85 * alpha)} 0%, transparent ${blobSize}%),
-            radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${hexToRgba(accentColor2, 0.8 * alpha)} 0%, transparent ${blobSize}%),
-            radial-gradient(circle at 50% 18%, ${hexToRgba(accentColor2, 0.55 * alpha)} 0%, transparent ${blobSize}%),
-            radial-gradient(circle at 18% 82%, ${hexToRgba(accentColor1, 0.45 * alpha)} 0%, transparent ${blobSize}%),
-            ${baseColor}
+            radial-gradient(circle at ${offsetX}% ${offsetY}%, ${hexToRgba(safeAccentColor1, 0.85 * alpha)} 0%, transparent ${blobSize}%),
+            radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${hexToRgba(safeAccentColor2, 0.8 * alpha)} 0%, transparent ${blobSize}%),
+            radial-gradient(circle at 50% 18%, ${hexToRgba(safeAccentColor2, 0.55 * alpha)} 0%, transparent ${blobSize}%),
+            radial-gradient(circle at 18% 82%, ${hexToRgba(safeAccentColor1, 0.45 * alpha)} 0%, transparent ${blobSize}%),
+            ${safeBaseColor}
         `;
     }
 
     if (backgroundStyle === "aurora") {
         return `
-            linear-gradient(135deg, transparent 0%, ${hexToRgba(accentColor1, 0.75 * alpha)} 45%, transparent 100%),
-            linear-gradient(45deg, transparent 0%, ${hexToRgba(accentColor2, 0.7 * alpha)} 50%, transparent 100%),
-            ${baseColor}
+            linear-gradient(135deg, transparent 0%, ${hexToRgba(safeAccentColor1, 0.75 * alpha)} 45%, transparent 100%),
+            linear-gradient(45deg, transparent 0%, ${hexToRgba(safeAccentColor2, 0.7 * alpha)} 50%, transparent 100%),
+            ${safeBaseColor}
         `;
     }
 
     if (backgroundStyle === "spotlight") {
         return `
-            radial-gradient(circle at 50% 42%, ${hexToRgba(accentColor1, 0.85 * alpha)} 0%, ${hexToRgba(accentColor2, 0.35 * alpha)} 55%, transparent ${blobSize + 20}%),
-            radial-gradient(circle at 50% 50%, transparent 15%, ${hexToRgba(accentColor2, 0.32 * alpha)} 100%),
-            ${baseColor}
+            radial-gradient(circle at 50% 42%, ${hexToRgba(safeAccentColor1, 0.85 * alpha)} 0%, ${hexToRgba(safeAccentColor2, 0.35 * alpha)} 55%, transparent ${blobSize + 20}%),
+            radial-gradient(circle at 50% 50%, transparent 15%, ${hexToRgba(safeAccentColor2, 0.32 * alpha)} 100%),
+            ${safeBaseColor}
         `;
     }
 
     return `
-        radial-gradient(circle at ${offsetX}% ${offsetY}%, ${hexToRgba(accentColor1, 0.9 * alpha)} 0%, transparent ${blobSize}%),
-        radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${hexToRgba(accentColor2, 0.85 * alpha)} 0%, transparent ${blobSize}%),
-        ${baseColor}
+        radial-gradient(circle at ${offsetX}% ${offsetY}%, ${hexToRgba(safeAccentColor1, 0.9 * alpha)} 0%, transparent ${blobSize}%),
+        radial-gradient(circle at ${100 - offsetX}% ${100 - offsetY}%, ${hexToRgba(safeAccentColor2, 0.85 * alpha)} 0%, transparent ${blobSize}%),
+        ${safeBaseColor}
     `;
 }
 
@@ -1033,7 +1089,7 @@ function BackgroundMiniPreview({
     const fillWidth = previewRatio >= containerRatio;
 
     return (
-        <div className="flex h-36 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5">
+        <div className="sticky top-0 z-10 flex h-36 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5">
             <div
                 className="relative overflow-hidden rounded-xl border border-[#F1E5DF] shadow-sm"
                 style={{
@@ -1150,6 +1206,8 @@ function ColorInput({
     value: string;
     onChange: (value: string) => void;
 }) {
+    const colorPickerValue = isValidHexColor(value) ? value : "#F28C6F";
+
     return (
         <label className="block">
             <span className="mb-2 block text-sm font-semibold text-gray-800">
@@ -1159,14 +1217,14 @@ function ColorInput({
             <div className="flex items-center gap-3">
                 <input
                     type="color"
-                    value={value}
-                    onChange={(event) => onChange(event.target.value)}
+                    value={colorPickerValue}
+                    onChange={(event) => onChange(event.target.value.toUpperCase())}
                     className="h-12 w-16 cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
                 />
 
                 <input
                     value={value}
-                    onChange={(event) => onChange(event.target.value)}
+                    onChange={(event) => onChange(event.target.value.toUpperCase())}
                     className="h-12 min-w-0 flex-1 rounded-xl border border-[#F1E5DF] px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
                 />
             </div>
@@ -1183,6 +1241,8 @@ function CompactColorInput({
     value: string;
     onChange: (value: string) => void;
 }) {
+    const colorPickerValue = isValidHexColor(value) ? value : "#F28C6F";
+
     return (
         <label className="block min-w-0">
             <span className="mb-1.5 block truncate text-[10px] font-semibold text-gray-800">
@@ -1192,14 +1252,14 @@ function CompactColorInput({
             <div className="grid grid-cols-[34px_1fr] gap-1.5">
                 <input
                     type="color"
-                    value={value}
-                    onChange={(event) => onChange(event.target.value)}
+                    value={colorPickerValue}
+                    onChange={(event) => onChange(event.target.value.toUpperCase())}
                     className="h-10 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
                 />
 
                 <input
                     value={value}
-                    onChange={(event) => onChange(event.target.value)}
+                    onChange={(event) => onChange(event.target.value.toUpperCase())}
                     className="h-10 min-w-0 rounded-xl border border-[#F1E5DF] px-2 text-[10px] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
                 />
             </div>
@@ -1225,19 +1285,19 @@ function RangeInput({
     onChange: (value: number) => void;
 }) {
     return (
-        <label className="block">
+        <label className="block min-w-0">
             <div
-                className={`flex items-center justify-between gap-4 ${compact ? "mb-1.5" : "mb-2"
+                className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 ${compact ? "mb-1.5" : "mb-2"
                     }`}
             >
                 <span
-                    className={`block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                    className={`min-w-0 truncate whitespace-nowrap font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
                         }`}
                 >
                     {label}
                 </span>
 
-                <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
+                <span className="min-w-[44px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-1 text-center text-xs font-semibold text-[#7A5A4F]">
                     {value}
                     {suffix}
                 </span>
@@ -1333,11 +1393,17 @@ function MobileSettingsSheet({
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
         const frame = requestAnimationFrame(() => {
             setIsVisible(true);
         });
 
-        return () => cancelAnimationFrame(frame);
+        return () => {
+            cancelAnimationFrame(frame);
+            document.body.style.overflow = previousOverflow;
+        };
     }, []);
 
     function handleClose() {
@@ -1350,19 +1416,19 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-28 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[80] bg-[#2A1F1B]/35 px-3 pb-3 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
         >
             <div
-                className={`ml-auto flex h-full max-h-[72vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
-                <div className="flex items-center justify-between gap-4 px-4 pb-1.5 pt-3">
+                <div className="flex items-center justify-between gap-4 px-4 pb-2 pt-4">
                     <div className="flex min-w-0 items-center gap-3">
-                        <span className="h-6 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
-                        <h3 className="truncate text-base font-semibold text-gray-900">
+                        <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
+                        <h3 className="truncate text-lg font-semibold text-gray-900">
                             {title}
                         </h3>
                     </div>
@@ -1370,13 +1436,15 @@ function MobileSettingsSheet({
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
                     >
                         ×
                     </button>
                 </div>
 
-                <div className="overflow-y-auto px-3 pb-3 pt-2">{children}</div>
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-2">
+                    {children}
+                </div>
             </div>
         </div>
     );
