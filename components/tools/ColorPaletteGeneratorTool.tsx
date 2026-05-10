@@ -1117,9 +1117,19 @@ export default function ColorPaletteGenerator() {
         );
     };
 
+    const desktopCardClass =
+        "rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm";
+
+    const desktopPrimaryButtonClass =
+        "rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]";
+
+    const desktopSecondaryButtonClass =
+        "rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6]";
+
     return (
         <>
-            <div className="space-y-6 pb-1 md:pb-0">
+            {/* Mobile layout: keep current mobile structure unchanged */}
+            <div className="space-y-6 pb-1 lg:hidden">
                 <div className="pb-2">
                     <SectionTitle
                         title={text.palettePreview}
@@ -1137,11 +1147,11 @@ export default function ColorPaletteGenerator() {
                                     key={`${color}-${index}`}
                                     type="button"
                                     onClick={() => copyWithStatus(color, `color-${index}`)}
-                                    className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98] md:h-44 md:w-[54px]"
+                                    className="relative flex h-40 w-[36px] flex-none snap-start items-center justify-center rounded-[17px] shadow-sm transition active:scale-[0.98]"
                                     style={{ backgroundColor: color }}
                                     aria-label={`${t.common.copy} ${color}`}
                                 >
-                                    <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white md:text-sm">
+                                    <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white">
                                         {copiedTarget === `color-${index}`
                                             ? t.common.copied.toUpperCase()
                                             : color.toUpperCase()}
@@ -1152,31 +1162,7 @@ export default function ColorPaletteGenerator() {
                     </div>
                 </div>
 
-                <div className="hidden space-y-5 md:block">
-                    {renderColorPickerPanel("desktop", desktopWheelRef)}
-                    {renderPaletteControls(false)}
-                    {renderRandomButtons(false)}
-                </div>
-
-                <div className="hidden grid-cols-2 gap-3 md:grid">
-                    <button
-                        type="button"
-                        onClick={handleCopyPalette}
-                        className="rounded-2xl border border-[#F1E5DF] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
-                    >
-                        {copiedTarget === "palette" ? t.common.copied : text.copyPalette}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={handleDownloadPng}
-                        className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                    >
-                        {text.downloadPng}
-                    </button>
-                </div>
-
-                <div className="border-t border-[#F1E5DF] pt-5">
+                <div className="pt-1">
                     <SectionTitle
                         title={text.cssOutput}
                         right={
@@ -1194,6 +1180,112 @@ export default function ColorPaletteGenerator() {
                         <code>{cssOutput}</code>
                     </pre>
                 </div>
+            </div>
+
+            {/* PC layout */}
+            <div className="hidden gap-6 lg:grid lg:grid-cols-2 lg:items-start">
+                <div className="min-w-0 space-y-6">
+                    <section className={desktopCardClass}>
+                        <SectionTitle
+                            title={text.palettePreview}
+                            right={
+                                <span className="text-xs text-gray-400">
+                                    {text.palettePreviewHint}
+                                </span>
+                            }
+                        />
+
+                        <div className="mt-4 overflow-x-auto pb-1">
+                            <div className="flex min-w-max gap-1.5 pr-6">
+                                {palette.map((color, index) => (
+                                    <button
+                                        key={`${color}-${index}-desktop`}
+                                        type="button"
+                                        onClick={() => copyWithStatus(color, `color-${index}`)}
+                                        className="relative flex h-44 w-[54px] flex-none items-center justify-center rounded-[18px] shadow-sm transition active:scale-[0.98]"
+                                        style={{ backgroundColor: color }}
+                                        aria-label={`${t.common.copy} ${color}`}
+                                    >
+                                        <span className="-rotate-90 whitespace-nowrap text-sm font-bold tracking-wide text-white">
+                                            {copiedTarget === `color-${index}`
+                                                ? t.common.copied.toUpperCase()
+                                                : color.toUpperCase()}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="mt-5 grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={handleCopyPalette}
+                                className={desktopSecondaryButtonClass}
+                            >
+                                {copiedTarget === "palette"
+                                    ? t.common.copied
+                                    : text.copyPalette}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleDownloadPng}
+                                className={desktopPrimaryButtonClass}
+                            >
+                                {text.downloadPng}
+                            </button>
+                        </div>
+                    </section>
+
+                    <section className={desktopCardClass}>
+                        <SectionTitle
+                            title={text.cssOutput}
+                            right={
+                                <button
+                                    type="button"
+                                    onClick={handleCopyCss}
+                                    className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                >
+                                    {copiedTarget === "css" ? t.common.copied : text.copyCss}
+                                </button>
+                            }
+                        />
+
+                        <pre className="mt-4 max-h-[420px] overflow-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-7 text-[#2A1F1B]">
+                            <code>{cssOutput}</code>
+                        </pre>
+                    </section>
+                </div>
+
+                <section className={desktopCardClass}>
+                    <SectionTitle title={settingsTitle} />
+
+                    <div className="mt-5 space-y-6">
+                        {renderColorPickerPanel("desktop", desktopWheelRef)}
+
+                        <div className="grid gap-5">
+                            {renderPaletteControls(false)}
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleShuffle}
+                                    className={desktopSecondaryButtonClass}
+                                >
+                                    {text.shuffle}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={handleRandomAll}
+                                    className={desktopPrimaryButtonClass}
+                                >
+                                    {text.random}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
 
             <MobileActionBar
