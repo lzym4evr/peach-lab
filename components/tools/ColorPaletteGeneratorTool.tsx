@@ -498,30 +498,25 @@ export default function ColorPaletteGenerator() {
         setIsSettingsOpen(false);
     };
 
-    const applyPickerColor = () => {
-        const nextColor = isValidHex(draftHex) ? draftHex : draftColor;
-        setBaseColor(nextColor.toUpperCase());
-    };
-
-    const applyDesktopColor = () => {
-        const nextColor = isValidHex(draftHex) ? draftHex : draftColor;
-        setBaseColor(nextColor.toUpperCase());
-    };
-
     const resetDesktopColor = () => {
-        const currentHsl = hexToHsl(baseColor);
-        setDraftHsl(currentHsl);
-        setDraftHex(baseColor);
+        const defaultHsl = hexToHsl(DEFAULT_BASE_COLOR);
+
+        setBaseColor(DEFAULT_BASE_COLOR);
+        setDraftHsl(defaultHsl);
+        setDraftHex(DEFAULT_BASE_COLOR);
     };
 
     const updateDraftFromHex = (value: string) => {
         const normalized = normalizeHexInput(value);
 
         if (/^#[0-9A-F]{0,6}$/i.test(normalized)) {
-            setDraftHex(normalized.toUpperCase());
+            const nextHex = normalized.toUpperCase();
 
-            if (isValidHex(normalized)) {
-                setDraftHsl(hexToHsl(normalized));
+            setDraftHex(nextHex);
+
+            if (isValidHex(nextHex)) {
+                setDraftHsl(hexToHsl(nextHex));
+                setBaseColor(nextHex);
             }
         }
     };
@@ -534,7 +529,11 @@ export default function ColorPaletteGenerator() {
                 l: clamp(next.l ?? current.l, 0, 100),
             };
 
-            setDraftHex(hslToHex(updated.h, updated.s, updated.l));
+            const nextHex = hslToHex(updated.h, updated.s, updated.l);
+
+            setDraftHex(nextHex);
+            setBaseColor(nextHex);
+
             return updated;
         });
     };
@@ -932,23 +931,13 @@ export default function ColorPaletteGenerator() {
 
                             {renderPresets()}
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    type="button"
-                                    onClick={resetDesktopColor}
-                                    className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6]"
-                                >
-                                    {text.reset}
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={applyDesktopColor}
-                                    className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                                >
-                                    {text.apply}
-                                </button>
-                            </div>
+                            <button
+                                type="button"
+                                onClick={resetDesktopColor}
+                                className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6]"
+                            >
+                                {text.reset}
+                            </button>
                         </div>
                     </div>
                 ) : (
@@ -1005,23 +994,13 @@ export default function ColorPaletteGenerator() {
                         {renderCurrentColor()}
                         {renderPresets()}
 
-                        <div className="grid min-w-0 grid-cols-2 gap-3 pt-1">
-                            <button
-                                type="button"
-                                onClick={closeSettings}
-                                className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-2.5 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
-                            >
-                                {text.cancel}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={applyPickerColor}
-                                className="rounded-2xl bg-[#F28C6F] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                            >
-                                {text.apply}
-                            </button>
-                        </div>
+                        <button
+                            type="button"
+                            onClick={closeSettings}
+                            className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-2.5 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
+                        >
+                            {text.cancel}
+                        </button>
                     </div>
                 )}
             </div>
@@ -1121,6 +1100,7 @@ export default function ColorPaletteGenerator() {
                                 onClick={() => {
                                     setDraftHex(color);
                                     setDraftHsl(hexToHsl(color));
+                                    setBaseColor(color);
                                 }}
                                 className={
                                     active
