@@ -871,37 +871,40 @@ export default function ColorPaletteGenerator() {
 
                 {isDesktop ? (
                     <div className="space-y-6">
-                        <div className="grid items-center gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)]">
+                        <div className="grid items-center justify-center gap-6 xl:grid-cols-[minmax(220px,260px)_96px]">
                             <div className="min-w-0">
                                 {renderColorWheel(wheelRef, true)}
                             </div>
 
-                            <div className="min-w-0 space-y-5">
-                                <SliderInput
-                                    label={text.hue}
+                            <div className="grid h-[220px] grid-cols-3 items-stretch gap-2 xl:h-[240px]">
+                                <VerticalSlider
+                                    label="H"
                                     value={Math.round(draftHsl.h)}
                                     min={0}
                                     max={360}
-                                    suffix=""
+                                    gradient="linear-gradient(to top, red, yellow, lime, cyan, blue, magenta, red)"
                                     onChange={(value) => updateDraftHsl({ h: value })}
+                                    compact
                                 />
 
-                                <SliderInput
-                                    label={text.saturation}
+                                <VerticalSlider
+                                    label="S"
                                     value={Math.round(draftHsl.s)}
                                     min={0}
                                     max={100}
-                                    suffix="%"
+                                    gradient={`linear-gradient(to top, hsl(${draftHsl.h}, 0%, ${draftHsl.l}%), hsl(${draftHsl.h}, 100%, ${draftHsl.l}%))`}
                                     onChange={(value) => updateDraftHsl({ s: value })}
+                                    compact
                                 />
 
-                                <SliderInput
-                                    label={text.lightness}
+                                <VerticalSlider
+                                    label="L"
                                     value={Math.round(draftHsl.l)}
                                     min={10}
                                     max={90}
-                                    suffix="%"
+                                    gradient={`linear-gradient(to top, #111827, hsl(${draftHsl.h}, ${draftHsl.s}%, 50%), #ffffff)`}
                                     onChange={(value) => updateDraftHsl({ l: value })}
+                                    compact
                                 />
                             </div>
                         </div>
@@ -1538,6 +1541,7 @@ function VerticalSlider({
     min,
     max,
     gradient,
+    compact = false,
     onChange,
 }: {
     label: string;
@@ -1545,18 +1549,29 @@ function VerticalSlider({
     min: number;
     max: number;
     gradient: string;
+    compact?: boolean;
     onChange: (value: number) => void;
 }) {
     const percent = ((value - min) / (max - min)) * 100;
 
     return (
         <label className="flex min-w-0 flex-col items-center gap-1.5">
-            <span className="text-[10px] font-semibold text-gray-500">
+            <span
+                className={
+                    compact
+                        ? "text-[10px] font-semibold leading-none text-gray-400"
+                        : "text-[10px] font-semibold text-gray-500"
+                }
+            >
                 {label}
             </span>
 
             <div
-                className="relative h-full min-h-[214px] w-5 rounded-full border border-white shadow-sm"
+                className={
+                    compact
+                        ? "relative h-full min-h-0 w-5 rounded-full border border-white shadow-sm"
+                        : "relative h-full min-h-[214px] w-5 rounded-full border border-white shadow-sm"
+                }
                 style={{ background: gradient }}
             >
                 <input
