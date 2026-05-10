@@ -329,6 +329,7 @@ export const messages = {
             settingsButton: "Settings",
 
             baseColorLabel: "Base Color",
+            baseColorShortLabel: "Base Color",
             paletteTypeLabel: "Palette Type",
             colorCountLabel: "Color Count",
 
@@ -343,7 +344,6 @@ export const messages = {
             triadic: "Triadic",
             warm: "Warm",
             cool: "Cool",
-            random: "Random",
 
             palettePreview: "Palette Preview",
             palettePreviewHint: "Tap a color to copy",
@@ -351,6 +351,7 @@ export const messages = {
             cssOutput: "CSS Output",
 
             shuffle: "Shuffle",
+            random: "Random",
             randomAll: "Random",
             copyPalette: "Copy Palette",
             copyCss: "Copy CSS",
