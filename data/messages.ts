@@ -577,6 +577,7 @@ export const messages = {
             randomAll: "Random",
             downloadPng: "Download PNG",
             downloadSvg: "Download SVG",
+            actionDownload: "Download",
             copySvg: "Copy SVG",
             reset: "Reset",
 
