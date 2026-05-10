@@ -871,12 +871,12 @@ export default function ColorPaletteGenerator() {
 
                 {isDesktop ? (
                     <div className="space-y-6">
-                        <div className="grid items-center gap-6 xl:grid-cols-[minmax(220px,280px)_minmax(0,1fr)]">
+                        <div className="grid items-center gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)]">
                             <div className="min-w-0">
                                 {renderColorWheel(wheelRef, true)}
                             </div>
 
-                            <div className="min-w-0 space-y-4">
+                            <div className="min-w-0 space-y-5">
                                 <SliderInput
                                     label={text.hue}
                                     value={Math.round(draftHsl.h)}
@@ -1042,7 +1042,7 @@ export default function ColorPaletteGenerator() {
                 }}
                 className={
                     isDesktop
-                        ? "relative mx-auto aspect-square w-full max-w-[260px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)]"
+                        ? "relative mx-auto aspect-square w-full max-w-[220px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)] xl:max-w-[240px]"
                         : "relative mx-auto aspect-square w-full max-w-[214px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)]"
                 }
                 style={{
@@ -1509,8 +1509,8 @@ function SliderInput({
 }) {
     return (
         <label className="block min-w-0">
-            <div className="mb-1 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5">
-                <span className="min-w-0 truncate whitespace-nowrap text-sm font-medium leading-5 text-gray-500">
+            <div className="mb-1 grid grid-cols-[minmax(88px,1fr)_auto] items-center gap-2">
+                <span className="min-w-0 whitespace-nowrap text-sm font-medium leading-5 text-gray-500">
                     {label}
                 </span>
 
