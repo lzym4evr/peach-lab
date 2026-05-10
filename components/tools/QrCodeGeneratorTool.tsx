@@ -77,9 +77,6 @@ export default function QrCodeGeneratorTool() {
     const text = t.qrCodeGenerator;
     const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const actionDownloadText =
-        (text as { actionDownload?: string }).actionDownload ?? "Download";
-
     const [settings, setSettings] = useState<QrSettings>(defaultSettings);
     const [pngUrl, setPngUrl] = useState("");
     const [svgOutput, setSvgOutput] = useState("");
@@ -273,7 +270,7 @@ export default function QrCodeGeneratorTool() {
                             className="min-h-[220px] w-full resize-y rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 font-mono text-sm leading-7 text-gray-700 outline-none md:min-h-[240px]"
                         />
 
-                        <div className="mt-4 grid grid-cols-2 gap-3">
+                        <div className="mt-4 hidden grid-cols-2 gap-3 md:grid">
                             <button
                                 type="button"
                                 onClick={handleDownloadPng}
@@ -316,10 +313,13 @@ export default function QrCodeGeneratorTool() {
 
             <MobileActionBar
                 settingsText={text.settingsButton}
-                downloadText={actionDownloadText}
+                pngText="PNG"
+                svgText="SVG"
                 canDownloadPng={!!pngUrl}
+                canDownloadSvg={!!svgOutput}
                 onOpenSettings={() => setIsSettingsOpen(true)}
                 onDownloadPng={handleDownloadPng}
+                onDownloadSvg={handleDownloadSvg}
             />
 
             {isSettingsOpen ? (
@@ -596,16 +596,22 @@ function ControlsPanel({
 
 function MobileActionBar({
     settingsText,
-    downloadText,
+    pngText,
+    svgText,
     canDownloadPng,
+    canDownloadSvg,
     onOpenSettings,
     onDownloadPng,
+    onDownloadSvg,
 }: {
     settingsText: string;
-    downloadText: string;
+    pngText: string;
+    svgText: string;
     canDownloadPng: boolean;
+    canDownloadSvg: boolean;
     onOpenSettings: () => void;
     onDownloadPng: () => void;
+    onDownloadSvg: () => void;
 }) {
     const actionBarRef = useRef<HTMLDivElement | null>(null);
 
@@ -639,7 +645,7 @@ function MobileActionBar({
         <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
             <div
                 ref={actionBarRef}
-                className="pointer-events-auto mx-auto grid max-w-md grid-cols-2 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-3 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
             >
                 <button
                     type="button"
@@ -655,7 +661,16 @@ function MobileActionBar({
                     disabled={!canDownloadPng}
                     className="rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
                 >
-                    {downloadText}
+                    {pngText}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onDownloadSvg}
+                    disabled={!canDownloadSvg}
+                    className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    {svgText}
                 </button>
             </div>
         </div>
