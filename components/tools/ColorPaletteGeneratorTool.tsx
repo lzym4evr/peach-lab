@@ -825,6 +825,7 @@ export default function ColorPaletteGenerator() {
             </div>
         );
     };
+
     const renderColorPickerPanel = (
         mode: "desktop" | "mobile",
         wheelRef: RefObject<HTMLDivElement | null>,
@@ -856,45 +857,48 @@ export default function ColorPaletteGenerator() {
                 </div>
 
                 {isDesktop ? (
-                    <div className="space-y-5">
-                        {/* PC: color wheel left, sliders right */}
-                        <div className="grid min-w-0 items-center gap-8 md:grid-cols-[minmax(0,1fr)_minmax(260px,0.9fr)]">
-                            <div className="min-w-0">
+                    <div className="space-y-6">
+                        {/* 顶部：左大色轮 + 右侧竖向三滑杆 */}
+                        <div className="grid items-center gap-10 md:grid-cols-[minmax(340px,1fr)_220px]">
+                            <div className="flex justify-center">
                                 {renderColorWheel(wheelRef, true)}
                             </div>
 
-                            <div className="min-w-0 space-y-5">
-                                <SliderInput
+                            <div className="flex items-center justify-center gap-6">
+                                <DesktopVerticalSlider
                                     label={text.hue}
                                     value={Math.round(draftHsl.h)}
                                     min={0}
                                     max={360}
                                     suffix=""
+                                    gradient="linear-gradient(to top, red, yellow, lime, cyan, blue, magenta, red)"
                                     onChange={(value) => updateDraftHsl({ h: value })}
                                 />
 
-                                <SliderInput
+                                <DesktopVerticalSlider
                                     label={text.saturation}
                                     value={Math.round(draftHsl.s)}
                                     min={0}
                                     max={100}
                                     suffix="%"
+                                    gradient={`linear-gradient(to top, hsl(${draftHsl.h}, 0%, ${draftHsl.l}%), hsl(${draftHsl.h}, 100%, ${draftHsl.l}%))`}
                                     onChange={(value) => updateDraftHsl({ s: value })}
                                 />
 
-                                <SliderInput
+                                <DesktopVerticalSlider
                                     label={text.lightness}
                                     value={Math.round(draftHsl.l)}
                                     min={10}
                                     max={90}
                                     suffix="%"
+                                    gradient={`linear-gradient(to top, #111827, hsl(${draftHsl.h}, ${draftHsl.s}%, 50%), #ffffff)`}
                                     onChange={(value) => updateDraftHsl({ l: value })}
                                 />
                             </div>
                         </div>
 
-                        {/* PC: normal full-width fields, no squeezing */}
-                        <div className="grid gap-5">
+                        {/* 下方信息正常排，不挤 */}
+                        <div className="space-y-5">
                             <HexInput
                                 value={draftHex}
                                 copyLabel={
@@ -921,7 +925,7 @@ export default function ColorPaletteGenerator() {
                                 <button
                                     type="button"
                                     onClick={resetDesktopColor}
-                                    className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6]"
+                                    className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
                                 >
                                     {text.reset}
                                 </button>
@@ -1011,7 +1015,6 @@ export default function ColorPaletteGenerator() {
                 )}
             </div>
         );
-
     };
 
     const renderColorWheel = (
@@ -1031,7 +1034,7 @@ export default function ColorPaletteGenerator() {
                 }}
                 className={
                     isDesktop
-                        ? "relative mx-auto aspect-square w-full max-w-[280px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)] md:max-w-[360px]"
+                        ? "relative aspect-square w-full max-w-[360px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)] lg:max-w-[420px]"
                         : "relative mx-auto aspect-square w-full max-w-[214px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)]"
                 }
                 style={{
@@ -1042,7 +1045,7 @@ export default function ColorPaletteGenerator() {
                 <span
                     className={
                         isDesktop
-                            ? "absolute h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md md:h-8 md:w-8"
+                            ? "absolute h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md"
                             : "absolute h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-md"
                     }
                     style={{
@@ -1541,6 +1544,63 @@ function SliderInput({
                 className="block w-full min-w-0 accent-[#F28C6F]"
             />
         </label>
+    );
+}
+
+function DesktopVerticalSlider({
+    label,
+    value,
+    min,
+    max,
+    suffix,
+    gradient,
+    onChange,
+}: {
+    label: string;
+    value: number;
+    min: number;
+    max: number;
+    suffix: string;
+    gradient: string;
+    onChange: (value: number) => void;
+}) {
+    const percent = ((value - min) / (max - min)) * 100;
+
+    return (
+        <div className="flex flex-col items-center gap-3">
+            <div className="text-center">
+                <div className="text-sm font-medium text-gray-500">{label}</div>
+                <div className="mt-1 inline-flex min-w-[52px] items-center justify-center rounded-full bg-[#FFF7F3] px-2.5 py-1 text-xs font-semibold text-[#7A5A4F]">
+                    {value}
+                    {suffix}
+                </div>
+            </div>
+
+            <div
+                className="relative h-[260px] w-7 rounded-full border border-white shadow-sm"
+                style={{ background: gradient }}
+            >
+                <input
+                    type="range"
+                    min={min}
+                    max={max}
+                    value={value}
+                    onChange={(event) => onChange(Number(event.target.value))}
+                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    style={{
+                        writingMode: "vertical-lr",
+                        direction: "rtl",
+                    }}
+                />
+
+                <span
+                    className="pointer-events-none absolute left-1/2 h-6 w-6 -translate-x-1/2 rounded-full border-2 border-white bg-[#F28C6F] shadow-md"
+                    style={{
+                        bottom: `calc(${percent}% - 12px)`,
+                    }}
+                />
+            </div>
+        </div>
     );
 }
 
