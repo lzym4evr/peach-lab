@@ -457,12 +457,14 @@ export default function BoxShadowGeneratorTool() {
                     onClose={() => setIsMobileSettingsOpen(false)}
                 >
                     <div className="space-y-3">
-                        <BoxShadowMiniPreview
-                            settings={settings}
-                            safeBoxColor={safeBoxColor}
-                            safeBackgroundColor={safeBackgroundColor}
-                            boxShadowValue={boxShadowValue}
-                        />
+                        <div className="sticky top-0 z-10 bg-white pb-3">
+                            <BoxShadowMiniPreview
+                                settings={settings}
+                                safeBoxColor={safeBoxColor}
+                                safeBackgroundColor={safeBackgroundColor}
+                                boxShadowValue={boxShadowValue}
+                            />
+                        </div>
 
                         {mobileSettingsPanel}
                     </div>
@@ -485,7 +487,7 @@ function BoxShadowPreview({
 }) {
     return (
         <div
-            className="flex aspect-square w-full items-center justify-center rounded-3xl border border-[#F1E5DF] p-8"
+            className="flex h-56 w-full items-center justify-center rounded-3xl border border-[#F1E5DF] p-6 md:aspect-square md:h-auto md:p-8"
             style={{ backgroundColor: safeBackgroundColor }}
         >
             <div
@@ -521,7 +523,7 @@ function BoxShadowMiniPreview({
 }) {
     return (
         <div
-            className="flex aspect-square w-full items-center justify-center rounded-2xl border border-[#F1E5DF] p-6"
+            className="flex h-36 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] p-5"
             style={{ backgroundColor: safeBackgroundColor }}
         >
             <div
@@ -530,7 +532,7 @@ function BoxShadowMiniPreview({
                     width: `${settings.boxWidth}px`,
                     height: `${settings.boxHeight}px`,
                     maxWidth: "76%",
-                    maxHeight: "64%",
+                    maxHeight: "62%",
                     backgroundColor: safeBoxColor,
                     borderRadius: `${settings.borderRadius}px`,
                     boxShadow: boxShadowValue,
@@ -573,14 +575,79 @@ function BoxShadowSettingsPanel({
     return (
         <div className={compact ? "space-y-3" : "space-y-5"}>
             <div>
-                <span
-                    className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
-                        }`}
-                >
-                    {shadowStyleText}
-                </span>
+                {compact ? (
+                    <div className="mb-2 flex flex-nowrap items-center justify-between gap-2">
+                        <span className="min-w-0 truncate text-xs font-semibold text-gray-800">
+                            {shadowStyleText}
+                        </span>
 
-                <div className="grid grid-cols-2 gap-2">
+                        <div className="grid shrink-0 grid-cols-3 gap-1.5">
+                            <button
+                                type="button"
+                                onClick={onShuffle}
+                                className="h-8 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 text-[11px] font-semibold leading-none text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                            >
+                                {text.shuffle}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={onRandom}
+                                className="h-8 rounded-xl bg-[#F28C6F] px-2 text-[11px] font-semibold leading-none text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                {text.randomAll}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={onReset}
+                                className="h-8 rounded-xl border border-[#F4C8BA] bg-white px-2 text-[11px] font-semibold leading-none text-[#E6765B] transition hover:bg-[#FFF7F3]"
+                            >
+                                {text.reset}
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        <div className="mb-3 grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={onShuffle}
+                                className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                            >
+                                {text.shuffle}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={onRandom}
+                                className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
+                            >
+                                {text.randomAll}
+                            </button>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={onReset}
+                            className="mb-5 w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                        >
+                            {text.reset}
+                        </button>
+
+                        <span className="mb-2 block text-sm font-semibold text-gray-800">
+                            {shadowStyleText}
+                        </span>
+                    </>
+                )}
+
+                <div
+                    className={
+                        compact
+                            ? "grid grid-cols-2 gap-2"
+                            : "grid grid-cols-2 gap-3"
+                    }
+                >
                     {shadowStyles.map((style) => {
                         const isActive = shadowStyle === style;
 
@@ -601,62 +668,6 @@ function BoxShadowSettingsPanel({
                     })}
                 </div>
             </div>
-
-            {compact ? (
-                <div className="grid grid-cols-3 gap-2">
-                    <button
-                        type="button"
-                        onClick={onShuffle}
-                        className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2 text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3]"
-                    >
-                        {text.shuffle}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={onRandom}
-                        className="rounded-2xl border border-[#F28C6F] bg-[#F28C6F] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                    >
-                        {text.randomAll}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={onReset}
-                        className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2 text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3]"
-                    >
-                        {text.reset}
-                    </button>
-                </div>
-            ) : (
-                <>
-                    <div className="grid grid-cols-2 gap-2">
-                        <button
-                            type="button"
-                            onClick={onShuffle}
-                            className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                        >
-                            {text.shuffle}
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={onRandom}
-                            className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                        >
-                            {text.randomAll}
-                        </button>
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={onReset}
-                        className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                    >
-                        {text.reset}
-                    </button>
-                </>
-            )}
 
             {compact ? (
                 <>
@@ -1096,11 +1107,17 @@ function MobileSettingsSheet({
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
         const frame = requestAnimationFrame(() => {
             setIsVisible(true);
         });
 
-        return () => cancelAnimationFrame(frame);
+        return () => {
+            cancelAnimationFrame(frame);
+            document.body.style.overflow = previousOverflow;
+        };
     }, []);
 
     function handleClose() {
@@ -1113,12 +1130,12 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[80] bg-[#2A1F1B]/35 px-3 pb-3 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
         >
             <div
-                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
@@ -1139,7 +1156,9 @@ function MobileSettingsSheet({
                     </button>
                 </div>
 
-                <div className="overflow-y-auto px-4 pb-4 pt-2">{children}</div>
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-2">
+                    {children}
+                </div>
             </div>
         </div>
     );
