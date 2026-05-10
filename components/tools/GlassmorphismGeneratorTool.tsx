@@ -155,8 +155,7 @@ export default function GlassmorphismGeneratorTool() {
 .glass-card {
   position: relative;
   overflow: hidden;
-  background: rgba(${glassRgb.r}, ${glassRgb.g}, ${glassRgb.b}, ${opacity / 100
-            });
+  background: rgba(${glassRgb.r}, ${glassRgb.g}, ${glassRgb.b}, ${opacity / 100});
   backdrop-filter: blur(${blur}px) saturate(${saturation}%);
   -webkit-backdrop-filter: blur(${blur}px) saturate(${saturation}%);
   border-radius: ${borderRadius}px;
@@ -459,7 +458,10 @@ export default function GlassmorphismGeneratorTool() {
                     onClose={() => setIsMobileSettingsOpen(false)}
                 >
                     <div className="space-y-3">
-                        {previewPanel}
+                        <div className="sticky top-0 z-10 bg-white pb-3">
+                            {previewPanel}
+                        </div>
+
                         {mobileSettingsPanel}
                     </div>
                 </MobileSettingsSheet>
@@ -499,13 +501,13 @@ function GlassPreview({
 }) {
     return (
         <div
-            className="flex aspect-square w-full items-center justify-center rounded-3xl p-5 md:p-8"
+            className="flex h-56 w-full items-center justify-center rounded-3xl p-5 md:aspect-square md:h-auto md:p-8"
             style={{
                 background: `linear-gradient(${gradientAngle}deg, ${safeBackgroundColor1}, ${safeBackgroundColor2})`,
             }}
         >
             <div
-                className="relative w-full max-w-sm overflow-hidden p-6 text-center md:p-8"
+                className="relative w-full max-w-[260px] overflow-hidden p-5 text-center md:max-w-sm md:p-8"
                 style={{
                     background: `rgba(${glassRgb.r}, ${glassRgb.g}, ${glassRgb.b}, ${opacity / 100})`,
                     backdropFilter: `blur(${blur}px) saturate(${saturation}%)`,
@@ -523,19 +525,19 @@ function GlassPreview({
                 />
 
                 <div className="relative z-10">
-                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/50 text-3xl md:mb-5 md:h-16 md:w-16">
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/50 text-2xl md:mb-5 md:h-16 md:w-16 md:text-3xl">
                         ◫
                     </div>
 
                     <h4
-                        className={`text-xl font-bold md:text-2xl ${isDarkGlass ? "text-white" : "text-gray-900"
+                        className={`text-lg font-bold md:text-2xl ${isDarkGlass ? "text-white" : "text-gray-900"
                             }`}
                     >
                         {text.cardText}
                     </h4>
 
                     <p
-                        className={`mt-3 text-sm leading-6 ${isDarkGlass ? "text-white/80" : "text-gray-700"
+                        className={`mt-2 text-xs leading-5 md:mt-3 md:text-sm md:leading-6 ${isDarkGlass ? "text-white/80" : "text-gray-700"
                             }`}
                     >
                         {text.cardDescription}
@@ -879,11 +881,17 @@ function MobileSettingsSheet({
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
         const frame = requestAnimationFrame(() => {
             setIsVisible(true);
         });
 
-        return () => cancelAnimationFrame(frame);
+        return () => {
+            cancelAnimationFrame(frame);
+            document.body.style.overflow = previousOverflow;
+        };
     }, []);
 
     function handleClose() {
@@ -896,12 +904,12 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[80] bg-[#2A1F1B]/35 px-3 pb-3 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
         >
             <div
-                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
@@ -922,7 +930,9 @@ function MobileSettingsSheet({
                     </button>
                 </div>
 
-                <div className="overflow-y-auto px-4 pb-4 pt-2">{children}</div>
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-2">
+                    {children}
+                </div>
             </div>
         </div>
     );

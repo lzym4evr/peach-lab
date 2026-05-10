@@ -577,15 +577,15 @@ export default function BackgroundGeneratorTool() {
                             </p>
                         </div>
 
-                        <div className="relative mt-5 overflow-hidden rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                        <div className="relative mt-5 flex h-56 items-center justify-center overflow-hidden rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-3 md:h-auto md:block md:p-4">
                             <canvas
                                 ref={canvasRef}
-                                className={`h-auto max-h-[520px] w-full rounded-2xl object-contain ${hasPreview ? "block" : "hidden"
+                                className={`max-h-full max-w-full rounded-2xl object-contain md:h-auto md:max-h-[520px] md:w-full ${hasPreview ? "block" : "hidden"
                                     }`}
                             />
 
                             {!hasPreview && (
-                                <div className="flex min-h-64 items-center justify-center rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center">
+                                <div className="flex h-full w-full items-center justify-center rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center md:min-h-64">
                                     <p className="max-w-xs text-sm leading-6 text-gray-500">
                                         {text.emptyHint}
                                     </p>
