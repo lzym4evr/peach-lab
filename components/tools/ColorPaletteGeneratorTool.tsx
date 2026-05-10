@@ -492,13 +492,10 @@ export default function ColorPaletteGenerator() {
     };
 
     const closeSettings = () => {
-        const currentHsl = hexToHsl(baseColor);
-        setDraftHsl(currentHsl);
-        setDraftHex(baseColor);
         setIsSettingsOpen(false);
     };
 
-    const resetDesktopColor = () => {
+    const resetBaseColor = () => {
         const defaultHsl = hexToHsl(DEFAULT_BASE_COLOR);
 
         setBaseColor(DEFAULT_BASE_COLOR);
@@ -731,17 +728,27 @@ export default function ColorPaletteGenerator() {
                     </span>
                 </div>
 
-                <div className="flex h-20 overflow-hidden rounded-2xl border border-white shadow-sm">
-                    {palette.map((color, index) => (
-                        <button
-                            key={`${color}-mini-${index}`}
-                            type="button"
-                            onClick={() => copyWithStatus(color, `mini-color-${index}`)}
-                            className="min-w-0 flex-1 transition active:scale-[0.98]"
-                            style={{ backgroundColor: color }}
-                            aria-label={`${t.common.copy} ${color}`}
-                        />
-                    ))}
+                <div className="-mx-1 overflow-x-auto px-1 pb-1">
+                    <div className="flex min-w-max gap-1.5 pr-2">
+                        {palette.map((color, index) => (
+                            <button
+                                key={`${color}-sheet-${index}`}
+                                type="button"
+                                onClick={() =>
+                                    copyWithStatus(color, `sheet-color-${index}`)
+                                }
+                                className="relative flex h-28 w-[34px] flex-none items-center justify-center rounded-[16px] shadow-sm transition active:scale-[0.98]"
+                                style={{ backgroundColor: color }}
+                                aria-label={`${t.common.copy} ${color}`}
+                            >
+                                <span className="-rotate-90 whitespace-nowrap text-[10px] font-bold tracking-wide text-white">
+                                    {copiedTarget === `sheet-color-${index}`
+                                        ? t.common.copied.toUpperCase()
+                                        : color.toUpperCase()}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
         );
@@ -933,7 +940,7 @@ export default function ColorPaletteGenerator() {
 
                             <button
                                 type="button"
-                                onClick={resetDesktopColor}
+                                onClick={resetBaseColor}
                                 className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6]"
                             >
                                 {text.reset}
@@ -975,10 +982,13 @@ export default function ColorPaletteGenerator() {
                             </div>
                         </div>
 
-                        <HexInput
+                        <MobileHexCurrentColor
                             value={draftHex}
+                            draftColor={draftColor}
                             copyLabel={
-                                copiedTarget === "picker" ? t.common.copied : t.common.copy
+                                copiedTarget === "picker"
+                                    ? t.common.copied
+                                    : t.common.copy
                             }
                             onChange={updateDraftFromHex}
                             onBlur={() => {
@@ -991,16 +1001,7 @@ export default function ColorPaletteGenerator() {
                             text={text}
                         />
 
-                        {renderCurrentColor()}
                         {renderPresets()}
-
-                        <button
-                            type="button"
-                            onClick={closeSettings}
-                            className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-2.5 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
-                        >
-                            {text.cancel}
-                        </button>
                     </div>
                 )}
             </div>
@@ -1244,7 +1245,7 @@ export default function ColorPaletteGenerator() {
                     </div>
                 </div>
 
-                <div className="border-t border-[#F1E5DF] pt-5">
+                <div className="pt-2">
                     <SectionTitle
                         title={text.cssOutput}
                         right={
@@ -1475,6 +1476,63 @@ function HexInput({
     );
 }
 
+function MobileHexCurrentColor({
+    value,
+    draftColor,
+    copyLabel,
+    onChange,
+    onBlur,
+    onCopy,
+    text,
+}: {
+    value: string;
+    draftColor: string;
+    copyLabel: string;
+    onChange: (value: string) => void;
+    onBlur: () => void;
+    onCopy: () => void;
+    text: typeof t.colorPaletteGenerator;
+}) {
+    return (
+        <div className="grid grid-cols-[minmax(0,1fr)_88px] gap-2">
+            <div className="min-w-0">
+                <label className="mb-1.5 block text-xs font-medium text-gray-500">
+                    {text.hex}
+                </label>
+
+                <input
+                    value={value}
+                    onChange={(event) => onChange(event.target.value)}
+                    onBlur={onBlur}
+                    className="h-11 w-full min-w-0 rounded-2xl border border-[#F1E5DF] px-3 text-sm font-semibold text-[#2A1F1B] outline-none focus:border-[#F28C6F]"
+                    aria-label={text.hexColor}
+                />
+            </div>
+
+            <div className="min-w-0">
+                <label className="mb-1.5 block truncate text-xs font-medium text-gray-500">
+                    {text.currentColor}
+                </label>
+
+                <button
+                    type="button"
+                    onClick={onCopy}
+                    className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-[#F1E5DF] bg-white px-2 transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                    aria-label={text.copySelectedColor}
+                >
+                    <span
+                        className="h-5 w-5 shrink-0 rounded-lg border border-[#F1E5DF]"
+                        style={{ backgroundColor: draftColor }}
+                    />
+                    <span className="truncate text-xs font-semibold text-[#2A1F1B]">
+                        {copyLabel}
+                    </span>
+                </button>
+            </div>
+        </div>
+    );
+}
+
 function SliderInput({
     label,
     value,
@@ -1492,8 +1550,8 @@ function SliderInput({
 }) {
     return (
         <label className="block min-w-0">
-            <div className="mb-1 grid grid-cols-[minmax(88px,1fr)_auto] items-center gap-2">
-                <span className="min-w-0 whitespace-nowrap text-sm font-medium leading-5 text-gray-500">
+            <div className="mb-1 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5">
+                <span className="min-w-0 truncate whitespace-nowrap text-sm font-medium leading-5 text-gray-500">
                     {label}
                 </span>
 
