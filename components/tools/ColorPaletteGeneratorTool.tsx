@@ -1,7 +1,6 @@
 "use client";
 
 import { type RefObject, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { X } from "lucide-react";
 import SectionTitle from "@/components/ui/SectionTitle";
 import { t } from "@/data/messages";
 
@@ -364,6 +363,9 @@ const drawSimplePeachLogo = (
     ctx.ellipse(centerX - 12, centerY - 58, 8, 24, -0.45, 0, Math.PI * 2);
     ctx.fill();
 };
+
+const desktopCardClass =
+    "rounded-[28px] border border-[#F1E5DF] bg-white p-6 shadow-[0_2px_10px_rgba(42,31,27,0.04)]";
 
 export default function ColorPaletteGenerator() {
     const text = t.colorPaletteGenerator;
@@ -844,7 +846,6 @@ export default function ColorPaletteGenerator() {
                     >
                         {text.chooseBaseColor}
                     </h2>
-
                     <p
                         className={
                             isDesktop
@@ -858,74 +859,75 @@ export default function ColorPaletteGenerator() {
 
                 {isDesktop ? (
                     <div className="space-y-6">
-                        {/* 顶部：左大色轮 + 右侧竖向三滑杆 */}
-                        <div className="grid items-center gap-10 md:grid-cols-[minmax(340px,1fr)_220px]">
-                            <div className="flex justify-center">
+                        <div className="grid items-start gap-8 xl:grid-cols-[minmax(280px,340px)_minmax(0,1fr)]">
+                            <div className="min-w-0">
                                 {renderColorWheel(wheelRef, true)}
                             </div>
 
-                            <div className="flex items-center justify-center gap-6">
-                                <DesktopVerticalSlider
+                            <div className="min-w-0 space-y-4 pt-2">
+                                <SliderInput
                                     label={text.hue}
                                     value={Math.round(draftHsl.h)}
                                     min={0}
                                     max={360}
                                     suffix=""
-                                    gradient="linear-gradient(to top, red, yellow, lime, cyan, blue, magenta, red)"
                                     onChange={(value) => updateDraftHsl({ h: value })}
                                 />
 
-                                <DesktopVerticalSlider
+                                <SliderInput
                                     label={text.saturation}
                                     value={Math.round(draftHsl.s)}
                                     min={0}
                                     max={100}
                                     suffix="%"
-                                    gradient={`linear-gradient(to top, hsl(${draftHsl.h}, 0%, ${draftHsl.l}%), hsl(${draftHsl.h}, 100%, ${draftHsl.l}%))`}
                                     onChange={(value) => updateDraftHsl({ s: value })}
                                 />
 
-                                <DesktopVerticalSlider
+                                <SliderInput
                                     label={text.lightness}
                                     value={Math.round(draftHsl.l)}
                                     min={10}
                                     max={90}
                                     suffix="%"
-                                    gradient={`linear-gradient(to top, #111827, hsl(${draftHsl.h}, ${draftHsl.s}%, 50%), #ffffff)`}
                                     onChange={(value) => updateDraftHsl({ l: value })}
                                 />
                             </div>
                         </div>
 
-                        {/* 下方信息正常排，不挤 */}
                         <div className="space-y-5">
-                            <HexInput
-                                value={draftHex}
-                                copyLabel={
-                                    copiedTarget === "picker"
-                                        ? t.common.copied
-                                        : t.common.copy
-                                }
-                                onChange={updateDraftFromHex}
-                                onBlur={() => {
-                                    if (!isValidHex(draftHex)) {
-                                        const fixed = draftColor;
-                                        setDraftHex(fixed);
+                            <div className="max-w-[440px]">
+                                <HexInput
+                                    value={draftHex}
+                                    copyLabel={
+                                        copiedTarget === "picker"
+                                            ? t.common.copied
+                                            : t.common.copy
                                     }
-                                }}
-                                onCopy={() => copyWithStatus(draftColor, "picker")}
-                                text={text}
-                            />
+                                    onChange={updateDraftFromHex}
+                                    onBlur={() => {
+                                        if (!isValidHex(draftHex)) {
+                                            const fixed = draftColor;
+                                            setDraftHex(fixed);
+                                        }
+                                    }}
+                                    onCopy={() => copyWithStatus(draftColor, "picker")}
+                                    text={text}
+                                />
+                            </div>
 
-                            {renderCurrentColor()}
+                            <div className="max-w-[440px]">
+                                {renderCurrentColor()}
+                            </div>
 
-                            {renderPresets()}
+                            <div className="max-w-[520px]">
+                                {renderPresets()}
+                            </div>
 
-                            <div className="grid min-w-0 grid-cols-2 gap-3 pt-1">
+                            <div className="grid max-w-[320px] grid-cols-2 gap-3">
                                 <button
                                     type="button"
                                     onClick={resetDesktopColor}
-                                    className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
+                                    className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-2.5 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
                                 >
                                     {text.reset}
                                 </button>
@@ -933,7 +935,7 @@ export default function ColorPaletteGenerator() {
                                 <button
                                     type="button"
                                     onClick={applyDesktopColor}
-                                    className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                    className="rounded-2xl bg-[#F28C6F] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                                 >
                                     {text.apply}
                                 </button>
@@ -1034,7 +1036,7 @@ export default function ColorPaletteGenerator() {
                 }}
                 className={
                     isDesktop
-                        ? "relative aspect-square w-full max-w-[360px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)] lg:max-w-[420px]"
+                        ? "relative mx-auto aspect-square w-full max-w-[320px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)]"
                         : "relative mx-auto aspect-square w-full max-w-[214px] rounded-full border-4 border-white shadow-[0_10px_25px_rgba(42,31,27,0.12)]"
                 }
                 style={{
@@ -1052,13 +1054,11 @@ export default function ColorPaletteGenerator() {
                         left: `${50 +
                             Math.cos((draftHsl.h * Math.PI) / 180) *
                             (draftHsl.s / 100) *
-                            42
-                            }%`,
+                            42}%`,
                         top: `${50 +
                             Math.sin((draftHsl.h * Math.PI) / 180) *
                             (draftHsl.s / 100) *
-                            42
-                            }%`,
+                            42}%`,
                         backgroundColor: draftColor,
                     }}
                 />
@@ -1128,19 +1128,97 @@ export default function ColorPaletteGenerator() {
         );
     };
 
-    const desktopCardClass =
-        "rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm";
-
-    const desktopPrimaryButtonClass =
-        "rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]";
-
-    const desktopSecondaryButtonClass =
-        "rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6]";
-
     return (
         <>
-            {/* Mobile layout: keep current mobile structure unchanged */}
-            <div className="space-y-6 pb-1 lg:hidden">
+            {/* Desktop */}
+            <div className="hidden md:grid md:grid-cols-2 md:items-start md:gap-6 lg:gap-8">
+                <div className="space-y-6">
+                    <div className={desktopCardClass}>
+                        <SectionTitle
+                            title={text.palettePreview}
+                            right={
+                                <span className="text-xs text-gray-400">
+                                    {text.palettePreviewHint}
+                                </span>
+                            }
+                        />
+
+                        <div className="-mx-1 mt-4 overflow-x-auto px-1 pb-1">
+                            <div className="flex min-w-max snap-x snap-mandatory gap-1.5 pr-8">
+                                {palette.map((color, index) => (
+                                    <button
+                                        key={`${color}-${index}`}
+                                        type="button"
+                                        onClick={() => copyWithStatus(color, `color-${index}`)}
+                                        className="relative flex h-44 w-[54px] flex-none snap-start items-center justify-center rounded-[18px] shadow-sm transition active:scale-[0.98]"
+                                        style={{ backgroundColor: color }}
+                                        aria-label={`${t.common.copy} ${color}`}
+                                    >
+                                        <span className="-rotate-90 whitespace-nowrap text-sm font-bold tracking-wide text-white">
+                                            {copiedTarget === `color-${index}`
+                                                ? t.common.copied.toUpperCase()
+                                                : color.toUpperCase()}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="mt-5 grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={handleCopyPalette}
+                                className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6]"
+                            >
+                                {copiedTarget === "palette" ? t.common.copied : text.copyPalette}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleDownloadPng}
+                                className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                {text.downloadPng}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className={desktopCardClass}>
+                        <SectionTitle
+                            title={text.cssOutput}
+                            right={
+                                <button
+                                    type="button"
+                                    onClick={handleCopyCss}
+                                    className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                >
+                                    {copiedTarget === "css" ? t.common.copied : text.copyCss}
+                                </button>
+                            }
+                        />
+
+                        <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#2A1F1B]">
+                            <code>{cssOutput}</code>
+                        </pre>
+                    </div>
+                </div>
+
+                <div className={desktopCardClass}>
+                    <SectionTitle title={settingsTitle} />
+
+                    <div className="mt-5 space-y-7">
+                        {renderColorPickerPanel("desktop", desktopWheelRef)}
+
+                        <div className="space-y-5 pt-1">
+                            {renderPaletteControls(false)}
+                            {renderRandomButtons(false)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Mobile */}
+            <div className="space-y-6 pb-1 md:hidden">
                 <div className="pb-2">
                     <SectionTitle
                         title={text.palettePreview}
@@ -1173,7 +1251,7 @@ export default function ColorPaletteGenerator() {
                     </div>
                 </div>
 
-                <div className="pt-1">
+                <div className="border-t border-[#F1E5DF] pt-5">
                     <SectionTitle
                         title={text.cssOutput}
                         right={
@@ -1191,112 +1269,6 @@ export default function ColorPaletteGenerator() {
                         <code>{cssOutput}</code>
                     </pre>
                 </div>
-            </div>
-
-            {/* PC layout */}
-            <div className="hidden gap-6 lg:grid lg:grid-cols-2 lg:items-start">
-                <div className="min-w-0 space-y-6">
-                    <section className={desktopCardClass}>
-                        <SectionTitle
-                            title={text.palettePreview}
-                            right={
-                                <span className="text-xs text-gray-400">
-                                    {text.palettePreviewHint}
-                                </span>
-                            }
-                        />
-
-                        <div className="mt-4 overflow-x-auto pb-1">
-                            <div className="flex min-w-max gap-1.5 pr-6">
-                                {palette.map((color, index) => (
-                                    <button
-                                        key={`${color}-${index}-desktop`}
-                                        type="button"
-                                        onClick={() => copyWithStatus(color, `color-${index}`)}
-                                        className="relative flex h-44 w-[54px] flex-none items-center justify-center rounded-[18px] shadow-sm transition active:scale-[0.98]"
-                                        style={{ backgroundColor: color }}
-                                        aria-label={`${t.common.copy} ${color}`}
-                                    >
-                                        <span className="-rotate-90 whitespace-nowrap text-sm font-bold tracking-wide text-white">
-                                            {copiedTarget === `color-${index}`
-                                                ? t.common.copied.toUpperCase()
-                                                : color.toUpperCase()}
-                                        </span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="mt-5 grid grid-cols-2 gap-3">
-                            <button
-                                type="button"
-                                onClick={handleCopyPalette}
-                                className={desktopSecondaryButtonClass}
-                            >
-                                {copiedTarget === "palette"
-                                    ? t.common.copied
-                                    : text.copyPalette}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={handleDownloadPng}
-                                className={desktopPrimaryButtonClass}
-                            >
-                                {text.downloadPng}
-                            </button>
-                        </div>
-                    </section>
-
-                    <section className={desktopCardClass}>
-                        <SectionTitle
-                            title={text.cssOutput}
-                            right={
-                                <button
-                                    type="button"
-                                    onClick={handleCopyCss}
-                                    className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                                >
-                                    {copiedTarget === "css" ? t.common.copied : text.copyCss}
-                                </button>
-                            }
-                        />
-
-                        <pre className="mt-4 max-h-[420px] overflow-auto rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-7 text-[#2A1F1B]">
-                            <code>{cssOutput}</code>
-                        </pre>
-                    </section>
-                </div>
-
-                <section className={desktopCardClass}>
-                    <SectionTitle title={settingsTitle} />
-
-                    <div className="mt-5 space-y-6">
-                        {renderColorPickerPanel("desktop", desktopWheelRef)}
-
-                        <div className="grid gap-5">
-                            {renderPaletteControls(false)}
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    type="button"
-                                    onClick={handleShuffle}
-                                    className={desktopSecondaryButtonClass}
-                                >
-                                    {text.shuffle}
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={handleRandomAll}
-                                    className={desktopPrimaryButtonClass}
-                                >
-                                    {text.random}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
             </div>
 
             <MobileActionBar
@@ -1485,7 +1457,7 @@ function HexInput({
                 {text.hex}
             </label>
 
-            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_64px] items-center gap-2">
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_84px] items-center gap-2">
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value)}
@@ -1497,7 +1469,7 @@ function HexInput({
                 <button
                     type="button"
                     onClick={onCopy}
-                    className="flex h-11 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white px-2 text-xs font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
+                    className="flex h-11 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white px-2 text-sm font-semibold text-[#2A1F1B] transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3]"
                     aria-label={text.copySelectedColor}
                 >
                     {copyLabel}
@@ -1525,11 +1497,11 @@ function SliderInput({
     return (
         <label className="block min-w-0">
             <div className="mb-1 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5">
-                <span className="min-w-0 truncate whitespace-nowrap text-xs font-medium leading-5 text-gray-500">
+                <span className="min-w-0 truncate whitespace-nowrap text-sm font-medium leading-5 text-gray-500">
                     {label}
                 </span>
 
-                <span className="min-w-[40px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-0.5 text-center text-[11px] font-semibold leading-5 text-[#7A5A4F]">
+                <span className="min-w-[48px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-0.5 text-center text-xs font-semibold leading-5 text-[#7A5A4F]">
                     {value}
                     {suffix}
                 </span>
@@ -1544,63 +1516,6 @@ function SliderInput({
                 className="block w-full min-w-0 accent-[#F28C6F]"
             />
         </label>
-    );
-}
-
-function DesktopVerticalSlider({
-    label,
-    value,
-    min,
-    max,
-    suffix,
-    gradient,
-    onChange,
-}: {
-    label: string;
-    value: number;
-    min: number;
-    max: number;
-    suffix: string;
-    gradient: string;
-    onChange: (value: number) => void;
-}) {
-    const percent = ((value - min) / (max - min)) * 100;
-
-    return (
-        <div className="flex flex-col items-center gap-3">
-            <div className="text-center">
-                <div className="text-sm font-medium text-gray-500">{label}</div>
-                <div className="mt-1 inline-flex min-w-[52px] items-center justify-center rounded-full bg-[#FFF7F3] px-2.5 py-1 text-xs font-semibold text-[#7A5A4F]">
-                    {value}
-                    {suffix}
-                </div>
-            </div>
-
-            <div
-                className="relative h-[260px] w-7 rounded-full border border-white shadow-sm"
-                style={{ background: gradient }}
-            >
-                <input
-                    type="range"
-                    min={min}
-                    max={max}
-                    value={value}
-                    onChange={(event) => onChange(Number(event.target.value))}
-                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                    style={{
-                        writingMode: "vertical-lr",
-                        direction: "rtl",
-                    }}
-                />
-
-                <span
-                    className="pointer-events-none absolute left-1/2 h-6 w-6 -translate-x-1/2 rounded-full border-2 border-white bg-[#F28C6F] shadow-md"
-                    style={{
-                        bottom: `calc(${percent}% - 12px)`,
-                    }}
-                />
-            </div>
-        </div>
     );
 }
 
