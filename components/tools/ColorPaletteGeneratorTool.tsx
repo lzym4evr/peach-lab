@@ -825,7 +825,6 @@ export default function ColorPaletteGenerator() {
             </div>
         );
     };
-
     const renderColorPickerPanel = (
         mode: "desktop" | "mobile",
         wheelRef: RefObject<HTMLDivElement | null>,
@@ -844,6 +843,7 @@ export default function ColorPaletteGenerator() {
                     >
                         {text.chooseBaseColor}
                     </h2>
+
                     <p
                         className={
                             isDesktop
@@ -856,10 +856,45 @@ export default function ColorPaletteGenerator() {
                 </div>
 
                 {isDesktop ? (
-                    <div className="grid min-w-0 gap-5 overflow-x-hidden md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] md:items-start md:gap-8">
-                        <div className="min-w-0 space-y-5 overflow-x-hidden">
-                            {renderColorWheel(wheelRef, true)}
+                    <div className="space-y-5">
+                        {/* PC: color wheel left, sliders right */}
+                        <div className="grid min-w-0 items-center gap-8 md:grid-cols-[minmax(0,1fr)_minmax(260px,0.9fr)]">
+                            <div className="min-w-0">
+                                {renderColorWheel(wheelRef, true)}
+                            </div>
 
+                            <div className="min-w-0 space-y-5">
+                                <SliderInput
+                                    label={text.hue}
+                                    value={Math.round(draftHsl.h)}
+                                    min={0}
+                                    max={360}
+                                    suffix=""
+                                    onChange={(value) => updateDraftHsl({ h: value })}
+                                />
+
+                                <SliderInput
+                                    label={text.saturation}
+                                    value={Math.round(draftHsl.s)}
+                                    min={0}
+                                    max={100}
+                                    suffix="%"
+                                    onChange={(value) => updateDraftHsl({ s: value })}
+                                />
+
+                                <SliderInput
+                                    label={text.lightness}
+                                    value={Math.round(draftHsl.l)}
+                                    min={10}
+                                    max={90}
+                                    suffix="%"
+                                    onChange={(value) => updateDraftHsl({ l: value })}
+                                />
+                            </div>
+                        </div>
+
+                        {/* PC: normal full-width fields, no squeezing */}
+                        <div className="grid gap-5">
                             <HexInput
                                 value={draftHex}
                                 copyLabel={
@@ -877,44 +912,16 @@ export default function ColorPaletteGenerator() {
                                 onCopy={() => copyWithStatus(draftColor, "picker")}
                                 text={text}
                             />
-                        </div>
-
-                        <div className="min-w-0 space-y-5 overflow-x-hidden">
-                            <SliderInput
-                                label={text.hue}
-                                value={Math.round(draftHsl.h)}
-                                min={0}
-                                max={360}
-                                suffix=""
-                                onChange={(value) => updateDraftHsl({ h: value })}
-                            />
-
-                            <SliderInput
-                                label={text.saturation}
-                                value={Math.round(draftHsl.s)}
-                                min={0}
-                                max={100}
-                                suffix="%"
-                                onChange={(value) => updateDraftHsl({ s: value })}
-                            />
-
-                            <SliderInput
-                                label={text.lightness}
-                                value={Math.round(draftHsl.l)}
-                                min={10}
-                                max={90}
-                                suffix="%"
-                                onChange={(value) => updateDraftHsl({ l: value })}
-                            />
 
                             {renderCurrentColor()}
+
                             {renderPresets()}
 
                             <div className="grid min-w-0 grid-cols-2 gap-3 pt-1">
                                 <button
                                     type="button"
                                     onClick={resetDesktopColor}
-                                    className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-2.5 text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
+                                    className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFEDE6]"
                                 >
                                     {text.reset}
                                 </button>
@@ -922,7 +929,7 @@ export default function ColorPaletteGenerator() {
                                 <button
                                     type="button"
                                     onClick={applyDesktopColor}
-                                    className="rounded-2xl bg-[#F28C6F] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                    className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                                 >
                                     {text.apply}
                                 </button>
@@ -1004,6 +1011,7 @@ export default function ColorPaletteGenerator() {
                 )}
             </div>
         );
+
     };
 
     const renderColorWheel = (
