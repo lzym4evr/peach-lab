@@ -83,15 +83,16 @@ export default function FaviconGeneratorTool() {
     const htmlOutput = useMemo(() => getHtmlOutput(), []);
 
     useEffect(() => {
-        if (!isSettingsOpen) return;
-
-        const originalOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-
         return () => {
-            document.body.style.overflow = originalOverflow;
+            if (originalUrl) {
+                URL.revokeObjectURL(originalUrl);
+            }
+
+            if (copyTimerRef.current) {
+                clearTimeout(copyTimerRef.current);
+            }
         };
-    }, [isSettingsOpen]);
+    }, [originalUrl]);
 
     useEffect(() => {
         if (!originalUrl) {
@@ -185,7 +186,6 @@ export default function FaviconGeneratorTool() {
         if (!file) return;
 
         loadImageFile(file);
-
         event.target.value = "";
     }
 
@@ -382,8 +382,8 @@ export default function FaviconGeneratorTool() {
                             onDragLeave={handleDragLeave}
                             onDrop={handleDrop}
                             className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                                ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
+                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                 }`}
                         >
                             <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
@@ -395,6 +395,10 @@ export default function FaviconGeneratorTool() {
                             </p>
 
                             <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
+                                {text.supportedFormats}
+                            </p>
+
+                            <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74]">
                                 {text.dropHint}
                             </p>
 
@@ -484,7 +488,7 @@ export default function FaviconGeneratorTool() {
                         </div>
                     </div>
 
-                    <section className="hidden min-w-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm lg:block">
+                    <section className="hidden min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm lg:block">
                         <FaviconSettingsPanel
                             text={text}
                             livePreviewUrl={livePreviewUrl}
@@ -585,17 +589,22 @@ function FaviconSettingsPanel({
         <div>
             {!hideHeader ? <SectionHeader title={text.controlsTitle} /> : null}
 
-            <div className={compact ? "mt-0 space-y-3" : "mt-5 space-y-5"}>
+            <div className={compact ? "space-y-3" : "mt-5 space-y-5"}>
                 {compact ? (
-                    <FaviconLivePreview
-                        imageUrl={livePreviewUrl}
-                        emptyText={text.emptyDescription}
-                        compact
-                    />
+                    <div className="sticky top-0 z-10 bg-white pb-3">
+                        <FaviconLivePreview
+                            imageUrl={livePreviewUrl}
+                            emptyText={text.emptyDescription}
+                            compact
+                        />
+                    </div>
                 ) : null}
 
                 <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] px-4 py-3 transition hover:bg-[#FFF7F3]">
-                    <span className="text-sm font-semibold text-gray-800">
+                    <span
+                        className={`font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                            }`}
+                    >
                         {text.transparentBackgroundLabel}
                     </span>
 
@@ -623,39 +632,35 @@ function FaviconSettingsPanel({
                     />
                 ) : null}
 
-                <RangeInput
-                    label={text.paddingLabel}
-                    value={padding}
-                    min={0}
-                    max={45}
-                    suffix="%"
-                    compact={compact}
-                    onChange={(value) => {
-                        setPadding(value);
-                        clearGenerated();
-                    }}
-                />
+                <div className={compact ? "grid grid-cols-2 gap-3" : "space-y-5"}>
+                    <RangeInput
+                        label={text.paddingLabel}
+                        value={padding}
+                        min={0}
+                        max={45}
+                        suffix="%"
+                        compact={compact}
+                        onChange={(value) => {
+                            setPadding(value);
+                            clearGenerated();
+                        }}
+                    />
 
-                <RangeInput
-                    label={text.cornerRadiusLabel}
-                    value={cornerRadius}
-                    min={0}
-                    max={50}
-                    suffix="%"
-                    compact={compact}
-                    onChange={(value) => {
-                        setCornerRadius(value);
-                        clearGenerated();
-                    }}
-                />
+                    <RangeInput
+                        label={text.cornerRadiusLabel}
+                        value={cornerRadius}
+                        min={0}
+                        max={50}
+                        suffix="%"
+                        compact={compact}
+                        onChange={(value) => {
+                            setCornerRadius(value);
+                            clearGenerated();
+                        }}
+                    />
+                </div>
 
-                <div
-                    className={
-                        compact
-                            ? "grid grid-cols-2 gap-3"
-                            : "space-y-3"
-                    }
-                >
+                <div className={compact ? "grid grid-cols-2 gap-3" : "space-y-3"}>
                     <button
                         type="button"
                         onClick={handleGenerate}
@@ -668,7 +673,7 @@ function FaviconSettingsPanel({
                     <button
                         type="button"
                         onClick={handleReset}
-                        className={`w-full rounded-2xl border border-[#F4C8BA] bg-white text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] ${compact ? "px-4 py-2.5" : "px-4 py-3"
+                        className={`w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] ${compact ? "px-4 py-2.5" : "px-4 py-3"
                             }`}
                     >
                         {text.reset}
@@ -682,16 +687,15 @@ function FaviconSettingsPanel({
 function FaviconLivePreview({
     imageUrl,
     emptyText,
-    compact = false,
 }: {
     imageUrl: string;
     emptyText: string;
     compact?: boolean;
 }) {
     return (
-        <div className="flex aspect-square w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-3">
+        <div className="flex h-40 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-3">
             {imageUrl ? (
-                <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border border-[#F1E5DF] bg-white p-2.5 shadow-sm">
+                <div className="flex aspect-square h-full items-center justify-center overflow-hidden rounded-2xl border border-[#F1E5DF] bg-white p-2.5 shadow-sm">
                     <img
                         src={imageUrl}
                         alt={emptyText}
@@ -776,7 +780,7 @@ function GeneratedFilesPanel({
                 )}
             </div>
 
-            <div className="mt-4 border-t border-[#F1E5DF] pt-4">
+            <div className="mt-4 hidden border-t border-[#F1E5DF] pt-4 lg:block">
                 <button
                     type="button"
                     onClick={handleDownloadAll}
@@ -825,7 +829,7 @@ function MobileActionBar({
             const rect = element.getBoundingClientRect();
             document.documentElement.style.setProperty(
                 "--mobile-action-bar-space",
-                `${Math.ceil(rect.height + 28)}px`,
+                `${Math.ceil(rect.height + 24)}px`,
             );
         };
 
@@ -845,12 +849,12 @@ function MobileActionBar({
         <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
             <div
                 ref={actionBarRef}
-                className="pointer-events-auto mx-auto grid max-w-md grid-cols-2 gap-2 rounded-[30px] border border-[#F4C8BA] bg-white/95 p-3 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-2 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
             >
                 <button
                     type="button"
                     onClick={onOpenSettings}
-                    className="rounded-2xl border border-[#F1E5DF] bg-white px-3 py-3 text-center text-sm font-semibold text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
+                    className="rounded-2xl border border-[#F1E5DF] bg-white px-3 py-2.5 text-center text-sm font-semibold leading-tight text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
                 >
                     {text.settingsButton}
                 </button>
@@ -859,7 +863,7 @@ function MobileActionBar({
                     type="button"
                     onClick={onDownloadAll}
                     disabled={!canDownloadAll}
-                    className="rounded-2xl bg-[#F28C6F] px-3 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
+                    className="rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
                 >
                     {text.actionDownloadAll}
                 </button>
@@ -880,11 +884,17 @@ function MobileSettingsSheet({
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
         const frame = requestAnimationFrame(() => {
             setIsVisible(true);
         });
 
-        return () => cancelAnimationFrame(frame);
+        return () => {
+            cancelAnimationFrame(frame);
+            document.body.style.overflow = previousOverflow;
+        };
     }, []);
 
     function handleClose() {
@@ -897,12 +907,12 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[80] bg-[#2A1F1B]/35 px-3 pb-3 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
         >
             <div
-                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
@@ -917,13 +927,15 @@ function MobileSettingsSheet({
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
                     >
                         ×
                     </button>
                 </div>
 
-                <div className="overflow-y-auto px-4 pb-4 pt-2">{children}</div>
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-2">
+                    {children}
+                </div>
             </div>
         </div>
     );
@@ -954,9 +966,9 @@ function ColorInput({
     const colorPickerValue = isValidHexColor(value) ? value : fallback;
 
     return (
-        <label className="block">
+        <label className="block min-w-0">
             <span
-                className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                className={`mb-2 block truncate font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
                     }`}
             >
                 {label}
@@ -980,7 +992,7 @@ function ColorInput({
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className={`w-full rounded-xl border border-[#F1E5DF] px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-11" : "h-12"
+                    className={`w-full min-w-0 rounded-xl border border-[#F1E5DF] px-2 text-xs font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-11" : "h-12 md:px-4 md:text-sm"
                         }`}
                 />
             </div>
@@ -1006,19 +1018,19 @@ function RangeInput({
     onChange: (value: number) => void;
 }) {
     return (
-        <label className="block">
+        <label className="block min-w-0">
             <div
-                className={`flex items-center justify-between gap-4 ${compact ? "mb-1.5" : "mb-2"
+                className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 ${compact ? "mb-1.5" : "mb-2"
                     }`}
             >
                 <span
-                    className={`font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                    className={`min-w-0 truncate whitespace-nowrap font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
                         }`}
                 >
                     {label}
                 </span>
 
-                <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
+                <span className="min-w-[44px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-1 text-center text-xs font-semibold text-[#7A5A4F]">
                     {value}
                     {suffix}
                 </span>
