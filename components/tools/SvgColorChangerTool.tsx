@@ -545,7 +545,17 @@ export default function SvgColorChangerTool() {
                     title={text.colorControls}
                     onClose={() => setIsMobileSettingsOpen(false)}
                 >
-                    {mobileColorControlsPanel}
+                    <div className="space-y-3">
+                        <div className="sticky top-0 z-10 bg-white pb-3">
+                            <SvgMiniPreview
+                                previewUrl={previewUrl}
+                                fileName={svgInfo?.name || ""}
+                                fileSize={svgInfo ? formatFileSize(svgInfo.size) : ""}
+                            />
+                        </div>
+
+                        {mobileColorControlsPanel}
+                    </div>
                 </MobileSettingsSheet>
             ) : null}
         </>
@@ -731,6 +741,46 @@ function ColorControlsPanel({
                     >
                         {text.downloadSvg}
                     </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function SvgMiniPreview({
+    previewUrl,
+    fileName,
+    fileSize,
+}: {
+    previewUrl: string;
+    fileName: string;
+    fileSize: string;
+}) {
+    return (
+        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5">
+            <div className="grid grid-cols-[88px_minmax(0,1fr)] items-center gap-3">
+                <div className="flex h-20 w-full items-center justify-center overflow-hidden rounded-xl border border-[#F1E5DF] bg-white p-2 shadow-sm">
+                    {previewUrl ? (
+                        <img
+                            src={previewUrl}
+                            alt={fileName}
+                            className="max-h-full max-w-full object-contain"
+                        />
+                    ) : null}
+                </div>
+
+                <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[#2A1F1B]">
+                        {fileName}
+                    </p>
+
+                    <p className="mt-1 text-xs font-medium text-gray-500">
+                        {fileSize}
+                    </p>
+
+                    <p className="mt-2 text-xs leading-5 text-[#7A5A4F]">
+                        Pick a color below, choose a new color, then replace it.
+                    </p>
                 </div>
             </div>
         </div>
