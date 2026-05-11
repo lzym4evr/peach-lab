@@ -685,8 +685,8 @@ function SvgColorControls({
                                 type="button"
                                 onClick={() => onSelectColor(color)}
                                 className={`flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${selectedColor === color
-                                    ? "border-[#F28C6F] bg-[#FFF7F3] text-[#E6765B]"
-                                    : "border-[#F1E5DF] bg-white text-gray-700 hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
+                                        ? "border-[#F28C6F] bg-[#FFF7F3] text-[#E6765B]"
+                                        : "border-[#F1E5DF] bg-white text-gray-700 hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
                                     }`}
                             >
                                 <span
@@ -704,7 +704,7 @@ function SvgColorControls({
                 )}
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-4">
                 <label className="block min-w-0">
                     <span className="mb-2 block text-sm font-semibold text-gray-900">
                         {text.originalColor}
@@ -721,17 +721,19 @@ function SvgColorControls({
                 </label>
 
                 <label className="block min-w-0">
-                    <span className="mb-2 block text-sm font-semibold text-gray-900">
-                        {text.newColor}
-                    </span>
+                    <div className="mb-2 flex items-end justify-between gap-3">
+                        <span className="block text-sm font-semibold text-gray-900">
+                            {text.newColor}
+                        </span>
 
-                    {!compact ? (
-                        <p className="mb-2 text-sm leading-6 text-gray-500">
-                            {newColorDescriptionText}
-                        </p>
-                    ) : null}
+                        {!compact ? (
+                            <span className="text-xs leading-5 text-gray-500">
+                                {newColorDescriptionText}
+                            </span>
+                        ) : null}
+                    </div>
 
-                    <div className="grid grid-cols-[54px_minmax(0,1fr)] gap-2">
+                    <div className="grid grid-cols-[60px_minmax(0,1fr)] gap-3">
                         <input
                             type="color"
                             value={safeNewColor}
@@ -746,18 +748,18 @@ function SvgColorControls({
                             onChange={(event) =>
                                 onChangeNewColor(event.target.value.toUpperCase())
                             }
-                            className="h-12 min-w-0 rounded-2xl border border-[#F1E5DF] bg-white px-3 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                            className="h-12 min-w-0 rounded-2xl border border-[#F1E5DF] bg-white px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
                         />
                     </div>
                 </label>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-3">
                 <button
                     type="button"
                     onClick={onReplaceSelected}
                     disabled={!selectedColor}
-                    className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-3 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     {replaceSelectedColorText}
                 </button>
@@ -766,7 +768,7 @@ function SvgColorControls({
                     type="button"
                     onClick={onReplaceAll}
                     disabled={detectedColors.length === 0}
-                    className="rounded-2xl bg-[#F28C6F] px-3 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     {replaceEveryColorText}
                 </button>
