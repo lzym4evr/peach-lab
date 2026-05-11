@@ -361,7 +361,7 @@ export default function SvgColorChangerTool() {
         setIsMobileSettingsOpen(false);
     }
 
-    const colorControlsPanel = (
+    const desktopColorControlsPanel = (
         <ColorControlsPanel
             text={text}
             chooseColorToReplace={chooseColorToReplace}
@@ -381,6 +381,31 @@ export default function SvgColorChangerTool() {
             onRedo={redoLastChange}
             onDownload={downloadSvg}
             onCopy={copySvg}
+        />
+    );
+
+    const mobileColorControlsPanel = (
+        <ColorControlsPanel
+            text={text}
+            chooseColorToReplace={chooseColorToReplace}
+            newColorHint={newColorHint}
+            replaceSelectedColorText={replaceSelectedColorText}
+            detectedColors={detectedColors}
+            selectedColor={selectedColor}
+            newColor={newColor}
+            copied={copied}
+            canUndo={history.length > 0}
+            canRedo={redoHistory.length > 0}
+            onSelectColor={setSelectedColor}
+            onChangeNewColor={setNewColor}
+            onReplaceSelected={replaceSelectedColor}
+            onReplaceAll={replaceAllColors}
+            onUndo={undoLastChange}
+            onRedo={redoLastChange}
+            onDownload={downloadSvg}
+            onCopy={copySvg}
+            compact
+            hideHeader
         />
     );
 
@@ -498,7 +523,7 @@ export default function SvgColorChangerTool() {
                         </div>
 
                         <section className="hidden min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm lg:block">
-                            {colorControlsPanel}
+                            {desktopColorControlsPanel}
                         </section>
                     </div>
                 ) : null}
@@ -520,7 +545,7 @@ export default function SvgColorChangerTool() {
                     title={text.colorControls}
                     onClose={() => setIsMobileSettingsOpen(false)}
                 >
-                    {colorControlsPanel}
+                    {mobileColorControlsPanel}
                 </MobileSettingsSheet>
             ) : null}
         </>
@@ -546,6 +571,8 @@ function ColorControlsPanel({
     onRedo,
     onDownload,
     onCopy,
+    compact = false,
+    hideHeader = false,
 }: {
     text: typeof t.svgColorChanger;
     chooseColorToReplace: string;
@@ -565,21 +592,23 @@ function ColorControlsPanel({
     onRedo: () => void;
     onDownload: () => void;
     onCopy: () => void;
+    compact?: boolean;
+    hideHeader?: boolean;
 }) {
     const normalizedNewColor = normalizeHexColor(newColor) || "#F28C6F";
 
     return (
         <div>
-            <SectionHeader title={text.colorControls} />
+            {!hideHeader ? <SectionHeader title={text.colorControls} /> : null}
 
-            <div className="mt-5 space-y-5">
+            <div className={compact ? "mt-0 space-y-3" : "mt-5 space-y-5"}>
                 <div>
-                    <p className="mb-3 text-sm font-semibold text-gray-800">
+                    <p className="mb-2 text-sm font-semibold text-gray-800">
                         {chooseColorToReplace}
                     </p>
 
                     {detectedColors.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
+                        <div className={compact ? "grid grid-cols-2 gap-2" : "flex flex-wrap gap-2"}>
                             {detectedColors.map((color) => {
                                 const active = selectedColor === color;
 
@@ -588,44 +617,52 @@ function ColorControlsPanel({
                                         key={color}
                                         type="button"
                                         onClick={() => onSelectColor(color)}
-                                        className={`flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${active
+                                        className={`flex min-w-0 items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${active
                                             ? "border-[#F28C6F] bg-[#FFF0EA] text-[#E6765B] shadow-sm"
                                             : "border-[#F1E5DF] bg-white text-gray-700 hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
                                             }`}
                                     >
                                         <span
-                                            className="h-5 w-5 rounded-md border border-[#F1E5DF]"
+                                            className="h-5 w-5 shrink-0 rounded-md border border-[#F1E5DF]"
                                             style={{ backgroundColor: color }}
                                         />
-                                        {color}
+                                        <span className="min-w-0 truncate">{color}</span>
                                     </button>
                                 );
                             })}
                         </div>
                     ) : (
-                        <div className="rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-5 text-sm text-gray-500">
+                        <div className="rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm text-gray-500">
                             {text.noColors}
                         </div>
                     )}
                 </div>
 
-                <div>
-                    <p className="mb-2 text-sm font-semibold text-gray-800">
-                        {text.newColor}
-                    </p>
+                <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
+                    <div className="mb-3 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-900">
+                                {text.newColor}
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-gray-500">
+                                {newColorHint}
+                            </p>
+                        </div>
 
-                    <p className="mb-3 text-sm leading-6 text-gray-500">
-                        {newColorHint}
-                    </p>
+                        <div
+                            className="h-10 w-10 shrink-0 rounded-2xl border border-[#F1E5DF] shadow-sm"
+                            style={{ backgroundColor: normalizedNewColor }}
+                        />
+                    </div>
 
-                    <div className="grid grid-cols-[58px_1fr] gap-3">
+                    <div className="grid grid-cols-[44px_minmax(0,1fr)] gap-2">
                         <input
                             type="color"
                             value={normalizedNewColor}
                             onChange={(event) =>
                                 onChangeNewColor(event.target.value.toUpperCase())
                             }
-                            className="h-12 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
+                            className="h-11 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
                         />
 
                         <input
@@ -633,17 +670,17 @@ function ColorControlsPanel({
                             onChange={(event) =>
                                 onChangeNewColor(event.target.value.toUpperCase())
                             }
-                            className="h-12 min-w-0 rounded-xl border border-[#F1E5DF] px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                            className="h-11 min-w-0 rounded-xl border border-[#F1E5DF] px-3 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
                         />
                     </div>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-2 gap-2">
                     <button
                         type="button"
                         onClick={onReplaceSelected}
                         disabled={!selectedColor}
-                        className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-40"
+                        className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-3 py-2.5 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         {replaceSelectedColorText}
                     </button>
@@ -652,18 +689,18 @@ function ColorControlsPanel({
                         type="button"
                         onClick={onReplaceAll}
                         disabled={detectedColors.length === 0}
-                        className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40"
+                        className="rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         {text.replaceAllColors}
                     </button>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-2 gap-2">
                     <button
                         type="button"
                         onClick={onUndo}
                         disabled={!canUndo}
-                        className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40"
+                        className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2.5 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         {text.undo}
                     </button>
@@ -672,7 +709,7 @@ function ColorControlsPanel({
                         type="button"
                         onClick={onRedo}
                         disabled={!canRedo}
-                        className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40"
+                        className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2.5 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         {text.redo}
                     </button>
@@ -813,12 +850,12 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
         >
             <div
-                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
