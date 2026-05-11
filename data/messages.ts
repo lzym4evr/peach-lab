@@ -994,7 +994,7 @@ export const messages = {
                 "Detected colors are real colors in the SVG code. Transparent areas are not colors.",
             originalColor: "Original Color",
             newColor: "New Color",
-            newColorDescription: "Pick the new color you want to use.",
+            newColorDescription: "New color",
             replaceColor: "Replace Color",
             replaceAllColors: "Replace All Colors",
             replaceSelectedColor: "Replace Selected Color",

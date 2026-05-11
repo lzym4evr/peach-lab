@@ -664,6 +664,7 @@ function SvgColorControls({
     showDownload?: boolean;
     compact?: boolean;
 }) {
+    const safeSelectedColor = normalizeHexColor(selectedColor) || "#666666";
     const safeNewColor = normalizeHexColor(newColor) || "#F28C6F";
 
     return (
@@ -679,23 +680,31 @@ function SvgColorControls({
 
                 {detectedColors.length > 0 ? (
                     <div className="mt-3 flex flex-wrap gap-2">
-                        {detectedColors.map((color) => (
-                            <button
-                                key={color}
-                                type="button"
-                                onClick={() => onSelectColor(color)}
-                                className={`flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${selectedColor === color
-                                        ? "border-[#F28C6F] bg-[#FFF7F3] text-[#E6765B]"
-                                        : "border-[#F1E5DF] bg-white text-gray-700 hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
-                                    }`}
-                            >
-                                <span
-                                    className="h-6 w-6 rounded-xl border border-[#E8DDD6]"
-                                    style={{ backgroundColor: color }}
-                                />
-                                <span>{color}</span>
-                            </button>
-                        ))}
+                        {detectedColors.map((color) => {
+                            const isActive = selectedColor === color;
+
+                            return (
+                                <button
+                                    key={color}
+                                    type="button"
+                                    onClick={() => onSelectColor(color)}
+                                    className={`flex items-center gap-2 rounded-2xl border transition ${compact
+                                            ? "px-2.5 py-2 text-xs"
+                                            : "px-3 py-2 text-sm"
+                                        } ${isActive
+                                            ? "border-[#F28C6F] bg-[#FFF7F3] text-[#E6765B]"
+                                            : "border-[#F1E5DF] bg-white text-gray-700 hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
+                                        }`}
+                                >
+                                    <span
+                                        className={`rounded-xl border border-[#E8DDD6] ${compact ? "h-5 w-5" : "h-6 w-6"
+                                            }`}
+                                        style={{ backgroundColor: color }}
+                                    />
+                                    <span className="font-semibold">{color}</span>
+                                </button>
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="mt-3 rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-500">
@@ -704,43 +713,75 @@ function SvgColorControls({
                 )}
             </div>
 
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
                 <label className="block min-w-0">
                     <span className="mb-2 block text-sm font-semibold text-gray-900">
                         {text.originalColor}
                     </span>
 
-                    <input
-                        value={selectedColor}
-                        onChange={(event) =>
-                            onChangeSelectedColor(event.target.value.toUpperCase())
+                    <div
+                        className={
+                            compact
+                                ? "grid grid-cols-[40px_minmax(0,1fr)] gap-1.5"
+                                : "grid grid-cols-[54px_minmax(0,1fr)] gap-2"
                         }
-                        placeholder="#000000"
-                        className="h-12 w-full rounded-2xl border border-[#F1E5DF] bg-white px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                    />
+                    >
+                        <input
+                            type="color"
+                            value={safeSelectedColor}
+                            onChange={(event) =>
+                                onChangeSelectedColor(
+                                    event.target.value.toUpperCase(),
+                                )
+                            }
+                            className={`w-full cursor-pointer rounded-2xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-10" : "h-12"
+                                }`}
+                        />
+
+                        <input
+                            value={selectedColor}
+                            onChange={(event) =>
+                                onChangeSelectedColor(
+                                    event.target.value.toUpperCase(),
+                                )
+                            }
+                            placeholder="#000000"
+                            className={`min-w-0 rounded-2xl border border-[#F1E5DF] bg-white font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
+                                    ? "h-10 px-2 text-[11px]"
+                                    : "h-12 px-3 text-sm"
+                                }`}
+                        />
+                    </div>
                 </label>
 
                 <label className="block min-w-0">
-                    <div className="mb-2 flex items-end justify-between gap-3">
+                    <div className="mb-2 flex items-center justify-between gap-2">
                         <span className="block text-sm font-semibold text-gray-900">
                             {text.newColor}
                         </span>
 
                         {!compact ? (
-                            <span className="text-xs leading-5 text-gray-500">
+                            <span className="truncate text-xs text-gray-500">
                                 {newColorDescriptionText}
                             </span>
                         ) : null}
                     </div>
 
-                    <div className="grid grid-cols-[60px_minmax(0,1fr)] gap-3">
+                    <div
+                        className={
+                            compact
+                                ? "grid grid-cols-[40px_minmax(0,1fr)] gap-1.5"
+                                : "grid grid-cols-[54px_minmax(0,1fr)] gap-2"
+                        }
+                    >
                         <input
                             type="color"
                             value={safeNewColor}
                             onChange={(event) =>
                                 onChangeNewColor(event.target.value.toUpperCase())
                             }
-                            className="h-12 w-full cursor-pointer rounded-2xl border border-[#F1E5DF] bg-white p-1"
+                            className={`w-full cursor-pointer rounded-2xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-10" : "h-12"
+                                }`}
                         />
 
                         <input
@@ -748,18 +789,22 @@ function SvgColorControls({
                             onChange={(event) =>
                                 onChangeNewColor(event.target.value.toUpperCase())
                             }
-                            className="h-12 min-w-0 rounded-2xl border border-[#F1E5DF] bg-white px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                            className={`min-w-0 rounded-2xl border border-[#F1E5DF] bg-white font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
+                                    ? "h-10 px-2 text-[11px]"
+                                    : "h-12 px-3 text-sm"
+                                }`}
                         />
                     </div>
                 </label>
             </div>
 
-            <div className="grid gap-3">
+            <div className="grid grid-cols-2 gap-3">
                 <button
                     type="button"
                     onClick={onReplaceSelected}
                     disabled={!selectedColor}
-                    className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-40"
+                    className={`w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-40 ${compact ? "px-2 py-2.5 text-xs" : "px-4 py-3 text-sm"
+                        }`}
                 >
                     {replaceSelectedColorText}
                 </button>
@@ -768,7 +813,8 @@ function SvgColorControls({
                     type="button"
                     onClick={onReplaceAll}
                     disabled={detectedColors.length === 0}
-                    className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40"
+                    className={`w-full rounded-2xl bg-[#F28C6F] font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40 ${compact ? "px-2 py-2.5 text-xs" : "px-4 py-3 text-sm"
+                        }`}
                 >
                     {replaceEveryColorText}
                 </button>
@@ -779,7 +825,8 @@ function SvgColorControls({
                     type="button"
                     onClick={onUndo}
                     disabled={historyLength === 0}
-                    className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40"
+                    className={`rounded-2xl border border-[#F4C8BA] bg-white font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40 ${compact ? "px-2 py-2.5 text-xs" : "px-3 py-3 text-sm"
+                        }`}
                 >
                     {text.undo}
                 </button>
@@ -788,7 +835,8 @@ function SvgColorControls({
                     type="button"
                     onClick={onRedo}
                     disabled={redoHistoryLength === 0}
-                    className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40"
+                    className={`rounded-2xl border border-[#F4C8BA] bg-white font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40 ${compact ? "px-2 py-2.5 text-xs" : "px-3 py-3 text-sm"
+                        }`}
                 >
                     {text.redo}
                 </button>
