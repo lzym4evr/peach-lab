@@ -920,6 +920,7 @@ export const messages = {
             borderRadiusLabel: "Border Radius",
             borderWidthLabel: "Border Width",
             shadowBlurLabel: "Shadow Blur",
+            shadowOffsetXLabel: "Shadow Offset X",
             shadowOffsetYLabel: "Shadow Offset Y",
             shadowOpacityLabel: "Shadow Opacity",
 

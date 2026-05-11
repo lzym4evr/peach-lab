@@ -11,6 +11,7 @@ type ButtonSettings = {
     borderRadius: number;
     borderWidth: number;
     shadowBlur: number;
+    shadowOffsetX: number;
     shadowOffsetY: number;
     shadowOpacity: number;
     backgroundColor: string;
@@ -28,6 +29,7 @@ const defaultSettings: ButtonSettings = {
     borderRadius: 18,
     borderWidth: 1,
     shadowBlur: 24,
+    shadowOffsetX: 0,
     shadowOffsetY: 10,
     shadowOpacity: 28,
     backgroundColor: "#F28C6F",
@@ -100,7 +102,7 @@ export default function CssButtonGeneratorTool() {
         return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
     }, [safeShadowColor, settings.shadowOpacity]);
 
-    const boxShadowValue = `0 ${settings.shadowOffsetY}px ${settings.shadowBlur}px ${shadowRgba}`;
+    const boxShadowValue = `${settings.shadowOffsetX}px ${settings.shadowOffsetY}px ${settings.shadowBlur}px ${shadowRgba}`;
 
     const cssOutput = `.peach-button {
   display: inline-flex;
@@ -155,6 +157,7 @@ export default function CssButtonGeneratorTool() {
             borderRadius: getRandomNumber(4, 40),
             borderWidth: getRandomNumber(0, 4),
             shadowBlur: getRandomNumber(0, 45),
+            shadowOffsetX: getRandomNumber(-16, 16),
             shadowOffsetY: getRandomNumber(0, 24),
             shadowOpacity: getRandomNumber(10, 60),
             fontSize: getRandomNumber(14, 22),
@@ -172,6 +175,7 @@ export default function CssButtonGeneratorTool() {
             borderRadius: getRandomNumber(4, 40),
             borderWidth: getRandomNumber(0, 4),
             shadowBlur: getRandomNumber(0, 45),
+            shadowOffsetX: getRandomNumber(-20, 20),
             shadowOffsetY: getRandomNumber(0, 24),
             shadowOpacity: getRandomNumber(10, 60),
             backgroundColor: getRandomHexColor(),
@@ -609,6 +613,15 @@ function ButtonSettingsPanel({
                     }
                 >
                     <RangeInput
+                        label={text.shadowOffsetXLabel}
+                        value={settings.shadowOffsetX}
+                        min={-60}
+                        max={60}
+                        suffix="px"
+                        compact={compact}
+                        onChange={(value) => updateSetting("shadowOffsetX", value)}
+                    />
+                    <RangeInput
                         label={text.shadowOffsetYLabel}
                         value={settings.shadowOffsetY}
                         min={0}
@@ -951,8 +964,8 @@ function ColorInput({
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
                     className={`w-full min-w-0 rounded-xl border border-[#F1E5DF] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
-                            ? "h-10 px-2 text-[10px]"
-                            : "h-12 px-4 text-sm"
+                        ? "h-10 px-2 text-[10px]"
+                        : "h-12 px-4 text-sm"
                         }`}
                 />
             </div>
