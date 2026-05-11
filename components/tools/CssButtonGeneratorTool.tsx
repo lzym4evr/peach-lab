@@ -682,7 +682,7 @@ function CssButtonSettingsPanel({
                 />
             </label>
 
-            <SettingGroup title={buttonStyleText}>
+            <SettingGroup title={buttonStyleText} compact={compact}>
                 <div className="grid grid-cols-3 gap-2">
                     {buttonStyles.map((style) => {
                         const isActive = settings.buttonStyle === style;
@@ -705,8 +705,8 @@ function CssButtonSettingsPanel({
                 </div>
             </SettingGroup>
 
-            <SettingGroup title="Colors">
-                <div className="grid grid-cols-2 gap-4">
+            <SettingGroup title="Colors" compact={compact}>
+                <div className={compact ? "grid grid-cols-2 gap-4" : "grid grid-cols-2 gap-4"}>
                     <ColorInput
                         label={text.backgroundColorLabel}
                         value={settings.backgroundColor}
@@ -751,7 +751,7 @@ function CssButtonSettingsPanel({
                 </div>
             </SettingGroup>
 
-            <SettingGroup title="Size">
+            <SettingGroup title="Size" compact={compact}>
                 <div className="grid grid-cols-2 gap-4">
                     <RangeInput
                         label={text.fontSizeLabel}
@@ -795,7 +795,7 @@ function CssButtonSettingsPanel({
                 </div>
             </SettingGroup>
 
-            <SettingGroup title="Shape">
+            <SettingGroup title="Shape" compact={compact}>
                 <RangeInput
                     label={text.borderRadiusLabel}
                     value={settings.borderRadius}
@@ -807,7 +807,7 @@ function CssButtonSettingsPanel({
                 />
             </SettingGroup>
 
-            <SettingGroup title="Shadow">
+            <SettingGroup title="Shadow" compact={compact}>
                 <div className="grid grid-cols-2 gap-4">
                     <RangeInput
                         label={text.shadowOffsetXLabel}
@@ -867,13 +867,30 @@ function CssButtonSettingsPanel({
 function SettingGroup({
     title,
     children,
+    compact = false,
 }: {
     title: string;
     children: ReactNode;
+    compact?: boolean;
 }) {
+    if (compact) {
+        return (
+            <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                <h4 className="mb-4 text-sm font-semibold text-gray-900">
+                    {title}
+                </h4>
+
+                {children}
+            </div>
+        );
+    }
+
     return (
-        <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-            <h4 className="mb-4 text-sm font-semibold text-gray-900">{title}</h4>
+        <div className="border-t border-[#F1E5DF] pt-5 first:border-t-0 first:pt-0">
+            <h4 className="mb-4 text-sm font-semibold text-gray-900">
+                {title}
+            </h4>
+
             {children}
         </div>
     );
@@ -882,71 +899,9 @@ function SettingGroup({
 function SectionHeader({ title }: { title: string }) {
     return (
         <div className="flex items-center gap-3">
-            <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
+            <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
             <h3 className="font-semibold text-gray-900">{title}</h3>
         </div>
-    );
-}
-
-function NumberInput({
-    label,
-    value,
-    min,
-    max,
-    compact = false,
-    onChange,
-}: {
-    label: string;
-    value: number;
-    min: number;
-    max: number;
-    compact?: boolean;
-    onChange: (value: number) => void;
-}) {
-    const [inputValue, setInputValue] = useState(String(value));
-
-    useEffect(() => {
-        setInputValue(String(value));
-    }, [value]);
-
-    function handleChange(nextValue: string) {
-        setInputValue(nextValue);
-
-        if (nextValue.trim() === "") {
-            return;
-        }
-
-        const parsedValue = Number(nextValue);
-
-        if (!Number.isNaN(parsedValue)) {
-            onChange(parsedValue);
-        }
-    }
-
-    return (
-        <label className="block min-w-0">
-            <span
-                className={`mb-2 block break-words font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
-                    }`}
-            >
-                {label}
-            </span>
-
-            <input
-                type="number"
-                min={min}
-                max={max}
-                value={inputValue}
-                onChange={(event) => handleChange(event.target.value)}
-                onBlur={() => {
-                    if (inputValue.trim() === "") {
-                        setInputValue(String(value));
-                    }
-                }}
-                className={`w-full rounded-xl border border-[#F1E5DF] px-3 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-10" : "h-12"
-                    }`}
-            />
-        </label>
     );
 }
 
