@@ -477,8 +477,8 @@ export default function SvgColorChangerTool() {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                            ? "border-[#F28C6F] bg-[#FFF0EA]"
-                            : "border-[#F4C8BA] bg-[#FFF7F3]"
+                        ? "border-[#F28C6F] bg-[#FFF0EA]"
+                        : "border-[#F4C8BA] bg-[#FFF7F3]"
                         }`}
                 >
                     <h2 className="text-2xl font-semibold text-gray-900">
@@ -601,9 +601,6 @@ export default function SvgColorChangerTool() {
             {svgInfo && isMobileSettingsOpen ? (
                 <MobileSettingsSheet
                     title={text.colorControls}
-                    fileName={svgInfo?.name || ""}
-                    fileSize={svgInfo ? formatFileSize(svgInfo.size) : ""}
-                    previewHint={previewHintText}
                     preview={
                         <SvgPreviewBox
                             previewUrl={previewUrl}
@@ -667,29 +664,29 @@ function SvgColorControls({
     showDownload?: boolean;
     compact?: boolean;
 }) {
-    return (
-        <div className={compact ? "space-y-5" : "space-y-6"}>
-            <div className="space-y-3">
-                <div>
-                    <h4 className="text-sm font-semibold text-gray-900">
-                        {chooseColorToReplaceText}
-                    </h4>
+    const safeNewColor = normalizeHexColor(newColor) || "#F28C6F";
 
-                    <p className="mt-2 text-sm leading-6 text-gray-500">
-                        {detectedColorsHelpText}
-                    </p>
-                </div>
+    return (
+        <div className={compact ? "space-y-4" : "space-y-5"}>
+            <div>
+                <h4 className="text-sm font-semibold text-gray-900">
+                    {chooseColorToReplaceText}
+                </h4>
+
+                <p className="mt-2 text-sm leading-6 text-gray-500">
+                    {detectedColorsHelpText}
+                </p>
 
                 {detectedColors.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="mt-3 flex flex-wrap gap-2">
                         {detectedColors.map((color) => (
                             <button
                                 key={color}
                                 type="button"
                                 onClick={() => onSelectColor(color)}
                                 className={`flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${selectedColor === color
-                                        ? "border-[#F28C6F] bg-[#FFF7F3] text-[#E6765B]"
-                                        : "border-[#F1E5DF] bg-white text-gray-700 hover:border-[#F28C6F]"
+                                    ? "border-[#F28C6F] bg-[#FFF7F3] text-[#E6765B]"
+                                    : "border-[#F1E5DF] bg-white text-gray-700 hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
                                     }`}
                             >
                                 <span
@@ -701,20 +698,17 @@ function SvgColorControls({
                         ))}
                     </div>
                 ) : (
-                    <div className="rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-500">
+                    <div className="mt-3 rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-4 text-sm leading-6 text-gray-500">
                         {text.noColors}
                     </div>
                 )}
             </div>
 
-            <div
-                className={`grid gap-4 ${compact ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2"
-                    }`}
-            >
-                <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-gray-900">
+            <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block min-w-0">
+                    <span className="mb-2 block text-sm font-semibold text-gray-900">
                         {text.originalColor}
-                    </label>
+                    </span>
 
                     <input
                         value={selectedColor}
@@ -724,21 +718,23 @@ function SvgColorControls({
                         placeholder="#000000"
                         className="h-12 w-full rounded-2xl border border-[#F1E5DF] bg-white px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
                     />
-                </div>
+                </label>
 
-                <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-gray-900">
+                <label className="block min-w-0">
+                    <span className="mb-2 block text-sm font-semibold text-gray-900">
                         {text.newColor}
-                    </label>
+                    </span>
 
-                    <p className="text-sm leading-6 text-gray-500">
-                        {newColorDescriptionText}
-                    </p>
+                    {!compact ? (
+                        <p className="mb-2 text-sm leading-6 text-gray-500">
+                            {newColorDescriptionText}
+                        </p>
+                    ) : null}
 
-                    <div className="grid grid-cols-[60px_minmax(0,1fr)] gap-3">
+                    <div className="grid grid-cols-[54px_minmax(0,1fr)] gap-2">
                         <input
                             type="color"
-                            value={normalizeHexColor(newColor) || "#F28C6F"}
+                            value={safeNewColor}
                             onChange={(event) =>
                                 onChangeNewColor(event.target.value.toUpperCase())
                             }
@@ -750,10 +746,10 @@ function SvgColorControls({
                             onChange={(event) =>
                                 onChangeNewColor(event.target.value.toUpperCase())
                             }
-                            className="h-12 min-w-0 rounded-2xl border border-[#F1E5DF] bg-white px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                            className="h-12 min-w-0 rounded-2xl border border-[#F1E5DF] bg-white px-3 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
                         />
                     </div>
-                </div>
+                </label>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -761,7 +757,7 @@ function SvgColorControls({
                     type="button"
                     onClick={onReplaceSelected}
                     disabled={!selectedColor}
-                    className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-3 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     {replaceSelectedColorText}
                 </button>
@@ -770,7 +766,7 @@ function SvgColorControls({
                     type="button"
                     onClick={onReplaceAll}
                     disabled={detectedColors.length === 0}
-                    className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-2xl bg-[#F28C6F] px-3 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     {replaceEveryColorText}
                 </button>
@@ -781,7 +777,7 @@ function SvgColorControls({
                     type="button"
                     onClick={onUndo}
                     disabled={historyLength === 0}
-                    className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     {text.undo}
                 </button>
@@ -790,7 +786,7 @@ function SvgColorControls({
                     type="button"
                     onClick={onRedo}
                     disabled={redoHistoryLength === 0}
-                    className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     {text.redo}
                 </button>
@@ -820,12 +816,12 @@ function SvgPreviewBox({
 }) {
     return (
         <div
-            className={`overflow-hidden rounded-3xl border border-[#F1E5DF] ${compact ? "p-4" : "p-6"
+            className={`overflow-hidden rounded-3xl border border-[#F1E5DF] ${compact ? "p-3" : "p-6"
                 }`}
             style={checkerboardStyle}
         >
             <div
-                className={`flex items-center justify-center rounded-2xl bg-white/55 ${compact ? "min-h-[200px]" : "min-h-[320px]"
+                className={`flex items-center justify-center rounded-2xl bg-white/55 ${compact ? "h-[128px]" : "min-h-[320px]"
                     }`}
             >
                 {previewUrl ? (
@@ -833,8 +829,8 @@ function SvgPreviewBox({
                         src={previewUrl}
                         alt={alt}
                         className={`max-w-full object-contain ${compact
-                                ? "max-h-[200px]"
-                                : "max-h-[240px] md:max-h-[300px]"
+                            ? "max-h-[112px]"
+                            : "max-h-[240px] md:max-h-[300px]"
                             }`}
                     />
                 ) : null}
@@ -920,17 +916,11 @@ function MobileActionBar({
 
 function MobileSettingsSheet({
     title,
-    fileName,
-    fileSize,
-    previewHint,
     preview,
     children,
     onClose,
 }: {
     title: string;
-    fileName: string;
-    fileSize: string;
-    previewHint: string;
     preview: ReactNode;
     children: ReactNode;
     onClose: () => void;
@@ -964,7 +954,7 @@ function MobileSettingsSheet({
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
-                <div className="shrink-0 bg-white px-4 pb-4 pt-4">
+                <div className="shrink-0 bg-white px-4 pb-3 pt-4">
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex min-w-0 items-center gap-3">
                             <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
@@ -982,18 +972,12 @@ function MobileSettingsSheet({
                         </button>
                     </div>
 
-                    <div className="mt-4 space-y-3">
+                    <div className="mt-3">
                         {preview}
-
-                        <div className="space-y-1 px-1 text-sm text-gray-500">
-                            <p className="break-all">{fileName}</p>
-                            <p>{fileSize}</p>
-                            <p>{previewHint}</p>
-                        </div>
                     </div>
                 </div>
 
-                <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-4">
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-3">
                     {children}
                 </div>
             </div>
