@@ -137,10 +137,6 @@ export default function SvgColorChangerTool() {
         (text as { detectedColorsHelp?: string }).detectedColorsHelp ??
         "Detected colors are real colors in the SVG code. Transparent areas are not colors.";
 
-    const newColorDescriptionText =
-        (text as { newColorDescription?: string }).newColorDescription ??
-        "Pick the new color you want to use.";
-
     const replaceSelectedColorText =
         (text as { replaceSelectedColor?: string }).replaceSelectedColor ??
         text.replaceColor;
@@ -412,7 +408,6 @@ export default function SvgColorChangerTool() {
             redoHistoryLength={redoHistory.length}
             chooseColorToReplaceText={chooseColorToReplaceText}
             detectedColorsHelpText={detectedColorsHelpText}
-            newColorDescriptionText={newColorDescriptionText}
             replaceSelectedColorText={replaceSelectedColorText}
             replaceEveryColorText={replaceEveryColorText}
             onSelectColor={setSelectedColor}
@@ -438,7 +433,6 @@ export default function SvgColorChangerTool() {
             redoHistoryLength={redoHistory.length}
             chooseColorToReplaceText={chooseColorToReplaceText}
             detectedColorsHelpText={detectedColorsHelpText}
-            newColorDescriptionText={newColorDescriptionText}
             replaceSelectedColorText={replaceSelectedColorText}
             replaceEveryColorText={replaceEveryColorText}
             onSelectColor={setSelectedColor}
@@ -627,7 +621,6 @@ function SvgColorControls({
     redoHistoryLength,
     chooseColorToReplaceText,
     detectedColorsHelpText,
-    newColorDescriptionText,
     replaceSelectedColorText,
     replaceEveryColorText,
     onSelectColor,
@@ -650,7 +643,6 @@ function SvgColorControls({
     redoHistoryLength: number;
     chooseColorToReplaceText: string;
     detectedColorsHelpText: string;
-    newColorDescriptionText: string;
     replaceSelectedColorText: string;
     replaceEveryColorText: string;
     onSelectColor: (color: string) => void;
@@ -689,8 +681,8 @@ function SvgColorControls({
                                     type="button"
                                     onClick={() => onSelectColor(color)}
                                     className={`flex items-center gap-2 rounded-2xl border transition ${compact
-                                            ? "px-2.5 py-2 text-xs"
-                                            : "px-3 py-2 text-sm"
+                                        ? "px-2.5 py-2 text-xs"
+                                        : "px-3 py-2 text-sm"
                                         } ${isActive
                                             ? "border-[#F28C6F] bg-[#FFF7F3] text-[#E6765B]"
                                             : "border-[#F1E5DF] bg-white text-gray-700 hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
@@ -747,8 +739,8 @@ function SvgColorControls({
                             }
                             placeholder="#000000"
                             className={`min-w-0 rounded-2xl border border-[#F1E5DF] bg-white font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
-                                    ? "h-10 px-2 text-[11px]"
-                                    : "h-12 px-3 text-sm"
+                                ? "h-10 px-2 text-[11px]"
+                                : "h-12 px-3 text-sm"
                                 }`}
                         />
                     </div>
@@ -759,12 +751,6 @@ function SvgColorControls({
                         <span className="block text-sm font-semibold text-gray-900">
                             {text.newColor}
                         </span>
-
-                        {!compact ? (
-                            <span className="truncate text-xs text-gray-500">
-                                {newColorDescriptionText}
-                            </span>
-                        ) : null}
                     </div>
 
                     <div
@@ -790,8 +776,8 @@ function SvgColorControls({
                                 onChangeNewColor(event.target.value.toUpperCase())
                             }
                             className={`min-w-0 rounded-2xl border border-[#F1E5DF] bg-white font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
-                                    ? "h-10 px-2 text-[11px]"
-                                    : "h-12 px-3 text-sm"
+                                ? "h-10 px-2 text-[11px]"
+                                : "h-12 px-3 text-sm"
                                 }`}
                         />
                     </div>
