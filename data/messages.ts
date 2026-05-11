@@ -1028,6 +1028,8 @@ export const messages = {
 
             previewTitle: "SVG Preview",
             controlsTitle: "SVG Optimizer Settings",
+            settingsButton: "Settings",
+            actionDownload: "Download",
             outputTitle: "Optimized SVG",
             statsTitle: "Optimization Stats",
 
