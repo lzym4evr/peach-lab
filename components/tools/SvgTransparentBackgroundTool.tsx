@@ -573,23 +573,35 @@ export default function SvgTransparentBackgroundTool() {
     );
 
     const mobileSettingsPanel = (
-        <TransparentSettingsPanel
-            text={text}
-            targetColor={targetColor}
-            options={options}
-            originalSvg={originalSvg}
-            transparentSvg={transparentSvg}
-            originalSize={originalSize}
-            transparentSize={transparentSize}
-            savedPercent={savedPercent}
-            status={status}
-            error={error}
-            setTargetColor={setTargetColor}
-            updateOption={updateOption}
-            handleMakeTransparent={handleMakeTransparent}
-            handleReset={handleReset}
-            compact
-        />
+        <div className="space-y-3">
+            <MobileTransparentPreview
+                text={text}
+                originalPreviewUrl={originalPreviewUrl}
+                transparentPreviewUrl={transparentPreviewUrl}
+                originalSize={originalSvg ? formatBytes(originalSize) : "-"}
+                transparentSize={transparentSvg ? formatBytes(transparentSize) : "-"}
+                hasOriginal={!!originalSvg}
+                hasTransparent={!!transparentSvg}
+            />
+
+            <TransparentSettingsPanel
+                text={text}
+                targetColor={targetColor}
+                options={options}
+                originalSvg={originalSvg}
+                transparentSvg={transparentSvg}
+                originalSize={originalSize}
+                transparentSize={transparentSize}
+                savedPercent={savedPercent}
+                status={status}
+                error={error}
+                setTargetColor={setTargetColor}
+                updateOption={updateOption}
+                handleMakeTransparent={handleMakeTransparent}
+                handleReset={handleReset}
+                compact
+            />
+        </div>
     );
 
     return (
@@ -604,8 +616,8 @@ export default function SvgTransparentBackgroundTool() {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                            ? "border-[#F28C6F] bg-[#FFF0EA]"
-                            : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                        ? "border-[#F28C6F] bg-[#FFF0EA]"
+                        : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                         }`}
                 >
                     <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
@@ -900,6 +912,110 @@ function TransparentSettingsPanel({
                     </p>
                 ) : null}
             </div>
+        </div>
+    );
+}
+
+function MobileTransparentPreview({
+    text,
+    originalPreviewUrl,
+    transparentPreviewUrl,
+    originalSize,
+    transparentSize,
+    hasOriginal,
+    hasTransparent,
+}: {
+    text: typeof t.svgTransparentBackground;
+    originalPreviewUrl: string;
+    transparentPreviewUrl: string;
+    originalSize: string;
+    transparentSize: string;
+    hasOriginal: boolean;
+    hasTransparent: boolean;
+}) {
+    return (
+        <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
+            <div className="mb-3 flex items-center justify-between gap-3">
+                <h4 className="text-sm font-semibold text-gray-900">
+                    {text.previewTitle}
+                </h4>
+
+                <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-[11px] font-semibold text-[#7A5A4F]">
+                    {hasTransparent ? text.transparentSvg : text.originalSvg}
+                </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+                <MobilePreviewBox
+                    title={text.originalSvg}
+                    previewUrl={originalPreviewUrl}
+                    size={originalSize}
+                    isReady={hasOriginal}
+                    emptyText={text.emptyTitle}
+                />
+
+                <MobilePreviewBox
+                    title={text.transparentSvg}
+                    previewUrl={transparentPreviewUrl}
+                    size={transparentSize}
+                    isReady={hasTransparent}
+                    emptyText={text.emptyDescription}
+                />
+            </div>
+        </div>
+    );
+}
+
+function MobilePreviewBox({
+    title,
+    previewUrl,
+    size,
+    isReady,
+    emptyText,
+}: {
+    title: string;
+    previewUrl: string;
+    size: string;
+    isReady: boolean;
+    emptyText: string;
+}) {
+    return (
+        <div className="min-w-0 rounded-2xl border border-[#F1E5DF] bg-white p-2">
+            <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="truncate text-[11px] font-semibold text-gray-900">
+                    {title}
+                </span>
+
+                <span className="shrink-0 rounded-full bg-[#FFF7F3] px-2 py-0.5 text-[10px] font-semibold text-[#7A5A4F]">
+                    {size}
+                </span>
+            </div>
+
+            {isReady && previewUrl ? (
+                <div
+                    className="flex h-28 items-center justify-center overflow-hidden rounded-xl p-2"
+                    style={{
+                        backgroundColor: "#ffffff",
+                        backgroundImage:
+                            "linear-gradient(45deg, #f1f5f9 25%, transparent 25%), linear-gradient(-45deg, #f1f5f9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f1f5f9 75%), linear-gradient(-45deg, transparent 75%, #f1f5f9 75%)",
+                        backgroundSize: "16px 16px",
+                        backgroundPosition:
+                            "0 0, 0 8px, 8px -8px, -8px 0",
+                    }}
+                >
+                    <img
+                        src={previewUrl}
+                        alt={title}
+                        className="max-h-24 w-full object-contain"
+                    />
+                </div>
+            ) : (
+                <div className="flex h-28 items-center justify-center rounded-xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-2 text-center">
+                    <p className="line-clamp-3 text-[11px] leading-4 text-gray-500">
+                        {emptyText}
+                    </p>
+                </div>
+            )}
         </div>
     );
 }
