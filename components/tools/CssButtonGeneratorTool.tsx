@@ -208,42 +208,6 @@ export default function CssButtonGeneratorTool() {
         }
     }
 
-    const previewPanel = (
-        <ButtonPreview
-            text={settings.buttonText}
-            settings={settings}
-            safeBackgroundColor={safeBackgroundColor}
-            safeTextColor={safeTextColor}
-            safeBorderColor={safeBorderColor}
-            safePreviewBackground={safePreviewBackground}
-            boxShadowValue={boxShadowValue}
-        />
-    );
-
-    const desktopSettingsPanel = (
-        <ButtonSettingsPanel
-            text={text}
-            settings={settings}
-            updateSetting={updateSetting}
-            onShuffle={handleShuffle}
-            onRandom={handleRandomAll}
-            onReset={handleReset}
-            compact={false}
-        />
-    );
-
-    const mobileSettingsPanel = (
-        <ButtonSettingsPanel
-            text={text}
-            settings={settings}
-            updateSetting={updateSetting}
-            onShuffle={handleShuffle}
-            onRandom={handleRandomAll}
-            onReset={handleReset}
-            compact
-        />
-    );
-
     return (
         <>
             <div className="space-y-6">
@@ -258,7 +222,15 @@ export default function CssButtonGeneratorTool() {
                                 </p>
                             </div>
 
-                            {previewPanel}
+                            <ButtonPreview
+                                text={settings.buttonText}
+                                settings={settings}
+                                safeBackgroundColor={safeBackgroundColor}
+                                safeTextColor={safeTextColor}
+                                safeBorderColor={safeBorderColor}
+                                safePreviewBackground={safePreviewBackground}
+                                boxShadowValue={boxShadowValue}
+                            />
                         </section>
 
                         <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
@@ -291,7 +263,16 @@ export default function CssButtonGeneratorTool() {
                     <section className="hidden min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm lg:block">
                         <SectionHeader title={text.controlsTitle} />
 
-                        <div className="mt-5">{desktopSettingsPanel}</div>
+                        <div className="mt-5">
+                            <ButtonSettingsPanel
+                                text={text}
+                                settings={settings}
+                                updateSetting={updateSetting}
+                                onShuffle={handleShuffle}
+                                onRandom={handleRandomAll}
+                                onReset={handleReset}
+                            />
+                        </div>
                     </section>
                 </div>
             </div>
@@ -319,7 +300,15 @@ export default function CssButtonGeneratorTool() {
                             />
                         </div>
 
-                        {mobileSettingsPanel}
+                        <ButtonSettingsPanel
+                            text={text}
+                            settings={settings}
+                            updateSetting={updateSetting}
+                            onShuffle={handleShuffle}
+                            onRandom={handleRandomAll}
+                            onReset={handleReset}
+                            compact
+                        />
                     </div>
                 </MobileSettingsSheet>
             ) : null}
@@ -440,29 +429,11 @@ function ButtonSettingsPanel({
         <div className={compact ? "space-y-3" : "space-y-5"}>
             {compact ? (
                 <div className="grid grid-cols-3 gap-1.5">
-                    <button
-                        type="button"
-                        onClick={onShuffle}
-                        className="h-8 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 text-[11px] font-semibold leading-none text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                    >
-                        {text.shuffle}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={onRandom}
-                        className="h-8 rounded-xl bg-[#F28C6F] px-2 text-[11px] font-semibold leading-none text-white shadow-sm transition hover:bg-[#E6765B]"
-                    >
+                    <SmallButton onClick={onShuffle}>{text.shuffle}</SmallButton>
+                    <SmallButton primary onClick={onRandom}>
                         {text.randomAll}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={onReset}
-                        className="h-8 rounded-xl border border-[#F4C8BA] bg-white px-2 text-[11px] font-semibold leading-none text-[#E6765B] transition hover:bg-[#FFF7F3]"
-                    >
-                        {text.reset}
-                    </button>
+                    </SmallButton>
+                    <SmallButton onClick={onReset}>{text.reset}</SmallButton>
                 </div>
             ) : (
                 <>
@@ -513,163 +484,333 @@ function ButtonSettingsPanel({
                 />
             </label>
 
-            <div className={compact ? "grid grid-cols-2 gap-3" : "space-y-5"}>
-                <RangeInput
-                    label={text.fontSizeLabel}
-                    value={settings.fontSize}
-                    min={10}
-                    max={32}
-                    suffix="px"
-                    compact={compact}
-                    onChange={(value) => updateSetting("fontSize", value)}
-                />
-
-                <RangeInput
-                    label={text.borderWidthLabel}
-                    value={settings.borderWidth}
-                    min={0}
-                    max={8}
-                    suffix="px"
-                    compact={compact}
-                    onChange={(value) => updateSetting("borderWidth", value)}
-                />
-
-                <RangeInput
-                    label={text.paddingXLabel}
-                    value={settings.paddingX}
-                    min={8}
-                    max={80}
-                    suffix="px"
-                    compact={compact}
-                    onChange={(value) => updateSetting("paddingX", value)}
-                />
-
-                <RangeInput
-                    label={text.paddingYLabel}
-                    value={settings.paddingY}
-                    min={6}
-                    max={40}
-                    suffix="px"
-                    compact={compact}
-                    onChange={(value) => updateSetting("paddingY", value)}
-                />
-
-                <RangeInput
-                    label={text.borderRadiusLabel}
-                    value={settings.borderRadius}
-                    min={0}
-                    max={80}
-                    suffix="px"
-                    compact={compact}
-                    onChange={(value) => updateSetting("borderRadius", value)}
-                />
-
-                <RangeInput
-                    label={text.shadowOffsetYLabel}
-                    value={settings.shadowOffsetY}
-                    min={0}
-                    max={60}
-                    suffix="px"
-                    compact={compact}
-                    onChange={(value) => updateSetting("shadowOffsetY", value)}
-                />
-
-                <RangeInput
-                    label={text.shadowBlurLabel}
-                    value={settings.shadowBlur}
-                    min={0}
-                    max={100}
-                    suffix="px"
-                    compact={compact}
-                    onChange={(value) => updateSetting("shadowBlur", value)}
-                />
-
-                <RangeInput
-                    label={text.shadowOpacityLabel}
-                    value={settings.shadowOpacity}
-                    min={0}
-                    max={100}
-                    suffix="%"
-                    compact={compact}
-                    onChange={(value) => updateSetting("shadowOpacity", value)}
-                />
-            </div>
-
             {compact ? (
                 <>
-                    <div className="grid grid-cols-3 gap-2">
-                        <CompactColorInput
-                            label={text.backgroundColorLabel}
-                            value={settings.backgroundColor}
-                            fallback="#F28C6F"
-                            onChange={(value) =>
-                                updateSetting("backgroundColor", value)
-                            }
-                        />
+                    <ColorSettingsGroup
+                        text={text}
+                        settings={settings}
+                        updateSetting={updateSetting}
+                        compact
+                    />
 
-                        <CompactColorInput
-                            label={text.textColorLabel}
-                            value={settings.textColor}
-                            fallback="#FFFFFF"
-                            onChange={(value) => updateSetting("textColor", value)}
-                        />
-
-                        <CompactColorInput
-                            label={text.borderColorLabel}
-                            value={settings.borderColor}
-                            fallback="#F28C6F"
-                            onChange={(value) => updateSetting("borderColor", value)}
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                        <CompactColorInput
-                            label={text.shadowColorLabel}
-                            value={settings.shadowColor}
-                            fallback="#F28C6F"
-                            onChange={(value) => updateSetting("shadowColor", value)}
-                        />
-
-                        <CompactColorInput
-                            label={text.previewBackgroundLabel}
-                            value={settings.previewBackground}
-                            fallback="#FFF7F3"
-                            onChange={(value) =>
-                                updateSetting("previewBackground", value)
-                            }
-                        />
-                    </div>
+                    <RangeSettingsGroup
+                        text={text}
+                        settings={settings}
+                        updateSetting={updateSetting}
+                        compact
+                    />
                 </>
             ) : (
                 <>
-                    <ColorInput
+                    <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                        <h4 className="mb-4 text-sm font-semibold text-gray-900">
+                            Size & Shape
+                        </h4>
+
+                        <div className="grid gap-5 sm:grid-cols-2">
+                            <RangeInput
+                                label={text.fontSizeLabel}
+                                value={settings.fontSize}
+                                min={10}
+                                max={32}
+                                suffix="px"
+                                onChange={(value) => updateSetting("fontSize", value)}
+                            />
+
+                            <RangeInput
+                                label={text.borderWidthLabel}
+                                value={settings.borderWidth}
+                                min={0}
+                                max={8}
+                                suffix="px"
+                                onChange={(value) =>
+                                    updateSetting("borderWidth", value)
+                                }
+                            />
+
+                            <RangeInput
+                                label={text.paddingXLabel}
+                                value={settings.paddingX}
+                                min={8}
+                                max={80}
+                                suffix="px"
+                                onChange={(value) => updateSetting("paddingX", value)}
+                            />
+
+                            <RangeInput
+                                label={text.paddingYLabel}
+                                value={settings.paddingY}
+                                min={6}
+                                max={40}
+                                suffix="px"
+                                onChange={(value) => updateSetting("paddingY", value)}
+                            />
+
+                            <div className="sm:col-span-2">
+                                <RangeInput
+                                    label={text.borderRadiusLabel}
+                                    value={settings.borderRadius}
+                                    min={0}
+                                    max={80}
+                                    suffix="px"
+                                    onChange={(value) =>
+                                        updateSetting("borderRadius", value)
+                                    }
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                        <h4 className="mb-4 text-sm font-semibold text-gray-900">
+                            Shadow
+                        </h4>
+
+                        <div className="grid gap-5 sm:grid-cols-2">
+                            <RangeInput
+                                label={text.shadowOffsetYLabel}
+                                value={settings.shadowOffsetY}
+                                min={0}
+                                max={60}
+                                suffix="px"
+                                onChange={(value) =>
+                                    updateSetting("shadowOffsetY", value)
+                                }
+                            />
+
+                            <RangeInput
+                                label={text.shadowBlurLabel}
+                                value={settings.shadowBlur}
+                                min={0}
+                                max={100}
+                                suffix="px"
+                                onChange={(value) =>
+                                    updateSetting("shadowBlur", value)
+                                }
+                            />
+
+                            <div className="sm:col-span-2">
+                                <RangeInput
+                                    label={text.shadowOpacityLabel}
+                                    value={settings.shadowOpacity}
+                                    min={0}
+                                    max={100}
+                                    suffix="%"
+                                    onChange={(value) =>
+                                        updateSetting("shadowOpacity", value)
+                                    }
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <ColorSettingsGroup
+                        text={text}
+                        settings={settings}
+                        updateSetting={updateSetting}
+                    />
+                </>
+            )}
+        </div>
+    );
+}
+
+function RangeSettingsGroup({
+    text,
+    settings,
+    updateSetting,
+    compact = false,
+}: {
+    text: typeof t.cssButtonGenerator;
+    settings: ButtonSettings;
+    updateSetting: <K extends keyof ButtonSettings>(
+        key: K,
+        value: ButtonSettings[K],
+    ) => void;
+    compact?: boolean;
+}) {
+    return (
+        <div className={compact ? "grid grid-cols-2 gap-3" : "space-y-5"}>
+            <RangeInput
+                label={text.fontSizeLabel}
+                value={settings.fontSize}
+                min={10}
+                max={32}
+                suffix="px"
+                compact={compact}
+                onChange={(value) => updateSetting("fontSize", value)}
+            />
+
+            <RangeInput
+                label={text.borderWidthLabel}
+                value={settings.borderWidth}
+                min={0}
+                max={8}
+                suffix="px"
+                compact={compact}
+                onChange={(value) => updateSetting("borderWidth", value)}
+            />
+
+            <RangeInput
+                label={text.paddingXLabel}
+                value={settings.paddingX}
+                min={8}
+                max={80}
+                suffix="px"
+                compact={compact}
+                onChange={(value) => updateSetting("paddingX", value)}
+            />
+
+            <RangeInput
+                label={text.paddingYLabel}
+                value={settings.paddingY}
+                min={6}
+                max={40}
+                suffix="px"
+                compact={compact}
+                onChange={(value) => updateSetting("paddingY", value)}
+            />
+
+            <RangeInput
+                label={text.borderRadiusLabel}
+                value={settings.borderRadius}
+                min={0}
+                max={80}
+                suffix="px"
+                compact={compact}
+                onChange={(value) => updateSetting("borderRadius", value)}
+            />
+
+            <RangeInput
+                label={text.shadowOffsetYLabel}
+                value={settings.shadowOffsetY}
+                min={0}
+                max={60}
+                suffix="px"
+                compact={compact}
+                onChange={(value) => updateSetting("shadowOffsetY", value)}
+            />
+
+            <RangeInput
+                label={text.shadowBlurLabel}
+                value={settings.shadowBlur}
+                min={0}
+                max={100}
+                suffix="px"
+                compact={compact}
+                onChange={(value) => updateSetting("shadowBlur", value)}
+            />
+
+            <RangeInput
+                label={text.shadowOpacityLabel}
+                value={settings.shadowOpacity}
+                min={0}
+                max={100}
+                suffix="%"
+                compact={compact}
+                onChange={(value) => updateSetting("shadowOpacity", value)}
+            />
+        </div>
+    );
+}
+
+function ColorSettingsGroup({
+    text,
+    settings,
+    updateSetting,
+    compact = false,
+}: {
+    text: typeof t.cssButtonGenerator;
+    settings: ButtonSettings;
+    updateSetting: <K extends keyof ButtonSettings>(
+        key: K,
+        value: ButtonSettings[K],
+    ) => void;
+    compact?: boolean;
+}) {
+    if (compact) {
+        return (
+            <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-2">
+                    <CompactColorInput
                         label={text.backgroundColorLabel}
                         value={settings.backgroundColor}
                         fallback="#F28C6F"
                         onChange={(value) => updateSetting("backgroundColor", value)}
                     />
 
-                    <ColorInput
+                    <CompactColorInput
                         label={text.textColorLabel}
                         value={settings.textColor}
                         fallback="#FFFFFF"
                         onChange={(value) => updateSetting("textColor", value)}
                     />
 
-                    <ColorInput
+                    <CompactColorInput
                         label={text.borderColorLabel}
                         value={settings.borderColor}
                         fallback="#F28C6F"
                         onChange={(value) => updateSetting("borderColor", value)}
                     />
+                </div>
 
-                    <ColorInput
+                <div className="grid grid-cols-2 gap-2">
+                    <CompactColorInput
                         label={text.shadowColorLabel}
                         value={settings.shadowColor}
                         fallback="#F28C6F"
                         onChange={(value) => updateSetting("shadowColor", value)}
                     />
 
+                    <CompactColorInput
+                        label={text.previewBackgroundLabel}
+                        value={settings.previewBackground}
+                        fallback="#FFF7F3"
+                        onChange={(value) =>
+                            updateSetting("previewBackground", value)
+                        }
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+            <h4 className="mb-4 text-sm font-semibold text-gray-900">
+                Colors
+            </h4>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+                <ColorInput
+                    label={text.backgroundColorLabel}
+                    value={settings.backgroundColor}
+                    fallback="#F28C6F"
+                    onChange={(value) => updateSetting("backgroundColor", value)}
+                />
+
+                <ColorInput
+                    label={text.textColorLabel}
+                    value={settings.textColor}
+                    fallback="#FFFFFF"
+                    onChange={(value) => updateSetting("textColor", value)}
+                />
+
+                <ColorInput
+                    label={text.borderColorLabel}
+                    value={settings.borderColor}
+                    fallback="#F28C6F"
+                    onChange={(value) => updateSetting("borderColor", value)}
+                />
+
+                <ColorInput
+                    label={text.shadowColorLabel}
+                    value={settings.shadowColor}
+                    fallback="#F28C6F"
+                    onChange={(value) => updateSetting("shadowColor", value)}
+                />
+
+                <div className="sm:col-span-2">
                     <ColorInput
                         label={text.previewBackgroundLabel}
                         value={settings.previewBackground}
@@ -678,132 +819,33 @@ function ButtonSettingsPanel({
                             updateSetting("previewBackground", value)
                         }
                     />
-                </>
-            )}
-        </div>
-    );
-}
-
-function MobileActionBar({
-    settingsButtonText,
-    onOpenSettings,
-}: {
-    settingsButtonText: string;
-    onOpenSettings: () => void;
-}) {
-    const actionBarRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-
-        const updateSpace = () => {
-            const element = actionBarRef.current;
-            if (!element) return;
-
-            const rect = element.getBoundingClientRect();
-
-            document.documentElement.style.setProperty(
-                "--mobile-action-bar-space",
-                `${Math.ceil(rect.height + 24)}px`,
-            );
-        };
-
-        const timer = window.setTimeout(updateSpace, 0);
-        window.addEventListener("resize", updateSpace);
-
-        return () => {
-            window.clearTimeout(timer);
-            window.removeEventListener("resize", updateSpace);
-            document.documentElement.style.removeProperty(
-                "--mobile-action-bar-space",
-            );
-        };
-    }, []);
-
-    return (
-        <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
-            <div
-                ref={actionBarRef}
-                className="pointer-events-auto mx-auto grid max-w-md grid-cols-1 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
-            >
-                <button
-                    type="button"
-                    onClick={onOpenSettings}
-                    className="rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B]"
-                >
-                    {settingsButtonText}
-                </button>
+                </div>
             </div>
         </div>
     );
 }
 
-function MobileSettingsSheet({
-    title,
+function SmallButton({
     children,
-    onClose,
+    primary = false,
+    onClick,
 }: {
-    title: string;
     children: ReactNode;
-    onClose: () => void;
+    primary?: boolean;
+    onClick: () => void;
 }) {
-    const [isVisible, setIsVisible] = useState(false);
-
-    useEffect(() => {
-        const previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-
-        const frame = requestAnimationFrame(() => {
-            setIsVisible(true);
-        });
-
-        return () => {
-            cancelAnimationFrame(frame);
-            document.body.style.overflow = previousOverflow;
-        };
-    }, []);
-
-    function handleClose() {
-        setIsVisible(false);
-
-        window.setTimeout(() => {
-            onClose();
-        }, 180);
-    }
-
     return (
-        <div
-            className={`fixed inset-0 z-[80] bg-[#2A1F1B]/35 px-3 pb-3 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
-                }`}
-            onClick={handleClose}
+        <button
+            type="button"
+            onClick={onClick}
+            className={
+                primary
+                    ? "h-8 rounded-xl bg-[#F28C6F] px-2 text-[11px] font-semibold leading-none text-white shadow-sm transition hover:bg-[#E6765B]"
+                    : "h-8 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 text-[11px] font-semibold leading-none text-[#E6765B] transition hover:bg-[#FFF0EA]"
+            }
         >
-            <div
-                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
-                    }`}
-                onClick={(event) => event.stopPropagation()}
-            >
-                <div className="flex items-center justify-between gap-4 px-4 pb-2 pt-4">
-                    <div className="flex min-w-0 items-center gap-3">
-                        <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
-                        <h3 className="truncate text-lg font-semibold text-gray-900">
-                            {title}
-                        </h3>
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={handleClose}
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
-                    >
-                        ×
-                    </button>
-                </div>
-
-                <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-2">
-                    {children}
-                </div>
-            </div>
-        </div>
+            {children}
+        </button>
     );
 }
 
@@ -830,23 +872,23 @@ function ColorInput({
     const colorPickerValue = isValidHexColor(value) ? value : fallback;
 
     return (
-        <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-gray-800">
+        <label className="block min-w-0">
+            <span className="mb-2 block truncate text-sm font-semibold text-gray-800">
                 {label}
             </span>
 
-            <div className="grid grid-cols-[58px_1fr] gap-3">
+            <div className="grid grid-cols-[54px_1fr] gap-2">
                 <input
                     type="color"
                     value={colorPickerValue}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-12 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
+                    className="h-11 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
                 />
 
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                    className="h-11 w-full min-w-0 rounded-xl border border-[#F1E5DF] px-3 text-xs font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
                 />
             </div>
         </label>
@@ -947,5 +989,120 @@ function RangeInput({
                 className="w-full accent-[#F28C6F]"
             />
         </label>
+    );
+}
+
+function MobileActionBar({
+    settingsButtonText,
+    onOpenSettings,
+}: {
+    settingsButtonText: string;
+    onOpenSettings: () => void;
+}) {
+    const actionBarRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const updateSpace = () => {
+            const element = actionBarRef.current;
+            if (!element) return;
+
+            const rect = element.getBoundingClientRect();
+
+            document.documentElement.style.setProperty(
+                "--mobile-action-bar-space",
+                `${Math.ceil(rect.height + 24)}px`,
+            );
+        };
+
+        const timer = window.setTimeout(updateSpace, 0);
+        window.addEventListener("resize", updateSpace);
+
+        return () => {
+            window.clearTimeout(timer);
+            window.removeEventListener("resize", updateSpace);
+            document.documentElement.style.removeProperty(
+                "--mobile-action-bar-space",
+            );
+        };
+    }, []);
+
+    return (
+        <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
+            <div
+                ref={actionBarRef}
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-1 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+            >
+                <button
+                    type="button"
+                    onClick={onOpenSettings}
+                    className="rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B]"
+                >
+                    {settingsButtonText}
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function MobileSettingsSheet({
+    title,
+    children,
+    onClose,
+}: {
+    title: string;
+    children: ReactNode;
+    onClose: () => void;
+}) {
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const frame = requestAnimationFrame(() => {
+            setIsVisible(true);
+        });
+
+        return () => cancelAnimationFrame(frame);
+    }, []);
+
+    function handleClose() {
+        setIsVisible(false);
+
+        window.setTimeout(() => {
+            onClose();
+        }, 180);
+    }
+
+    return (
+        <div
+            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+                }`}
+            onClick={handleClose}
+        >
+            <div
+                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                    }`}
+                onClick={(event) => event.stopPropagation()}
+            >
+                <div className="flex items-center justify-between gap-4 px-4 pb-2 pt-4">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
+                        <h3 className="truncate text-lg font-semibold text-gray-900">
+                            {title}
+                        </h3>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <div className="overflow-y-auto px-4 pb-4 pt-2">{children}</div>
+            </div>
+        </div>
     );
 }
