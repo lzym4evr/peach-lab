@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { t } from "@/data/messages";
 
 type SvgInfo = {
@@ -23,17 +23,43 @@ function formatFileSize(bytes: number) {
 }
 
 export default function SvgToPngTool() {
+    const text = t.svgToPng;
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+
     const [svgInfo, setSvgInfo] = useState<SvgInfo | null>(null);
     const [width, setWidth] = useState(1024);
     const [height, setHeight] = useState(1024);
     const [error, setError] = useState("");
     const [isDragging, setIsDragging] = useState(false);
 
+    const supportedFormats =
+        (text as { supportedFormats?: string }).supportedFormats ??
+        "Supports SVG files.";
+
+    const dropHint =
+        (text as { dropHint?: string }).dropHint ??
+        "Drag and drop an SVG here, or click to choose a file.";
+
+    const noFileSelected =
+        (text as { noFileSelected?: string }).noFileSelected ??
+        "No file selected";
+
+    useEffect(() => {
+        return () => {
+            if (svgInfo?.previewUrl) {
+                URL.revokeObjectURL(svgInfo.previewUrl);
+            }
+        };
+    }, [svgInfo?.previewUrl]);
+
     function processSvgFile(file: File) {
         setError("");
 
-        if (!file.name.toLowerCase().endsWith(".svg") && file.type !== "image/svg+xml") {
-            setError(t.svgToPng.invalidSvg);
+        if (
+            !file.name.toLowerCase().endsWith(".svg") &&
+            file.type !== "image/svg+xml"
+        ) {
+            setError(text.invalidSvg);
             return;
         }
 
@@ -43,7 +69,7 @@ export default function SvgToPngTool() {
             const content = String(reader.result || "");
 
             if (!content.includes("<svg")) {
-                setError(t.svgToPng.invalidSvgContent);
+                setError(text.invalidSvgContent);
                 return;
             }
 
@@ -60,10 +86,11 @@ export default function SvgToPngTool() {
                 content,
                 previewUrl,
             });
+            setError("");
         };
 
         reader.onerror = () => {
-            setError(t.svgToPng.readError);
+            setError(text.readError);
         };
 
         reader.readAsText(file);
@@ -74,6 +101,8 @@ export default function SvgToPngTool() {
         if (!file) return;
 
         processSvgFile(file);
+
+        event.target.value = "";
     }
 
     function handleDragOver(event: React.DragEvent<HTMLLabelElement>) {
@@ -115,20 +144,23 @@ export default function SvgToPngTool() {
         const url = URL.createObjectURL(svgBlob);
 
         image.onload = () => {
+            const safeWidth = Math.max(1, width);
+            const safeHeight = Math.max(1, height);
+
             const canvas = document.createElement("canvas");
-            canvas.width = width;
-            canvas.height = height;
+            canvas.width = safeWidth;
+            canvas.height = safeHeight;
 
             const context = canvas.getContext("2d");
 
             if (!context) {
-                setError(t.svgToPng.canvasUnsupported);
+                setError(text.canvasUnsupported);
                 URL.revokeObjectURL(url);
                 return;
             }
 
-            context.clearRect(0, 0, width, height);
-            context.drawImage(image, 0, 0, width, height);
+            context.clearRect(0, 0, safeWidth, safeHeight);
+            context.drawImage(image, 0, 0, safeWidth, safeHeight);
 
             const pngUrl = canvas.toDataURL("image/png");
 
@@ -141,7 +173,7 @@ export default function SvgToPngTool() {
         };
 
         image.onerror = () => {
-            setError(t.svgToPng.convertError);
+            setError(text.convertError);
             URL.revokeObjectURL(url);
         };
 
@@ -150,120 +182,196 @@ export default function SvgToPngTool() {
 
     return (
         <div className="space-y-6">
+            <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm text-[#7A5A4F]">
+                <p className="font-semibold text-[#2A1F1B]">
+                    {t.common.localProcessing}
+                </p>
+                <p className="mt-2 leading-6 text-gray-500">
+                    {text.localProcessingDescription}
+                </p>
+            </div>
+
             <label
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`block cursor-pointer rounded-3xl border-2 border-dashed p-8 text-center transition ${isDragging
-                        ? "border-[#F28C6F] bg-[#FFF0EA]"
-                        : "border-[#F4C8BA] bg-[#FFF7F3]"
+                className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
+                    ? "border-[#F28C6F] bg-[#FFF0EA]"
+                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                     }`}
             >
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-3xl shadow-sm">
-                    📄
-                </div>
+                <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
+                    {text.uploadTitle}
+                </h2>
 
-                <h2 className="text-xl font-semibold">{t.svgToPng.uploadTitle}</h2>
-
-                <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-gray-500">
-                    {t.svgToPng.uploadDescription}
+                <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-gray-500 md:mt-3 md:text-base md:leading-7">
+                    {text.uploadDescription}
                 </p>
 
-                <div className="mt-6 inline-flex rounded-xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]">
-                    {t.svgToPng.chooseSvg}
+                <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
+                    {supportedFormats}
+                </p>
+
+                <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
+                    {dropHint}
+                </p>
+
+                <div className="mx-auto mt-4 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:mt-5">
+                    {text.chooseSvg}
                 </div>
 
                 <input
+                    ref={fileInputRef}
                     type="file"
                     accept=".svg,image/svg+xml"
                     onChange={handleFileChange}
                     className="hidden"
                 />
 
-                {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
+                <p className="mx-auto mt-3 max-w-xl break-all text-sm font-medium text-gray-500">
+                    {svgInfo?.name || noFileSelected}
+                </p>
+
+                {error ? (
+                    <p className="mt-4 text-sm font-medium text-red-500">
+                        {error}
+                    </p>
+                ) : null}
             </label>
 
-            {svgInfo && (
-                <div className="grid gap-6 lg:grid-cols-2">
-                    <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+            {svgInfo ? (
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+                    <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                         <div className="flex items-center justify-between gap-4">
-                            <h3 className="font-semibold text-gray-900">
-                                {t.svgToPng.svgPreview}
-                            </h3>
+                            <SectionHeader title={text.svgPreview} />
 
                             <button
+                                type="button"
                                 onClick={clearSvg}
-                                className="rounded-xl border border-[#F1E5DF] px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F]"
+                                className="shrink-0 rounded-xl border border-[#F4C8BA] bg-white px-3 py-2 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
                             >
                                 {t.common.clear}
                             </button>
                         </div>
 
-                        <div className="mt-4 flex min-h-80 items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-6">
+                        <div className="mt-4 flex items-center justify-center overflow-hidden rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
                             <img
                                 src={svgInfo.previewUrl}
                                 alt={svgInfo.name}
-                                className="max-h-80 max-w-full object-contain"
+                                className="block max-h-[420px] max-w-full object-contain"
                             />
                         </div>
 
-                        <div className="mt-4 space-y-1 text-sm text-gray-500">
-                            <p className="break-all">{svgInfo.name}</p>
-                            <p>{formatFileSize(svgInfo.size)}</p>
+                        <div className="mt-4 grid gap-3 text-sm text-gray-500 sm:grid-cols-2">
+                            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                                    {text.fileName ?? "File Name"}
+                                </p>
+                                <p className="mt-1 break-all font-medium text-gray-700">
+                                    {svgInfo.name}
+                                </p>
+                            </div>
+
+                            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                                    {text.fileSize ?? "File Size"}
+                                </p>
+                                <p className="mt-1 font-medium text-gray-700">
+                                    {formatFileSize(svgInfo.size)}
+                                </p>
+                            </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <div className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                        <h3 className="font-semibold text-gray-900">
-                            {t.svgToPng.exportPng}
-                        </h3>
+                    <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                        <SectionHeader title={text.exportPng} />
 
-                        <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                            <div>
-                                <label className="mb-2 block text-sm font-semibold text-gray-800">
-                                    {t.svgToPng.width}
-                                </label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={width}
-                                    onChange={(event) => setWidth(Number(event.target.value))}
-                                    className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                                />
-                            </div>
+                        <div className="mt-5 grid grid-cols-2 gap-4">
+                            <NumberInput
+                                label={text.width}
+                                value={width}
+                                min={1}
+                                onChange={setWidth}
+                            />
 
-                            <div>
-                                <label className="mb-2 block text-sm font-semibold text-gray-800">
-                                    {t.svgToPng.height}
-                                </label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={height}
-                                    onChange={(event) => setHeight(Number(event.target.value))}
-                                    className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                                />
-                            </div>
+                            <NumberInput
+                                label={text.height}
+                                value={height}
+                                min={1}
+                                onChange={setHeight}
+                            />
                         </div>
 
                         <button
+                            type="button"
                             onClick={downloadPng}
-                            className="mt-6 w-full rounded-xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
+                            className="mt-6 w-full rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                         >
-                            {t.svgToPng.downloadPng}
+                            {text.downloadPng}
                         </button>
-
-                        <div className="mt-5 rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
-                            <p className="text-sm font-semibold text-gray-800">
-                                {t.common.localProcessing}
-                            </p>
-                            <p className="mt-2 text-sm leading-6 text-gray-500">
-                                {t.svgToPng.localProcessingDescription}
-                            </p>
-                        </div>
-                    </div>
+                    </section>
                 </div>
-            )}
+            ) : null}
         </div>
+    );
+}
+
+function SectionHeader({ title }: { title: string }) {
+    return (
+        <div className="flex items-center gap-3">
+            <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
+            <h3 className="font-semibold text-gray-900">{title}</h3>
+        </div>
+    );
+}
+
+function NumberInput({
+    label,
+    value,
+    min,
+    onChange,
+}: {
+    label: string;
+    value: number;
+    min: number;
+    onChange: (value: number) => void;
+}) {
+    const [inputValue, setInputValue] = useState(String(value));
+
+    useEffect(() => {
+        setInputValue(String(value));
+    }, [value]);
+
+    function handleChange(nextValue: string) {
+        setInputValue(nextValue);
+
+        if (nextValue.trim() === "") return;
+
+        const parsedValue = Number(nextValue);
+
+        if (!Number.isNaN(parsedValue)) {
+            onChange(Math.max(min, parsedValue));
+        }
+    }
+
+    return (
+        <label className="block min-w-0">
+            <span className="mb-2 block truncate text-sm font-semibold text-gray-800">
+                {label}
+            </span>
+
+            <input
+                type="number"
+                min={min}
+                value={inputValue}
+                onChange={(event) => handleChange(event.target.value)}
+                onBlur={() => {
+                    if (inputValue.trim() === "") {
+                        setInputValue(String(value));
+                    }
+                }}
+                className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+            />
+        </label>
     );
 }

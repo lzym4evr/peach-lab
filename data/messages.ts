@@ -950,17 +950,26 @@ export const messages = {
         // SVG Tools
         // =========================
         svgToPng: {
-            uploadTitle: "Drag and drop an SVG file here",
+            uploadTitle: "Upload SVG File",
             uploadDescription:
-                "Or click to upload. Convert SVG files to PNG images at custom sizes. The conversion runs locally in your browser.",
+                "Convert SVG files to PNG images at custom sizes. The conversion runs locally in your browser.",
+            supportedFormats: "Supports SVG files.",
+            dropHint: "Drag and drop an SVG here, or click to choose a file.",
+            noFileSelected: "No file selected",
+
             chooseSvg: "Choose SVG",
             svgPreview: "SVG Preview",
             exportPng: "Export PNG",
             width: "Width",
             height: "Height",
             downloadPng: "Download PNG",
+
+            fileName: "File Name",
+            fileSize: "File Size",
+
             localProcessingDescription:
                 "Your SVG file is converted in your browser. It is not uploaded to a server.",
+
             invalidSvg: "Please upload a valid SVG file.",
             invalidSvgContent: "This file does not look like a valid SVG.",
             readError: "Could not read this SVG file. Please try another file.",
