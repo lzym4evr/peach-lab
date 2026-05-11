@@ -978,10 +978,15 @@ export const messages = {
         },
 
         svgColorChanger: {
-            uploadTitle: "Drag and drop an SVG file here",
+            uploadTitle: "Upload SVG",
             uploadDescription:
-                "Or click to upload. Detect and replace colors in SVG code. Your SVG is processed locally in your browser.",
+                "Detect and replace colors in SVG code. Your SVG is processed locally in your browser.",
+            supportedFormats: "Supports SVG files.",
+            dropHint: "Drag and drop an SVG here, or click to choose a file.",
             chooseSvg: "Choose SVG",
+            changeSvg: "Change SVG",
+            noFileSelected: "No file selected",
+
             svgPreview: "SVG Preview",
             colorControls: "Color Controls",
             detectedColors: "Detected Colors",
@@ -994,11 +999,13 @@ export const messages = {
             copySvg: "Copy SVG",
             downloadSvg: "Download SVG",
             svgCode: "SVG Code",
+
             noColors:
                 "No editable HEX colors were detected. You can still edit the SVG code manually later.",
             emptyState: "Upload an SVG file to start changing colors.",
             localProcessingDescription:
                 "Your SVG file is read and updated directly in your browser. It is not uploaded to a server.",
+
             invalidSvg: "Please upload a valid SVG file.",
             invalidSvgContent: "This file does not look like a valid SVG.",
             readError: "Could not read this SVG file. Please try another file.",
