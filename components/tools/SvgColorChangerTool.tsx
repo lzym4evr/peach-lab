@@ -928,11 +928,21 @@ function MobileSettingsSheet({
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
+        const previousOverflow = document.body.style.overflow;
+        const previousTouchAction = document.body.style.touchAction;
+
+        document.body.style.overflow = "hidden";
+        document.body.style.touchAction = "none";
+
         const frame = requestAnimationFrame(() => {
             setIsVisible(true);
         });
 
-        return () => cancelAnimationFrame(frame);
+        return () => {
+            cancelAnimationFrame(frame);
+            document.body.style.overflow = previousOverflow;
+            document.body.style.touchAction = previousTouchAction;
+        };
     }, []);
 
     function handleClose() {
@@ -945,9 +955,10 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[70] overscroll-none bg-[#2A1F1B]/35 px-3 pb-3 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
+            onTouchMove={(event) => event.preventDefault()}
         >
             <div
                 className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[30px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
@@ -977,7 +988,10 @@ function MobileSettingsSheet({
                     </div>
                 </div>
 
-                <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-3">
+                <div
+                    className="min-h-0 flex-1 overscroll-contain overflow-y-auto px-4 pb-4 pt-3"
+                    onTouchMove={(event) => event.stopPropagation()}
+                >
                     {children}
                 </div>
             </div>
