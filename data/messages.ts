@@ -1014,16 +1014,22 @@ export const messages = {
         },
 
         svgOptimizer: {
-            localProcessing: "Local processing: your SVG is optimized in your browser. No files are uploaded.",
+            localProcessing:
+                "Local processing: your SVG is optimized in your browser. No files are uploaded.",
+
             uploadTitle: "Upload SVG",
-            uploadDescription: "Choose or drag an SVG file to clean and optimize it locally.",
+            uploadDescription:
+                "Choose or drag an SVG file to clean and optimize it locally.",
+            supportedFormats: "Supports SVG files.",
             uploadButton: "Choose SVG",
             changeSvg: "Change SVG",
+            noFileSelected: "No file selected",
             dropHint: "Drag and drop an SVG file here, or click to choose a file.",
 
             previewTitle: "SVG Preview",
-            controlsTitle: "Controls",
+            controlsTitle: "SVG Optimizer Settings",
             outputTitle: "Optimized SVG",
+            statsTitle: "Optimization Stats",
 
             emptyTitle: "No SVG selected",
             emptyDescription: "Upload an SVG file to preview and optimize it.",

@@ -1,8 +1,9 @@
 "use client";
 
 import {
-    ChangeEvent,
-    DragEvent,
+    type ChangeEvent,
+    type DragEvent,
+    useEffect,
     useMemo,
     useRef,
     useState,
@@ -100,6 +101,7 @@ function downloadTextFile(content: string, filename: string) {
 export default function SvgOptimizerTool() {
     const text = t.svgOptimizer;
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const [fileName, setFileName] = useState("peach-lab-optimized.svg");
     const [originalSvg, setOriginalSvg] = useState("");
@@ -109,8 +111,10 @@ export default function SvgOptimizerTool() {
     const [isDragging, setIsDragging] = useState(false);
     const [status, setStatus] = useState("");
     const [error, setError] = useState("");
+    const [copied, setCopied] = useState(false);
 
     const originalSize = useMemo(() => getByteSize(originalSvg), [originalSvg]);
+
     const optimizedSize = useMemo(
         () => getByteSize(optimizedSvg),
         [optimizedSvg],
@@ -125,6 +129,16 @@ export default function SvgOptimizerTool() {
         return Math.max(percent, 0);
     }, [originalSvg, optimizedSvg, originalSize, optimizedSize]);
 
+    const previewSvg = optimizedSvg || originalSvg;
+
+    useEffect(() => {
+        return () => {
+            if (copyTimerRef.current) {
+                clearTimeout(copyTimerRef.current);
+            }
+        };
+    }, []);
+
     function loadSvgText(svgText: string, name?: string) {
         if (!isSvgCode(svgText)) {
             setError(text.invalidSvgError);
@@ -136,6 +150,7 @@ export default function SvgOptimizerTool() {
         setFileName(name || "peach-lab-optimized.svg");
         setError("");
         setStatus("");
+        setCopied(false);
     }
 
     function handleChooseFile(event: ChangeEvent<HTMLInputElement>) {
@@ -148,7 +163,8 @@ export default function SvgOptimizerTool() {
 
     function readSvgFile(file: File) {
         const isSvgFile =
-            file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
+            file.type === "image/svg+xml" ||
+            file.name.toLowerCase().endsWith(".svg");
 
         if (!isSvgFile) {
             setError(text.loadError);
@@ -169,17 +185,17 @@ export default function SvgOptimizerTool() {
         reader.readAsText(file);
     }
 
-    function handleDragOver(event: DragEvent<HTMLDivElement>) {
+    function handleDragOver(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(true);
     }
 
-    function handleDragLeave(event: DragEvent<HTMLDivElement>) {
+    function handleDragLeave(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
     }
 
-    function handleDrop(event: DragEvent<HTMLDivElement>) {
+    function handleDrop(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
 
@@ -194,7 +210,10 @@ export default function SvgOptimizerTool() {
             ...current,
             [key]: value,
         }));
+
         setStatus("");
+        setError("");
+        setCopied(false);
     }
 
     function handleOptimize() {
@@ -213,6 +232,7 @@ export default function SvgOptimizerTool() {
         setOptimizedSvg(nextOptimizedSvg);
         setStatus(text.ready);
         setError("");
+        setCopied(false);
     }
 
     async function handleCopy() {
@@ -223,8 +243,18 @@ export default function SvgOptimizerTool() {
 
         try {
             await navigator.clipboard.writeText(optimizedSvg);
-            setStatus(text.copied);
+
+            setCopied(true);
+            setStatus("");
             setError("");
+
+            if (copyTimerRef.current) {
+                clearTimeout(copyTimerRef.current);
+            }
+
+            copyTimerRef.current = setTimeout(() => {
+                setCopied(false);
+            }, 1500);
         } catch {
             setError(text.copyError);
         }
@@ -245,92 +275,85 @@ export default function SvgOptimizerTool() {
         setOptions(defaultOptions);
         setStatus("");
         setError("");
+        setCopied(false);
     }
-
-    const previewSvg = optimizedSvg || originalSvg;
 
     return (
         <div className="space-y-6">
-            <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm text-[#7A5A4F]">
+            <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#7A5A4F]">
                 {text.localProcessing}
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+            <label
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
+                    ? "border-[#F28C6F] bg-[#FFF0EA]"
+                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                    }`}
+            >
+                <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
+                    {text.uploadTitle}
+                </h2>
+
+                <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-gray-500 md:mt-3 md:text-base md:leading-7">
+                    {text.uploadDescription}
+                </p>
+
+                <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
+                    {text.supportedFormats}
+                </p>
+
+                <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
+                    {text.dropHint}
+                </p>
+
+                <div className="mx-auto mt-4 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:mt-5">
+                    {originalSvg ? text.changeSvg : text.uploadButton}
+                </div>
+
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".svg,image/svg+xml"
+                    onChange={handleChooseFile}
+                    className="hidden"
+                />
+
+                <p className="mx-auto mt-3 max-w-xl break-all text-sm font-medium text-gray-500">
+                    {originalSvg ? fileName : text.noFileSelected}
+                </p>
+
+                {error && !originalSvg ? (
+                    <p className="mt-4 text-sm font-medium text-red-500">
+                        {error}
+                    </p>
+                ) : null}
+            </label>
+
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
                 <div className="min-w-0 space-y-6">
-                    <section className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                        <div className="mb-5 flex items-start justify-between gap-4">
-                            <div>
-                                <h3 className="font-semibold text-gray-900">
-                                    {text.uploadTitle}
-                                </h3>
+                    <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                        <div className="mb-4 flex items-center justify-between gap-4">
+                            <SectionHeader title={text.previewTitle} />
 
-                                <p className="mt-2 max-w-[360px] text-sm leading-6 text-gray-500">
-                                    {text.uploadDescription}
-                                </p>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="shrink-0 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                            >
-                                {originalSvg ? text.changeSvg : text.uploadButton}
-                            </button>
-
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept=".svg,image/svg+xml"
-                                onChange={handleChooseFile}
-                                className="hidden"
-                            />
-                        </div>
-
-                        <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => fileInputRef.current?.click()}
-                            onKeyDown={(event) => {
-                                if (event.key === "Enter" || event.key === " ") {
-                                    fileInputRef.current?.click();
-                                }
-                            }}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onDrop={handleDrop}
-                            className={`mb-5 cursor-pointer rounded-3xl border border-dashed p-6 text-center transition ${isDragging
-                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
-                                }`}
-                        >
-                            <p className="text-sm font-semibold text-[#E6765B]">
-                                {originalSvg ? text.changeSvg : text.uploadButton}
-                            </p>
-
-                            <p className="mt-2 text-sm leading-6 text-gray-500">
-                                {text.dropHint}
-                            </p>
+                            {originalSvg ? (
+                                <span className="hidden max-w-[220px] truncate rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F] md:block">
+                                    {fileName}
+                                </span>
+                            ) : null}
                         </div>
 
                         {previewSvg ? (
-                            <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                                <div className="mb-3 flex items-center justify-between gap-3">
-                                    <h4 className="text-sm font-semibold text-gray-900">
-                                        {text.previewTitle}
-                                    </h4>
-
-                                    <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]">
-                                        {fileName}
-                                    </span>
-                                </div>
-
+                            <div className="overflow-hidden rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-3 md:p-4">
                                 <div
-                                    className="flex min-h-[300px] items-center justify-center overflow-hidden rounded-2xl bg-[#FFF7F3] p-6"
+                                    className="flex min-h-[220px] items-center justify-center overflow-hidden rounded-2xl bg-white/70 p-4 md:min-h-[320px]"
                                     dangerouslySetInnerHTML={{ __html: previewSvg }}
                                 />
                             </div>
                         ) : (
-                            <div className="flex min-h-[300px] items-center justify-center rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-8 text-center">
+                            <div className="flex min-h-[220px] items-center justify-center rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center md:min-h-[320px]">
                                 <div>
                                     <h4 className="text-lg font-semibold text-gray-900">
                                         {text.emptyTitle}
@@ -344,18 +367,17 @@ export default function SvgOptimizerTool() {
                         )}
                     </section>
 
-                    <section className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
+                    <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                         <div className="mb-4 flex items-center justify-between gap-4">
-                            <h3 className="font-semibold text-gray-900">
-                                {text.outputTitle}
-                            </h3>
+                            <SectionHeader title={text.outputTitle} />
 
                             <button
                                 type="button"
                                 onClick={handleCopy}
-                                className="rounded-xl border border-[#F1E5DF] bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
+                                disabled={!optimizedSvg}
+                                className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                {text.copySvg}
+                                {copied ? text.copied : text.copySvg}
                             </button>
                         </div>
 
@@ -364,35 +386,31 @@ export default function SvgOptimizerTool() {
                             onChange={(event) => {
                                 setOptimizedSvg(event.target.value);
                                 setStatus("");
+                                setCopied(false);
                             }}
                             placeholder={text.emptyDescription}
-                            className="min-h-[260px] w-full resize-y rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 font-mono text-sm leading-7 text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                            className="h-[180px] w-full resize-y rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 font-mono text-sm leading-6 text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] md:h-[260px] md:leading-7"
                         />
 
-                        <div className="mt-4 grid grid-cols-2 gap-3">
-                            <button
-                                type="button"
-                                onClick={handleCopy}
-                                className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                            >
-                                {text.copySvg}
-                            </button>
+                        <button
+                            type="button"
+                            onClick={handleDownload}
+                            disabled={!optimizedSvg}
+                            className="mt-4 w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {text.downloadSvg}
+                        </button>
 
-                            <button
-                                type="button"
-                                onClick={handleDownload}
-                                className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                            >
-                                {text.downloadSvg}
-                            </button>
-                        </div>
+                        {error && originalSvg ? (
+                            <p className="mt-3 text-sm font-medium text-red-500">
+                                {error}
+                            </p>
+                        ) : null}
                     </section>
                 </div>
 
-                <section className="min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                    <h3 className="font-semibold text-gray-900">
-                        {text.controlsTitle}
-                    </h3>
+                <section className="min-w-0 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                    <SectionHeader title={text.controlsTitle} />
 
                     <div className="mt-5 space-y-3">
                         <CheckOption
@@ -416,13 +434,17 @@ export default function SvgOptimizerTool() {
                         <CheckOption
                             label={text.removeEmptyGroups}
                             checked={options.removeEmptyGroups}
-                            onChange={(value) => updateOption("removeEmptyGroups", value)}
+                            onChange={(value) =>
+                                updateOption("removeEmptyGroups", value)
+                            }
                         />
 
                         <CheckOption
                             label={text.collapseWhitespace}
                             checked={options.collapseWhitespace}
-                            onChange={(value) => updateOption("collapseWhitespace", value)}
+                            onChange={(value) =>
+                                updateOption("collapseWhitespace", value)
+                            }
                         />
 
                         <CheckOption
@@ -432,28 +454,30 @@ export default function SvgOptimizerTool() {
                         />
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={handleOptimize}
-                        className="mt-5 w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                    >
-                        {text.optimizeSvg}
-                    </button>
+                    <div className="mt-5 grid grid-cols-2 gap-3">
+                        <button
+                            type="button"
+                            onClick={handleOptimize}
+                            className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                        >
+                            {text.optimizeSvg}
+                        </button>
 
-                    <button
-                        type="button"
-                        onClick={handleReset}
-                        className="mt-3 w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                    >
-                        {text.reset}
-                    </button>
+                        <button
+                            type="button"
+                            onClick={handleReset}
+                            className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                        >
+                            {text.reset}
+                        </button>
+                    </div>
 
-                    <div className="mt-8 border-t border-[#F1E5DF] pt-6">
+                    <div className="mt-6">
                         <h3 className="font-semibold text-gray-900">
-                            {text.outputTitle}
+                            {text.statsTitle}
                         </h3>
 
-                        <div className="mt-4 grid grid-cols-1 gap-3">
+                        <div className="mt-4 grid grid-cols-3 gap-2 md:grid-cols-1 md:gap-3">
                             <InfoBox
                                 label={text.originalSize}
                                 value={originalSvg ? formatBytes(originalSize) : "-"}
@@ -464,19 +488,35 @@ export default function SvgOptimizerTool() {
                                 value={optimizedSvg ? formatBytes(optimizedSize) : "-"}
                             />
 
-                            <InfoBox label={text.saved} value={`${savedPercent}%`} />
+                            <InfoBox
+                                label={text.saved}
+                                value={optimizedSvg ? `${savedPercent}%` : "-"}
+                            />
                         </div>
 
                         {status ? (
-                            <p className="mt-3 text-sm text-[#7A5A4F]">{status}</p>
+                            <p className="mt-3 text-sm text-[#7A5A4F]">
+                                {status}
+                            </p>
                         ) : null}
 
-                        {error ? (
-                            <p className="mt-3 text-sm font-medium text-red-500">{error}</p>
+                        {error && !originalSvg ? (
+                            <p className="mt-3 text-sm font-medium text-red-500">
+                                {error}
+                            </p>
                         ) : null}
                     </div>
                 </section>
             </div>
+        </div>
+    );
+}
+
+function SectionHeader({ title }: { title: string }) {
+    return (
+        <div className="flex items-center gap-3">
+            <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
+            <h3 className="font-semibold text-gray-900">{title}</h3>
         </div>
     );
 }
@@ -492,7 +532,9 @@ function CheckOption({
 }) {
     return (
         <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] px-4 py-3 transition hover:bg-[#FFF7F3]">
-            <span className="text-sm font-semibold text-gray-800">{label}</span>
+            <span className="text-sm font-semibold text-gray-800">
+                {label}
+            </span>
 
             <input
                 type="checkbox"
@@ -506,12 +548,14 @@ function CheckOption({
 
 function InfoBox({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#9C7B70]">
+        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5 md:p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9C7B70] md:text-xs">
                 {label}
             </p>
 
-            <p className="mt-2 text-lg font-bold text-gray-900">{value}</p>
+            <p className="mt-1 text-base font-bold text-gray-900 md:mt-2 md:text-lg">
+                {value}
+            </p>
         </div>
     );
 }
