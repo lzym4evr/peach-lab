@@ -494,7 +494,7 @@ function CssButtonSettingsPanel({
                     {colorGroupTitle}
                 </h4>
 
-                <div className={compact ? "grid grid-cols-2 gap-3" : "space-y-4"}>
+                <div className="grid grid-cols-2 gap-4">
                     <ColorInput
                         label={text.backgroundColorLabel}
                         value={settings.backgroundColor}
@@ -719,8 +719,8 @@ function ColorInput({
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
                     className={`w-full min-w-0 rounded-xl border border-[#F1E5DF] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
-                            ? "h-10 px-2 text-[10px]"
-                            : "h-12 px-4 text-sm"
+                        ? "h-10 px-2 text-[10px]"
+                        : "h-12 px-4 text-sm"
                         }`}
                 />
             </div>
@@ -757,8 +757,8 @@ function RangeInput({
                 <span
                     className={
                         compact
-                            ? "min-w-0 truncate whitespace-nowrap text-[11px] font-semibold leading-5 text-gray-800"
-                            : "min-w-0 truncate whitespace-nowrap text-sm font-semibold text-gray-800"
+                            ? "min-w-0 break-words text-[11px] font-semibold leading-4 text-gray-800"
+                            : "min-w-0 break-words text-sm font-semibold leading-5 text-gray-800"
                     }
                 >
                     {label}
