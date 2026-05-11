@@ -1086,6 +1086,8 @@ export const messages = {
 
             originalSvg: "Original SVG",
             transparentSvg: "Transparent SVG",
+            originalShort: "Original",
+            newShort: "New",
 
             targetColorLabel: "Target Background Color",
             removeWhiteBackgroundRect: "Remove White Background Rect",
@@ -1099,7 +1101,7 @@ export const messages = {
             reset: "Reset",
 
             originalSize: "Original Size",
-            transparentSize: "Transparent Size",
+            transparentSize: "New Size",
             saved: "Saved",
 
             copied: "Copied",

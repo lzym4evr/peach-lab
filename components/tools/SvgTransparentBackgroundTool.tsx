@@ -933,35 +933,27 @@ function MobileTransparentPreview({
     hasOriginal: boolean;
     hasTransparent: boolean;
 }) {
+    const originalTitle =
+        (text as { originalShort?: string }).originalShort ?? "Original";
+    const newTitle = (text as { newShort?: string }).newShort ?? "New";
+
     return (
-        <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
-            <div className="mb-3 flex items-center justify-between gap-3">
-                <h4 className="text-sm font-semibold text-gray-900">
-                    {text.previewTitle}
-                </h4>
+        <div className="grid grid-cols-2 gap-2">
+            <MobilePreviewBox
+                title={originalTitle}
+                previewUrl={originalPreviewUrl}
+                size={originalSize}
+                isReady={hasOriginal}
+                emptyText={text.emptyTitle}
+            />
 
-                <span className="rounded-full bg-[#FFF7F3] px-3 py-1 text-[11px] font-semibold text-[#7A5A4F]">
-                    {hasTransparent ? text.transparentSvg : text.originalSvg}
-                </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-                <MobilePreviewBox
-                    title={text.originalSvg}
-                    previewUrl={originalPreviewUrl}
-                    size={originalSize}
-                    isReady={hasOriginal}
-                    emptyText={text.emptyTitle}
-                />
-
-                <MobilePreviewBox
-                    title={text.transparentSvg}
-                    previewUrl={transparentPreviewUrl}
-                    size={transparentSize}
-                    isReady={hasTransparent}
-                    emptyText={text.emptyDescription}
-                />
-            </div>
+            <MobilePreviewBox
+                title={newTitle}
+                previewUrl={transparentPreviewUrl}
+                size={transparentSize}
+                isReady={hasTransparent}
+                emptyText={text.emptyDescription}
+            />
         </div>
     );
 }
@@ -981,7 +973,7 @@ function MobilePreviewBox({
 }) {
     return (
         <div className="min-w-0 rounded-2xl border border-[#F1E5DF] bg-white p-2">
-            <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="mb-1.5 flex items-center justify-between gap-2">
                 <span className="truncate text-[11px] font-semibold text-gray-900">
                     {title}
                 </span>
@@ -993,25 +985,25 @@ function MobilePreviewBox({
 
             {isReady && previewUrl ? (
                 <div
-                    className="flex h-28 items-center justify-center overflow-hidden rounded-xl p-2"
+                    className="flex h-24 items-center justify-center overflow-hidden rounded-xl p-1.5"
                     style={{
                         backgroundColor: "#ffffff",
                         backgroundImage:
                             "linear-gradient(45deg, #f1f5f9 25%, transparent 25%), linear-gradient(-45deg, #f1f5f9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f1f5f9 75%), linear-gradient(-45deg, transparent 75%, #f1f5f9 75%)",
-                        backgroundSize: "16px 16px",
+                        backgroundSize: "14px 14px",
                         backgroundPosition:
-                            "0 0, 0 8px, 8px -8px, -8px 0",
+                            "0 0, 0 7px, 7px -7px, -7px 0",
                     }}
                 >
                     <img
                         src={previewUrl}
                         alt={title}
-                        className="max-h-24 w-full object-contain"
+                        className="max-h-20 w-full object-contain"
                     />
                 </div>
             ) : (
-                <div className="flex h-28 items-center justify-center rounded-xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-2 text-center">
-                    <p className="line-clamp-3 text-[11px] leading-4 text-gray-500">
+                <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-2 text-center">
+                    <p className="line-clamp-3 text-[10px] leading-4 text-gray-500">
                         {emptyText}
                     </p>
                 </div>
