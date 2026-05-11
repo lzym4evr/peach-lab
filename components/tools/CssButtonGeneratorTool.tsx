@@ -431,43 +431,23 @@ function ButtonSettingsPanel({
 }) {
     return (
         <div className={compact ? "space-y-3" : "space-y-5"}>
-            {compact ? (
-                <div className="grid grid-cols-3 gap-1.5">
-                    <SmallButton onClick={onShuffle}>{text.shuffle}</SmallButton>
-                    <SmallButton primary onClick={onRandom}>
-                        {text.randomAll}
-                    </SmallButton>
-                    <SmallButton onClick={onReset}>{text.reset}</SmallButton>
-                </div>
-            ) : (
-                <>
-                    <div className="grid grid-cols-2 gap-3">
-                        <button
-                            type="button"
-                            onClick={onShuffle}
-                            className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                        >
-                            {text.shuffle}
-                        </button>
+            <div className="grid grid-cols-2 gap-3">
+                <button
+                    type="button"
+                    onClick={onShuffle}
+                    className="w-full rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                >
+                    {text.shuffle}
+                </button>
 
-                        <button
-                            type="button"
-                            onClick={onRandom}
-                            className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                        >
-                            {text.randomAll}
-                        </button>
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={onReset}
-                        className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                    >
-                        {text.reset}
-                    </button>
-                </>
-            )}
+                <button
+                    type="button"
+                    onClick={onRandom}
+                    className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
+                >
+                    {text.randomAll}
+                </button>
+            </div>
 
             <label className="block">
                 <span
@@ -488,236 +468,191 @@ function ButtonSettingsPanel({
                 />
             </label>
 
-            {compact ? (
-                <>
-                    <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
-                        <h4 className="mb-3 text-xs font-semibold text-gray-900">
-                            Size & Shape
-                        </h4>
+            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                <h4 className="mb-3 text-sm font-semibold text-gray-900">
+                    Colors
+                </h4>
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <RangeInput
-                                label={text.fontSizeLabel}
-                                value={settings.fontSize}
-                                min={10}
-                                max={32}
-                                suffix="px"
-                                compact
-                                onChange={(value) => updateSetting("fontSize", value)}
-                            />
-
-                            <RangeInput
-                                label={text.borderWidthLabel}
-                                value={settings.borderWidth}
-                                min={0}
-                                max={8}
-                                suffix="px"
-                                compact
-                                onChange={(value) =>
-                                    updateSetting("borderWidth", value)
-                                }
-                            />
-
-                            <RangeInput
-                                label={text.paddingXLabel}
-                                value={settings.paddingX}
-                                min={8}
-                                max={80}
-                                suffix="px"
-                                compact
-                                onChange={(value) => updateSetting("paddingX", value)}
-                            />
-
-                            <RangeInput
-                                label={text.paddingYLabel}
-                                value={settings.paddingY}
-                                min={6}
-                                max={40}
-                                suffix="px"
-                                compact
-                                onChange={(value) => updateSetting("paddingY", value)}
-                            />
-
-                            <div className="col-span-2">
-                                <RangeInput
-                                    label={text.borderRadiusLabel}
-                                    value={settings.borderRadius}
-                                    min={0}
-                                    max={80}
-                                    suffix="px"
-                                    compact
-                                    onChange={(value) =>
-                                        updateSetting("borderRadius", value)
-                                    }
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
-                        <h4 className="mb-3 text-xs font-semibold text-gray-900">
-                            Shadow
-                        </h4>
-
-                        <div className="grid grid-cols-2 gap-3">
-                            <RangeInput
-                                label={text.shadowOffsetYLabel}
-                                value={settings.shadowOffsetY}
-                                min={0}
-                                max={60}
-                                suffix="px"
-                                compact
-                                onChange={(value) =>
-                                    updateSetting("shadowOffsetY", value)
-                                }
-                            />
-
-                            <RangeInput
-                                label={text.shadowBlurLabel}
-                                value={settings.shadowBlur}
-                                min={0}
-                                max={100}
-                                suffix="px"
-                                compact
-                                onChange={(value) =>
-                                    updateSetting("shadowBlur", value)
-                                }
-                            />
-
-                            <div className="col-span-2">
-                                <RangeInput
-                                    label={text.shadowOpacityLabel}
-                                    value={settings.shadowOpacity}
-                                    min={0}
-                                    max={100}
-                                    suffix="%"
-                                    compact
-                                    onChange={(value) =>
-                                        updateSetting("shadowOpacity", value)
-                                    }
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <ColorSettingsGroup
-                        text={text}
-                        settings={settings}
-                        updateSetting={updateSetting}
+                <div
+                    className={
                         compact
+                            ? "grid grid-cols-2 gap-3"
+                            : "grid gap-4 sm:grid-cols-2"
+                    }
+                >
+                    <ColorInput
+                        label={text.backgroundColorLabel}
+                        value={settings.backgroundColor}
+                        fallback="#F28C6F"
+                        compact={compact}
+                        onChange={(value) =>
+                            updateSetting("backgroundColor", value)
+                        }
                     />
-                </>
-            ) : (
-                <>
-                    <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                        <h4 className="mb-4 text-sm font-semibold text-gray-900">
-                            Size & Shape
-                        </h4>
 
-                        <div className="grid gap-5 sm:grid-cols-2">
-                            <RangeInput
-                                label={text.fontSizeLabel}
-                                value={settings.fontSize}
-                                min={10}
-                                max={32}
-                                suffix="px"
-                                onChange={(value) => updateSetting("fontSize", value)}
-                            />
-
-                            <RangeInput
-                                label={text.borderWidthLabel}
-                                value={settings.borderWidth}
-                                min={0}
-                                max={8}
-                                suffix="px"
-                                onChange={(value) =>
-                                    updateSetting("borderWidth", value)
-                                }
-                            />
-
-                            <RangeInput
-                                label={text.paddingXLabel}
-                                value={settings.paddingX}
-                                min={8}
-                                max={80}
-                                suffix="px"
-                                onChange={(value) => updateSetting("paddingX", value)}
-                            />
-
-                            <RangeInput
-                                label={text.paddingYLabel}
-                                value={settings.paddingY}
-                                min={6}
-                                max={40}
-                                suffix="px"
-                                onChange={(value) => updateSetting("paddingY", value)}
-                            />
-
-                            <div className="sm:col-span-2">
-                                <RangeInput
-                                    label={text.borderRadiusLabel}
-                                    value={settings.borderRadius}
-                                    min={0}
-                                    max={80}
-                                    suffix="px"
-                                    onChange={(value) =>
-                                        updateSetting("borderRadius", value)
-                                    }
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                        <h4 className="mb-4 text-sm font-semibold text-gray-900">
-                            Shadow
-                        </h4>
-
-                        <div className="grid gap-5 sm:grid-cols-2">
-                            <RangeInput
-                                label={text.shadowOffsetYLabel}
-                                value={settings.shadowOffsetY}
-                                min={0}
-                                max={60}
-                                suffix="px"
-                                onChange={(value) =>
-                                    updateSetting("shadowOffsetY", value)
-                                }
-                            />
-
-                            <RangeInput
-                                label={text.shadowBlurLabel}
-                                value={settings.shadowBlur}
-                                min={0}
-                                max={100}
-                                suffix="px"
-                                onChange={(value) =>
-                                    updateSetting("shadowBlur", value)
-                                }
-                            />
-
-                            <div className="sm:col-span-2">
-                                <RangeInput
-                                    label={text.shadowOpacityLabel}
-                                    value={settings.shadowOpacity}
-                                    min={0}
-                                    max={100}
-                                    suffix="%"
-                                    onChange={(value) =>
-                                        updateSetting("shadowOpacity", value)
-                                    }
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <ColorSettingsGroup
-                        text={text}
-                        settings={settings}
-                        updateSetting={updateSetting}
+                    <ColorInput
+                        label={text.textColorLabel}
+                        value={settings.textColor}
+                        fallback="#FFFFFF"
+                        compact={compact}
+                        onChange={(value) => updateSetting("textColor", value)}
                     />
-                </>
-            )}
+
+                    <ColorInput
+                        label={text.borderColorLabel}
+                        value={settings.borderColor}
+                        fallback="#F28C6F"
+                        compact={compact}
+                        onChange={(value) => updateSetting("borderColor", value)}
+                    />
+
+                    <ColorInput
+                        label={text.shadowColorLabel}
+                        value={settings.shadowColor}
+                        fallback="#F28C6F"
+                        compact={compact}
+                        onChange={(value) => updateSetting("shadowColor", value)}
+                    />
+
+                    <div className={compact ? "col-span-2" : "sm:col-span-2"}>
+                        <ColorInput
+                            label={text.previewBackgroundLabel}
+                            value={settings.previewBackground}
+                            fallback="#FFF7F3"
+                            compact={compact}
+                            onChange={(value) =>
+                                updateSetting("previewBackground", value)
+                            }
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                <h4 className="mb-3 text-sm font-semibold text-gray-900">
+                    Size
+                </h4>
+
+                <div
+                    className={
+                        compact
+                            ? "grid grid-cols-2 gap-3"
+                            : "grid gap-4 sm:grid-cols-2"
+                    }
+                >
+                    <RangeInput
+                        label={text.fontSizeLabel}
+                        value={settings.fontSize}
+                        min={10}
+                        max={32}
+                        suffix="px"
+                        compact={compact}
+                        onChange={(value) => updateSetting("fontSize", value)}
+                    />
+
+                    <RangeInput
+                        label={text.borderWidthLabel}
+                        value={settings.borderWidth}
+                        min={0}
+                        max={8}
+                        suffix="px"
+                        compact={compact}
+                        onChange={(value) => updateSetting("borderWidth", value)}
+                    />
+
+                    <RangeInput
+                        label={text.paddingXLabel}
+                        value={settings.paddingX}
+                        min={8}
+                        max={80}
+                        suffix="px"
+                        compact={compact}
+                        onChange={(value) => updateSetting("paddingX", value)}
+                    />
+
+                    <RangeInput
+                        label={text.paddingYLabel}
+                        value={settings.paddingY}
+                        min={6}
+                        max={40}
+                        suffix="px"
+                        compact={compact}
+                        onChange={(value) => updateSetting("paddingY", value)}
+                    />
+
+                    <div className={compact ? "col-span-2" : "sm:col-span-2"}>
+                        <RangeInput
+                            label={text.borderRadiusLabel}
+                            value={settings.borderRadius}
+                            min={0}
+                            max={80}
+                            suffix="px"
+                            compact={compact}
+                            onChange={(value) =>
+                                updateSetting("borderRadius", value)
+                            }
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                <h4 className="mb-3 text-sm font-semibold text-gray-900">
+                    Shadow
+                </h4>
+
+                <div
+                    className={
+                        compact
+                            ? "grid grid-cols-2 gap-3"
+                            : "grid gap-4 sm:grid-cols-2"
+                    }
+                >
+                    <RangeInput
+                        label={text.shadowOffsetYLabel}
+                        value={settings.shadowOffsetY}
+                        min={0}
+                        max={60}
+                        suffix="px"
+                        compact={compact}
+                        onChange={(value) =>
+                            updateSetting("shadowOffsetY", value)
+                        }
+                    />
+
+                    <RangeInput
+                        label={text.shadowBlurLabel}
+                        value={settings.shadowBlur}
+                        min={0}
+                        max={100}
+                        suffix="px"
+                        compact={compact}
+                        onChange={(value) => updateSetting("shadowBlur", value)}
+                    />
+
+                    <div className={compact ? "col-span-2" : "sm:col-span-2"}>
+                        <RangeInput
+                            label={text.shadowOpacityLabel}
+                            value={settings.shadowOpacity}
+                            min={0}
+                            max={100}
+                            suffix="%"
+                            compact={compact}
+                            onChange={(value) =>
+                                updateSetting("shadowOpacity", value)
+                            }
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <button
+                type="button"
+                onClick={onReset}
+                className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+            >
+                {text.reset}
+            </button>
         </div>
     );
 }
@@ -977,33 +912,48 @@ function ColorInput({
     label,
     value,
     fallback,
+    compact = false,
     onChange,
 }: {
     label: string;
     value: string;
     fallback: string;
+    compact?: boolean;
     onChange: (value: string) => void;
 }) {
     const colorPickerValue = isValidHexColor(value) ? value : fallback;
 
     return (
         <label className="block min-w-0">
-            <span className="mb-2 block truncate text-sm font-semibold text-gray-800">
+            <span
+                className={`mb-2 block truncate font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                    }`}
+            >
                 {label}
             </span>
 
-            <div className="grid grid-cols-[54px_1fr] gap-2">
+            <div
+                className={
+                    compact
+                        ? "grid grid-cols-[34px_1fr] gap-1.5"
+                        : "grid grid-cols-[58px_1fr] gap-3"
+                }
+            >
                 <input
                     type="color"
                     value={colorPickerValue}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-11 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
+                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-10" : "h-12"
+                        }`}
                 />
 
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-11 w-full min-w-0 rounded-xl border border-[#F1E5DF] px-3 text-xs font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                    className={`w-full min-w-0 rounded-xl border border-[#F1E5DF] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
+                            ? "h-10 px-2 text-[10px]"
+                            : "h-12 px-4 text-sm"
+                        }`}
                 />
             </div>
         </label>
@@ -1069,15 +1019,15 @@ function RangeInput({
             <div
                 className={
                     compact
-                        ? "mb-1.5 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2"
-                        : "mb-2 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3"
+                        ? "mb-1 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5"
+                        : "mb-2 flex items-center justify-between gap-4"
                 }
             >
                 <span
                     className={
                         compact
-                            ? "min-w-0 text-[11px] font-semibold leading-4 text-gray-800"
-                            : "min-w-0 text-sm font-semibold leading-5 text-gray-800"
+                            ? "min-w-0 truncate text-[11px] font-semibold leading-5 text-gray-800"
+                            : "text-sm font-semibold text-gray-800"
                     }
                 >
                     {label}
@@ -1086,8 +1036,8 @@ function RangeInput({
                 <span
                     className={
                         compact
-                            ? "min-w-[42px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-0.5 text-center text-[11px] font-semibold leading-5 text-[#7A5A4F]"
-                            : "min-w-[48px] shrink-0 rounded-full bg-[#FFF7F3] px-3 py-1 text-center text-xs font-semibold text-[#7A5A4F]"
+                            ? "min-w-[40px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-0.5 text-center text-[11px] font-semibold leading-5 text-[#7A5A4F]"
+                            : "rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]"
                     }
                 >
                     {value}
