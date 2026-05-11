@@ -923,6 +923,11 @@ export const messages = {
             shadowOffsetXLabel: "Shadow Offset X",
             shadowOffsetYLabel: "Shadow Offset Y",
             shadowOpacityLabel: "Shadow Opacity",
+            shadowGroupTitle: "Shadow",
+            shadowOffsetXShortLabel: "Offset X",
+            shadowOffsetYShortLabel: "Offset Y",
+            shadowBlurShortLabel: "Blur",
+            shadowOpacityShortLabel: "Opacity",
 
             backgroundColorLabel: "Background Color",
             textColorLabel: "Text Color",

@@ -10,9 +10,9 @@ type ButtonSettings = {
     paddingY: number;
     borderRadius: number;
     borderWidth: number;
-    shadowBlur: number;
     shadowOffsetX: number;
     shadowOffsetY: number;
+    shadowBlur: number;
     shadowOpacity: number;
     backgroundColor: string;
     textColor: string;
@@ -28,9 +28,9 @@ const defaultSettings: ButtonSettings = {
     paddingY: 14,
     borderRadius: 18,
     borderWidth: 1,
-    shadowBlur: 24,
     shadowOffsetX: 0,
     shadowOffsetY: 10,
+    shadowBlur: 24,
     shadowOpacity: 28,
     backgroundColor: "#F28C6F",
     textColor: "#FFFFFF",
@@ -77,6 +77,11 @@ export default function CssButtonGeneratorTool() {
 
     const settingsButtonText =
         (text as { settingsButton?: string }).settingsButton ?? "Settings";
+
+    const settingsTitle =
+        (text as { settingsTitle?: string }).settingsTitle ??
+        text.controlsTitle ??
+        "Button Settings";
 
     const [settings, setSettings] = useState<ButtonSettings>(defaultSettings);
     const [copiedKey, setCopiedKey] = useState("");
@@ -154,13 +159,13 @@ export default function CssButtonGeneratorTool() {
     function handleShuffle() {
         setSettings((current) => ({
             ...current,
+            fontSize: getRandomNumber(14, 22),
             borderRadius: getRandomNumber(4, 40),
             borderWidth: getRandomNumber(0, 4),
-            shadowBlur: getRandomNumber(0, 45),
             shadowOffsetX: getRandomNumber(-16, 16),
             shadowOffsetY: getRandomNumber(0, 24),
+            shadowBlur: getRandomNumber(0, 45),
             shadowOpacity: getRandomNumber(10, 60),
-            fontSize: getRandomNumber(14, 22),
         }));
 
         clearCopyState();
@@ -174,9 +179,9 @@ export default function CssButtonGeneratorTool() {
             paddingY: getRandomNumber(10, 20),
             borderRadius: getRandomNumber(4, 40),
             borderWidth: getRandomNumber(0, 4),
-            shadowBlur: getRandomNumber(0, 45),
             shadowOffsetX: getRandomNumber(-20, 20),
             shadowOffsetY: getRandomNumber(0, 24),
+            shadowBlur: getRandomNumber(0, 45),
             shadowOpacity: getRandomNumber(10, 60),
             backgroundColor: getRandomHexColor(),
             textColor: getRandomHexColor(),
@@ -212,73 +217,84 @@ export default function CssButtonGeneratorTool() {
         }
     }
 
+    const previewProps = {
+        settings,
+        safeBackgroundColor,
+        safeTextColor,
+        safeBorderColor,
+        safePreviewBackground,
+        boxShadowValue,
+    };
+
+    const settingsPanel = (
+        <CssButtonSettingsPanel
+            text={text}
+            settings={settings}
+            updateSetting={updateSetting}
+            onShuffle={handleShuffle}
+            onRandom={handleRandomAll}
+            onReset={handleReset}
+        />
+    );
+
+    const mobileSettingsPanel = (
+        <CssButtonSettingsPanel
+            text={text}
+            settings={settings}
+            updateSetting={updateSetting}
+            onShuffle={handleShuffle}
+            onRandom={handleRandomAll}
+            onReset={handleReset}
+            compact
+        />
+    );
+
     return (
         <>
-            <div className="space-y-6">
-                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-                    <div className="min-w-0 space-y-6">
-                        <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                            <div className="mb-5">
-                                <SectionHeader title={text.previewTitle} />
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+                <div className="min-w-0 space-y-6">
+                    <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                        <div className="mb-5">
+                            <SectionHeader title={text.previewTitle} />
 
-                                <p className="mt-2 max-w-[320px] text-sm leading-6 text-gray-500">
-                                    {text.previewDescription}
-                                </p>
-                            </div>
-
-                            <ButtonPreview
-                                text={settings.buttonText}
-                                settings={settings}
-                                safeBackgroundColor={safeBackgroundColor}
-                                safeTextColor={safeTextColor}
-                                safeBorderColor={safeBorderColor}
-                                safePreviewBackground={safePreviewBackground}
-                                boxShadowValue={boxShadowValue}
-                            />
-                        </section>
-
-                        <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                            <div className="mb-4 flex items-center justify-between gap-4">
-                                <SectionHeader title={text.outputTitle} />
-
-                                <button
-                                    type="button"
-                                    onClick={handleCopyCss}
-                                    className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                                >
-                                    {copiedKey === "copy-css"
-                                        ? text.copied
-                                        : text.copyCss}
-                                </button>
-                            </div>
-
-                            <pre className="overflow-x-auto rounded-2xl bg-[#FFF7F3] p-4 text-sm leading-7 text-gray-700">
-                                <code>{cssOutput}</code>
-                            </pre>
-
-                            {copyError ? (
-                                <p className="mt-3 text-sm font-medium text-red-500">
-                                    {copyError}
-                                </p>
-                            ) : null}
-                        </section>
-                    </div>
-
-                    <section className="hidden min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm lg:block">
-                        <SectionHeader title={text.controlsTitle} />
-
-                        <div className="mt-5">
-                            <ButtonSettingsPanel
-                                text={text}
-                                settings={settings}
-                                updateSetting={updateSetting}
-                                onShuffle={handleShuffle}
-                                onRandom={handleRandomAll}
-                                onReset={handleReset}
-                            />
+                            <p className="mt-2 max-w-[320px] text-sm leading-6 text-gray-500">
+                                {text.previewDescription}
+                            </p>
                         </div>
+
+                        <ButtonPreview {...previewProps} />
+                    </section>
+
+                    <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                        <div className="mb-4 flex items-center justify-between gap-4">
+                            <SectionHeader title={text.outputTitle} />
+
+                            <button
+                                type="button"
+                                onClick={handleCopyCss}
+                                className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                {copiedKey === "copy-css" ? text.copied : text.copyCss}
+                            </button>
+                        </div>
+
+                        <pre className="overflow-x-auto rounded-2xl bg-[#FFF7F3] p-4 text-sm leading-7 text-gray-700">
+                            <code>{cssOutput}</code>
+                        </pre>
+
+                        {copyError ? (
+                            <p className="mt-3 text-sm font-medium text-red-500">
+                                {copyError}
+                            </p>
+                        ) : null}
                     </section>
                 </div>
+
+                <section className="hidden min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm lg:block">
+                    <SectionHeader title={settingsTitle} />
+
+                    <div className="mt-5">{settingsPanel}</div>
+                </section>
             </div>
 
             <MobileActionBar
@@ -288,31 +304,15 @@ export default function CssButtonGeneratorTool() {
 
             {isMobileSettingsOpen ? (
                 <MobileSettingsSheet
-                    title={text.controlsTitle}
+                    title={settingsTitle}
                     onClose={() => setIsMobileSettingsOpen(false)}
                 >
                     <div className="space-y-3">
                         <div className="sticky top-0 z-10 bg-white pb-3">
-                            <ButtonMiniPreview
-                                text={text}
-                                settings={settings}
-                                safeBackgroundColor={safeBackgroundColor}
-                                safeTextColor={safeTextColor}
-                                safeBorderColor={safeBorderColor}
-                                safePreviewBackground={safePreviewBackground}
-                                boxShadowValue={boxShadowValue}
-                            />
+                            <ButtonMiniPreview {...previewProps} />
                         </div>
 
-                        <ButtonSettingsPanel
-                            text={text}
-                            settings={settings}
-                            updateSetting={updateSetting}
-                            onShuffle={handleShuffle}
-                            onRandom={handleRandomAll}
-                            onReset={handleReset}
-                            compact
-                        />
+                        {mobileSettingsPanel}
                     </div>
                 </MobileSettingsSheet>
             ) : null}
@@ -320,58 +320,7 @@ export default function CssButtonGeneratorTool() {
     );
 }
 
-function ButtonMiniPreview({
-    text,
-    settings,
-    safeBackgroundColor,
-    safeTextColor,
-    safeBorderColor,
-    safePreviewBackground,
-    boxShadowValue,
-}: {
-    text: typeof t.cssButtonGenerator;
-    settings: ButtonSettings;
-    safeBackgroundColor: string;
-    safeTextColor: string;
-    safeBorderColor: string;
-    safePreviewBackground: string;
-    boxShadowValue: string;
-}) {
-    return (
-        <div
-            className="sticky top-0 z-10 rounded-2xl border border-[#F1E5DF] p-3 shadow-sm"
-            style={{ backgroundColor: safePreviewBackground }}
-        >
-            <div className="mb-2 flex items-center justify-between gap-3">
-                <span className="text-xs font-semibold text-gray-900">
-                    {text.previewTitle}
-                </span>
-            </div>
-
-            <div className="flex min-h-[96px] items-center justify-center rounded-2xl bg-white/45 p-4">
-                <button
-                    type="button"
-                    style={{
-                        padding: `${settings.paddingY}px ${settings.paddingX}px`,
-                        border: `${settings.borderWidth}px solid ${safeBorderColor}`,
-                        borderRadius: `${settings.borderRadius}px`,
-                        backgroundColor: safeBackgroundColor,
-                        color: safeTextColor,
-                        fontSize: `${Math.min(settings.fontSize, 18)}px`,
-                        fontWeight: 700,
-                        lineHeight: 1,
-                        boxShadow: boxShadowValue,
-                    }}
-                >
-                    {settings.buttonText.trim() || "Peach Button"}
-                </button>
-            </div>
-        </div>
-    );
-}
-
 function ButtonPreview({
-    text,
     settings,
     safeBackgroundColor,
     safeTextColor,
@@ -379,7 +328,6 @@ function ButtonPreview({
     safePreviewBackground,
     boxShadowValue,
 }: {
-    text: string;
     settings: ButtonSettings;
     safeBackgroundColor: string;
     safeTextColor: string;
@@ -389,7 +337,7 @@ function ButtonPreview({
 }) {
     return (
         <div
-            className="flex h-56 w-full items-center justify-center rounded-3xl border border-[#F1E5DF] p-6 md:min-h-[360px] md:p-8"
+            className="flex min-h-[320px] items-center justify-center rounded-3xl border border-[#F1E5DF] p-8 md:min-h-[360px]"
             style={{ backgroundColor: safePreviewBackground }}
         >
             <button
@@ -404,16 +352,58 @@ function ButtonPreview({
                     fontWeight: 700,
                     lineHeight: 1,
                     boxShadow: boxShadowValue,
-                    maxWidth: "90%",
                 }}
             >
-                {text.trim() || "Peach Button"}
+                {settings.buttonText.trim() || "Peach Button"}
             </button>
         </div>
     );
 }
 
-function ButtonSettingsPanel({
+function ButtonMiniPreview({
+    settings,
+    safeBackgroundColor,
+    safeTextColor,
+    safeBorderColor,
+    safePreviewBackground,
+    boxShadowValue,
+}: {
+    settings: ButtonSettings;
+    safeBackgroundColor: string;
+    safeTextColor: string;
+    safeBorderColor: string;
+    safePreviewBackground: string;
+    boxShadowValue: string;
+}) {
+    return (
+        <div
+            className="flex h-36 items-center justify-center rounded-2xl border border-[#F1E5DF] p-4"
+            style={{ backgroundColor: safePreviewBackground }}
+        >
+            <button
+                type="button"
+                style={{
+                    padding: `${Math.max(8, settings.paddingY * 0.75)}px ${Math.max(
+                        16,
+                        settings.paddingX * 0.75,
+                    )}px`,
+                    border: `${settings.borderWidth}px solid ${safeBorderColor}`,
+                    borderRadius: `${settings.borderRadius}px`,
+                    backgroundColor: safeBackgroundColor,
+                    color: safeTextColor,
+                    fontSize: `${Math.max(12, settings.fontSize * 0.85)}px`,
+                    fontWeight: 700,
+                    lineHeight: 1,
+                    boxShadow: boxShadowValue,
+                }}
+            >
+                {settings.buttonText.trim() || "Peach Button"}
+            </button>
+        </div>
+    );
+}
+
+function CssButtonSettingsPanel({
     text,
     settings,
     updateSetting,
@@ -433,6 +423,33 @@ function ButtonSettingsPanel({
     onReset: () => void;
     compact?: boolean;
 }) {
+    const colorGroupTitle =
+        (text as { colorGroupTitle?: string }).colorGroupTitle ?? "Colors";
+
+    const sizeGroupTitle =
+        (text as { sizeGroupTitle?: string }).sizeGroupTitle ?? "Size";
+
+    const shapeGroupTitle =
+        (text as { shapeGroupTitle?: string }).shapeGroupTitle ?? "Shape";
+
+    const shadowGroupTitle =
+        (text as { shadowGroupTitle?: string }).shadowGroupTitle ?? "Shadow";
+
+    const shadowOffsetXShortLabel =
+        (text as { shadowOffsetXShortLabel?: string }).shadowOffsetXShortLabel ??
+        "Offset X";
+
+    const shadowOffsetYShortLabel =
+        (text as { shadowOffsetYShortLabel?: string }).shadowOffsetYShortLabel ??
+        "Offset Y";
+
+    const shadowBlurShortLabel =
+        (text as { shadowBlurShortLabel?: string }).shadowBlurShortLabel ?? "Blur";
+
+    const shadowOpacityShortLabel =
+        (text as { shadowOpacityShortLabel?: string }).shadowOpacityShortLabel ??
+        "Opacity";
+
     return (
         <div className={compact ? "space-y-3" : "space-y-5"}>
             <div className="grid grid-cols-2 gap-3">
@@ -467,31 +484,23 @@ function ButtonSettingsPanel({
                         updateSetting("buttonText", event.target.value)
                     }
                     placeholder={text.buttonTextPlaceholder}
-                    className={`w-full rounded-xl border border-[#F1E5DF] px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-10" : "h-12"
+                    className={`w-full rounded-xl border border-[#F1E5DF] px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-11" : "h-12"
                         }`}
                 />
             </label>
 
             <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                <h4 className="mb-3 text-sm font-semibold text-gray-900">
-                    Colors
+                <h4 className="mb-4 text-sm font-semibold text-gray-900">
+                    {colorGroupTitle}
                 </h4>
 
-                <div
-                    className={
-                        compact
-                            ? "grid grid-cols-2 gap-3"
-                            : "grid gap-4 sm:grid-cols-2"
-                    }
-                >
+                <div className={compact ? "grid grid-cols-2 gap-3" : "space-y-4"}>
                     <ColorInput
                         label={text.backgroundColorLabel}
                         value={settings.backgroundColor}
                         fallback="#F28C6F"
                         compact={compact}
-                        onChange={(value) =>
-                            updateSetting("backgroundColor", value)
-                        }
+                        onChange={(value) => updateSetting("backgroundColor", value)}
                     />
 
                     <ColorInput
@@ -518,7 +527,7 @@ function ButtonSettingsPanel({
                         onChange={(value) => updateSetting("shadowColor", value)}
                     />
 
-                    <div className={compact ? "col-span-2" : "sm:col-span-2"}>
+                    <div className={compact ? "col-span-2" : ""}>
                         <ColorInput
                             label={text.previewBackgroundLabel}
                             value={settings.previewBackground}
@@ -533,17 +542,11 @@ function ButtonSettingsPanel({
             </div>
 
             <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                <h4 className="mb-3 text-sm font-semibold text-gray-900">
-                    Size
+                <h4 className="mb-4 text-sm font-semibold text-gray-900">
+                    {sizeGroupTitle}
                 </h4>
 
-                <div
-                    className={
-                        compact
-                            ? "grid grid-cols-2 gap-3"
-                            : "grid gap-4 sm:grid-cols-2"
-                    }
-                >
+                <div className="grid grid-cols-2 gap-4">
                     <RangeInput
                         label={text.fontSizeLabel}
                         value={settings.fontSize}
@@ -583,37 +586,35 @@ function ButtonSettingsPanel({
                         compact={compact}
                         onChange={(value) => updateSetting("paddingY", value)}
                     />
-
-                    <div className={compact ? "col-span-2" : "sm:col-span-2"}>
-                        <RangeInput
-                            label={text.borderRadiusLabel}
-                            value={settings.borderRadius}
-                            min={0}
-                            max={80}
-                            suffix="px"
-                            compact={compact}
-                            onChange={(value) =>
-                                updateSetting("borderRadius", value)
-                            }
-                        />
-                    </div>
                 </div>
             </div>
 
             <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                <h4 className="mb-3 text-sm font-semibold text-gray-900">
-                    Shadow
+                <h4 className="mb-4 text-sm font-semibold text-gray-900">
+                    {shapeGroupTitle}
                 </h4>
 
-                <div
-                    className={
-                        compact
-                            ? "grid grid-cols-2 gap-3"
-                            : "grid gap-4 sm:grid-cols-2"
-                    }
-                >
+                <div className="grid grid-cols-2 gap-4">
                     <RangeInput
-                        label={text.shadowOffsetXLabel}
+                        label={text.borderRadiusLabel}
+                        value={settings.borderRadius}
+                        min={0}
+                        max={80}
+                        suffix="px"
+                        compact={compact}
+                        onChange={(value) => updateSetting("borderRadius", value)}
+                    />
+                </div>
+            </div>
+
+            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                <h4 className="mb-4 text-sm font-semibold text-gray-900">
+                    {shadowGroupTitle}
+                </h4>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <RangeInput
+                        label={shadowOffsetXShortLabel}
                         value={settings.shadowOffsetX}
                         min={-60}
                         max={60}
@@ -621,20 +622,19 @@ function ButtonSettingsPanel({
                         compact={compact}
                         onChange={(value) => updateSetting("shadowOffsetX", value)}
                     />
+
                     <RangeInput
-                        label={text.shadowOffsetYLabel}
+                        label={shadowOffsetYShortLabel}
                         value={settings.shadowOffsetY}
-                        min={0}
+                        min={-60}
                         max={60}
                         suffix="px"
                         compact={compact}
-                        onChange={(value) =>
-                            updateSetting("shadowOffsetY", value)
-                        }
+                        onChange={(value) => updateSetting("shadowOffsetY", value)}
                     />
 
                     <RangeInput
-                        label={text.shadowBlurLabel}
+                        label={shadowBlurShortLabel}
                         value={settings.shadowBlur}
                         min={0}
                         max={100}
@@ -643,272 +643,27 @@ function ButtonSettingsPanel({
                         onChange={(value) => updateSetting("shadowBlur", value)}
                     />
 
-                    <div className={compact ? "col-span-2" : "sm:col-span-2"}>
-                        <RangeInput
-                            label={text.shadowOpacityLabel}
-                            value={settings.shadowOpacity}
-                            min={0}
-                            max={100}
-                            suffix="%"
-                            compact={compact}
-                            onChange={(value) =>
-                                updateSetting("shadowOpacity", value)
-                            }
-                        />
-                    </div>
+                    <RangeInput
+                        label={shadowOpacityShortLabel}
+                        value={settings.shadowOpacity}
+                        min={0}
+                        max={100}
+                        suffix="%"
+                        compact={compact}
+                        onChange={(value) => updateSetting("shadowOpacity", value)}
+                    />
                 </div>
             </div>
 
             <button
                 type="button"
                 onClick={onReset}
-                className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                className={`w-full rounded-2xl border border-[#F4C8BA] bg-white text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] ${compact ? "px-4 py-2.5" : "px-4 py-3"
+                    }`}
             >
                 {text.reset}
             </button>
         </div>
-    );
-}
-
-function RangeSettingsGroup({
-    text,
-    settings,
-    updateSetting,
-    compact = false,
-}: {
-    text: typeof t.cssButtonGenerator;
-    settings: ButtonSettings;
-    updateSetting: <K extends keyof ButtonSettings>(
-        key: K,
-        value: ButtonSettings[K],
-    ) => void;
-    compact?: boolean;
-}) {
-    return (
-        <div className={compact ? "grid grid-cols-2 gap-3" : "space-y-5"}>
-            <RangeInput
-                label={text.fontSizeLabel}
-                value={settings.fontSize}
-                min={10}
-                max={32}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => updateSetting("fontSize", value)}
-            />
-
-            <RangeInput
-                label={text.borderWidthLabel}
-                value={settings.borderWidth}
-                min={0}
-                max={8}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => updateSetting("borderWidth", value)}
-            />
-
-            <RangeInput
-                label={text.paddingXLabel}
-                value={settings.paddingX}
-                min={8}
-                max={80}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => updateSetting("paddingX", value)}
-            />
-
-            <RangeInput
-                label={text.paddingYLabel}
-                value={settings.paddingY}
-                min={6}
-                max={40}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => updateSetting("paddingY", value)}
-            />
-
-            <RangeInput
-                label={text.borderRadiusLabel}
-                value={settings.borderRadius}
-                min={0}
-                max={80}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => updateSetting("borderRadius", value)}
-            />
-
-            <RangeInput
-                label={text.shadowOffsetYLabel}
-                value={settings.shadowOffsetY}
-                min={0}
-                max={60}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => updateSetting("shadowOffsetY", value)}
-            />
-
-            <RangeInput
-                label={text.shadowBlurLabel}
-                value={settings.shadowBlur}
-                min={0}
-                max={100}
-                suffix="px"
-                compact={compact}
-                onChange={(value) => updateSetting("shadowBlur", value)}
-            />
-
-            <RangeInput
-                label={text.shadowOpacityLabel}
-                value={settings.shadowOpacity}
-                min={0}
-                max={100}
-                suffix="%"
-                compact={compact}
-                onChange={(value) => updateSetting("shadowOpacity", value)}
-            />
-        </div>
-    );
-}
-
-function ColorSettingsGroup({
-    text,
-    settings,
-    updateSetting,
-    compact = false,
-}: {
-    text: typeof t.cssButtonGenerator;
-    settings: ButtonSettings;
-    updateSetting: <K extends keyof ButtonSettings>(
-        key: K,
-        value: ButtonSettings[K],
-    ) => void;
-    compact?: boolean;
-}) {
-    if (compact) {
-        return (
-            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
-                <h4 className="mb-3 text-xs font-semibold text-gray-900">
-                    Colors
-                </h4>
-
-                <div className="space-y-3">
-                    <div className="grid grid-cols-3 gap-2">
-                        <CompactColorInput
-                            label={text.backgroundColorLabel}
-                            value={settings.backgroundColor}
-                            fallback="#F28C6F"
-                            onChange={(value) =>
-                                updateSetting("backgroundColor", value)
-                            }
-                        />
-
-                        <CompactColorInput
-                            label={text.textColorLabel}
-                            value={settings.textColor}
-                            fallback="#FFFFFF"
-                            onChange={(value) => updateSetting("textColor", value)}
-                        />
-
-                        <CompactColorInput
-                            label={text.borderColorLabel}
-                            value={settings.borderColor}
-                            fallback="#F28C6F"
-                            onChange={(value) => updateSetting("borderColor", value)}
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                        <CompactColorInput
-                            label={text.shadowColorLabel}
-                            value={settings.shadowColor}
-                            fallback="#F28C6F"
-                            onChange={(value) => updateSetting("shadowColor", value)}
-                        />
-
-                        <CompactColorInput
-                            label={text.previewBackgroundLabel}
-                            value={settings.previewBackground}
-                            fallback="#FFF7F3"
-                            onChange={(value) =>
-                                updateSetting("previewBackground", value)
-                            }
-                        />
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-            <h4 className="mb-4 text-sm font-semibold text-gray-900">
-                Colors
-            </h4>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-                <ColorInput
-                    label={text.backgroundColorLabel}
-                    value={settings.backgroundColor}
-                    fallback="#F28C6F"
-                    onChange={(value) => updateSetting("backgroundColor", value)}
-                />
-
-                <ColorInput
-                    label={text.textColorLabel}
-                    value={settings.textColor}
-                    fallback="#FFFFFF"
-                    onChange={(value) => updateSetting("textColor", value)}
-                />
-
-                <ColorInput
-                    label={text.borderColorLabel}
-                    value={settings.borderColor}
-                    fallback="#F28C6F"
-                    onChange={(value) => updateSetting("borderColor", value)}
-                />
-
-                <ColorInput
-                    label={text.shadowColorLabel}
-                    value={settings.shadowColor}
-                    fallback="#F28C6F"
-                    onChange={(value) => updateSetting("shadowColor", value)}
-                />
-
-                <div className="sm:col-span-2">
-                    <ColorInput
-                        label={text.previewBackgroundLabel}
-                        value={settings.previewBackground}
-                        fallback="#FFF7F3"
-                        onChange={(value) =>
-                            updateSetting("previewBackground", value)
-                        }
-                    />
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function SmallButton({
-    children,
-    primary = false,
-    onClick,
-}: {
-    children: ReactNode;
-    primary?: boolean;
-    onClick: () => void;
-}) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={
-                primary
-                    ? "h-8 rounded-xl bg-[#F28C6F] px-2 text-[11px] font-semibold leading-none text-white shadow-sm transition hover:bg-[#E6765B]"
-                    : "h-8 rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 text-[11px] font-semibold leading-none text-[#E6765B] transition hover:bg-[#FFF0EA]"
-            }
-        >
-            {children}
-        </button>
     );
 }
 
@@ -939,7 +694,7 @@ function ColorInput({
     return (
         <label className="block min-w-0">
             <span
-                className={`mb-2 block truncate font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                className={`mb-2 block truncate font-semibold text-gray-800 ${compact ? "text-[11px]" : "text-sm"
                     }`}
             >
                 {label}
@@ -964,46 +719,9 @@ function ColorInput({
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
                     className={`w-full min-w-0 rounded-xl border border-[#F1E5DF] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
-                        ? "h-10 px-2 text-[10px]"
-                        : "h-12 px-4 text-sm"
+                            ? "h-10 px-2 text-[10px]"
+                            : "h-12 px-4 text-sm"
                         }`}
-                />
-            </div>
-        </label>
-    );
-}
-
-function CompactColorInput({
-    label,
-    value,
-    fallback,
-    onChange,
-}: {
-    label: string;
-    value: string;
-    fallback: string;
-    onChange: (value: string) => void;
-}) {
-    const colorPickerValue = isValidHexColor(value) ? value : fallback;
-
-    return (
-        <label className="block min-w-0">
-            <span className="mb-1.5 block truncate text-[10px] font-semibold text-gray-800">
-                {label}
-            </span>
-
-            <div className="grid grid-cols-[30px_1fr] gap-1.5">
-                <input
-                    type="color"
-                    value={colorPickerValue}
-                    onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-9 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
-                />
-
-                <input
-                    value={value}
-                    onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-9 min-w-0 rounded-xl border border-[#F1E5DF] px-1.5 text-[9px] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
                 />
             </div>
         </label>
@@ -1033,14 +751,14 @@ function RangeInput({
                 className={
                     compact
                         ? "mb-1 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5"
-                        : "mb-2 flex items-center justify-between gap-4"
+                        : "mb-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2"
                 }
             >
                 <span
                     className={
                         compact
-                            ? "min-w-0 truncate text-[11px] font-semibold leading-5 text-gray-800"
-                            : "text-sm font-semibold text-gray-800"
+                            ? "min-w-0 truncate whitespace-nowrap text-[11px] font-semibold leading-5 text-gray-800"
+                            : "min-w-0 truncate whitespace-nowrap text-sm font-semibold text-gray-800"
                     }
                 >
                     {label}
@@ -1050,7 +768,7 @@ function RangeInput({
                     className={
                         compact
                             ? "min-w-[40px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-0.5 text-center text-[11px] font-semibold leading-5 text-[#7A5A4F]"
-                            : "rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F]"
+                            : "min-w-[48px] shrink-0 rounded-full bg-[#FFF7F3] px-3 py-1 text-center text-xs font-semibold text-[#7A5A4F]"
                     }
                 >
                     {value}
@@ -1110,7 +828,7 @@ function MobileActionBar({
         <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
             <div
                 ref={actionBarRef}
-                className="pointer-events-auto mx-auto grid max-w-md grid-cols-1 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-1 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
             >
                 <button
                     type="button"
@@ -1153,12 +871,12 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
         >
             <div
-                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
@@ -1179,7 +897,9 @@ function MobileSettingsSheet({
                     </button>
                 </div>
 
-                <div className="overflow-y-auto px-4 pb-4 pt-2">{children}</div>
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-2">
+                    {children}
+                </div>
             </div>
         </div>
     );
