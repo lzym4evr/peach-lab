@@ -886,7 +886,7 @@ function SettingGroup({
     }
 
     return (
-        <div className="border-t border-[#F1E5DF] pt-5 first:border-t-0 first:pt-0">
+        <div>
             <h4 className="mb-4 text-sm font-semibold text-gray-900">
                 {title}
             </h4>
