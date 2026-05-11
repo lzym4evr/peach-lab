@@ -449,13 +449,7 @@ export default function SvgColorChangerTool() {
 
     return (
         <>
-            <div
-                className="space-y-6"
-                style={{
-                    marginBottom:
-                        "max(calc(var(--mobile-action-bar-space, 0px) - 0.75rem), 0px)",
-                }}
-            >
+            <div className="space-y-6 pb-2 md:pb-0">
                 <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-5 shadow-sm">
                     <p className="text-sm font-semibold text-gray-900">
                         {common.localProcessing}
@@ -569,7 +563,7 @@ export default function SvgColorChangerTool() {
                                     onChange={(event) =>
                                         setSvgContent(event.target.value)
                                     }
-                                    className="min-h-[320px] w-full resize-y rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 font-mono text-sm leading-6 text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                                    className="h-[160px] w-full resize-y rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 font-mono text-sm leading-6 text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] md:h-[260px]"
                                 />
                             </section>
                         </div>
