@@ -1061,19 +1061,28 @@ export const messages = {
         },
 
         svgTransparentBackground: {
-            localProcessing: "Local processing: your SVG is processed in your browser. No files are uploaded.",
+            localProcessing:
+                "Local processing: your SVG is processed in your browser. No files are uploaded.",
+
             uploadTitle: "Upload SVG",
-            uploadDescription: "Choose or drag an SVG file to remove solid background layers locally.",
+            uploadDescription:
+                "Choose or drag an SVG file to remove solid background layers locally.",
+            supportedFormats: "Supports SVG files.",
             uploadButton: "Choose SVG",
             changeSvg: "Change SVG",
+            noFileSelected: "No file selected",
             dropHint: "Drag and drop an SVG file here, or click to choose a file.",
 
             previewTitle: "Preview",
-            controlsTitle: "Controls",
+            controlsTitle: "SVG Transparent Settings",
+            settingsButton: "Settings",
+            actionDownload: "Download",
             outputTitle: "Transparent SVG",
+            statsTitle: "Transparent Stats",
 
             emptyTitle: "No SVG selected",
-            emptyDescription: "Upload an SVG file to preview it and make the background transparent.",
+            emptyDescription:
+                "Upload an SVG file to preview it and make the background transparent.",
 
             originalSvg: "Original SVG",
             transparentSvg: "Transparent SVG",

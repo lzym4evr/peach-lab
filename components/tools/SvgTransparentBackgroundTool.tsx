@@ -1,8 +1,10 @@
 "use client";
 
 import {
-    ChangeEvent,
-    DragEvent,
+    type ChangeEvent,
+    type DragEvent,
+    type ReactNode,
+    useEffect,
     useMemo,
     useRef,
     useState,
@@ -358,6 +360,13 @@ function makeSvgTransparent(
 export default function SvgTransparentBackgroundTool() {
     const text = t.svgTransparentBackground;
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const settingsButtonText =
+        (text as { settingsButton?: string }).settingsButton ?? "Settings";
+
+    const actionDownloadText =
+        (text as { actionDownload?: string }).actionDownload ?? "Download";
 
     const [fileName, setFileName] = useState("peach-lab-transparent.svg");
     const [originalSvg, setOriginalSvg] = useState("");
@@ -366,8 +375,10 @@ export default function SvgTransparentBackgroundTool() {
     const [options, setOptions] = useState<RemoveOptions>(defaultOptions);
 
     const [isDragging, setIsDragging] = useState(false);
+    const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);
     const [status, setStatus] = useState("");
     const [error, setError] = useState("");
+    const [copied, setCopied] = useState(false);
 
     const originalPreviewUrl = useMemo(
         () => createSvgDataUrl(originalSvg),
@@ -380,6 +391,7 @@ export default function SvgTransparentBackgroundTool() {
     );
 
     const originalSize = useMemo(() => getByteSize(originalSvg), [originalSvg]);
+
     const transparentSize = useMemo(
         () => getByteSize(transparentSvg),
         [transparentSvg],
@@ -394,6 +406,14 @@ export default function SvgTransparentBackgroundTool() {
         return Math.max(percent, 0);
     }, [originalSvg, transparentSvg, originalSize, transparentSize]);
 
+    useEffect(() => {
+        return () => {
+            if (copyTimerRef.current) {
+                clearTimeout(copyTimerRef.current);
+            }
+        };
+    }, []);
+
     function loadSvgText(svgText: string, name?: string) {
         if (!isSvgCode(svgText)) {
             setError(text.invalidSvgError);
@@ -405,11 +425,13 @@ export default function SvgTransparentBackgroundTool() {
         setFileName(name || "peach-lab-transparent.svg");
         setError("");
         setStatus("");
+        setCopied(false);
     }
 
     function readSvgFile(file: File) {
         const isSvgFile =
-            file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
+            file.type === "image/svg+xml" ||
+            file.name.toLowerCase().endsWith(".svg");
 
         if (!isSvgFile) {
             setError(text.loadError);
@@ -438,17 +460,17 @@ export default function SvgTransparentBackgroundTool() {
         event.target.value = "";
     }
 
-    function handleDragOver(event: DragEvent<HTMLDivElement>) {
+    function handleDragOver(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(true);
     }
 
-    function handleDragLeave(event: DragEvent<HTMLDivElement>) {
+    function handleDragLeave(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
     }
 
-    function handleDrop(event: DragEvent<HTMLDivElement>) {
+    function handleDrop(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
 
@@ -465,6 +487,8 @@ export default function SvgTransparentBackgroundTool() {
         }));
 
         setStatus("");
+        setError("");
+        setCopied(false);
     }
 
     function handleMakeTransparent() {
@@ -479,6 +503,7 @@ export default function SvgTransparentBackgroundTool() {
             setTransparentSvg(nextSvg);
             setStatus(text.ready);
             setError("");
+            setCopied(false);
         } catch {
             setError(text.invalidSvgError);
         }
@@ -492,8 +517,18 @@ export default function SvgTransparentBackgroundTool() {
 
         try {
             await navigator.clipboard.writeText(transparentSvg);
-            setStatus(text.copied);
+
+            setCopied(true);
+            setStatus("");
             setError("");
+
+            if (copyTimerRef.current) {
+                clearTimeout(copyTimerRef.current);
+            }
+
+            copyTimerRef.current = setTimeout(() => {
+                setCopied(false);
+            }, 1500);
         } catch {
             setError(text.copyError);
         }
@@ -515,240 +550,355 @@ export default function SvgTransparentBackgroundTool() {
         setOptions(defaultOptions);
         setStatus("");
         setError("");
+        setCopied(false);
     }
 
+    const settingsPanel = (
+        <TransparentSettingsPanel
+            text={text}
+            targetColor={targetColor}
+            options={options}
+            originalSvg={originalSvg}
+            transparentSvg={transparentSvg}
+            originalSize={originalSize}
+            transparentSize={transparentSize}
+            savedPercent={savedPercent}
+            status={status}
+            error={error}
+            setTargetColor={setTargetColor}
+            updateOption={updateOption}
+            handleMakeTransparent={handleMakeTransparent}
+            handleReset={handleReset}
+        />
+    );
+
+    const mobileSettingsPanel = (
+        <TransparentSettingsPanel
+            text={text}
+            targetColor={targetColor}
+            options={options}
+            originalSvg={originalSvg}
+            transparentSvg={transparentSvg}
+            originalSize={originalSize}
+            transparentSize={transparentSize}
+            savedPercent={savedPercent}
+            status={status}
+            error={error}
+            setTargetColor={setTargetColor}
+            updateOption={updateOption}
+            handleMakeTransparent={handleMakeTransparent}
+            handleReset={handleReset}
+            compact
+        />
+    );
+
     return (
-        <div className="space-y-6">
-            <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm text-[#7A5A4F]">
-                {text.localProcessing}
-            </div>
+        <>
+            <div className="space-y-6 pb-2 lg:pb-0">
+                <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#7A5A4F]">
+                    {text.localProcessing}
+                </div>
 
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-                <div className="min-w-0 space-y-6">
-                    <section className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                        <div className="mb-5 flex items-start justify-between gap-4">
-                            <div>
-                                <h3 className="font-semibold text-gray-900">
-                                    {text.uploadTitle}
-                                </h3>
+                <label
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
+                            ? "border-[#F28C6F] bg-[#FFF0EA]"
+                            : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                        }`}
+                >
+                    <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
+                        {text.uploadTitle}
+                    </h2>
 
-                                <p className="mt-2 max-w-[360px] text-sm leading-6 text-gray-500">
-                                    {text.uploadDescription}
-                                </p>
+                    <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-gray-500 md:mt-3 md:text-base md:leading-7">
+                        {text.uploadDescription}
+                    </p>
+
+                    <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
+                        {text.supportedFormats}
+                    </p>
+
+                    <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
+                        {text.dropHint}
+                    </p>
+
+                    <div className="mx-auto mt-4 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:mt-5">
+                        {originalSvg ? text.changeSvg : text.uploadButton}
+                    </div>
+
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".svg,image/svg+xml"
+                        onChange={handleChooseFile}
+                        className="hidden"
+                    />
+
+                    <p className="mx-auto mt-3 max-w-xl break-all text-sm font-medium text-gray-500">
+                        {originalSvg ? fileName : text.noFileSelected}
+                    </p>
+
+                    {error && !originalSvg ? (
+                        <p className="mt-4 text-sm font-medium text-red-500">
+                            {error}
+                        </p>
+                    ) : null}
+                </label>
+
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
+                    <div className="min-w-0 space-y-6">
+                        <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                            <div className="mb-4 flex items-center justify-between gap-4">
+                                <SectionHeader title={text.previewTitle} />
+
+                                {originalSvg ? (
+                                    <span className="hidden max-w-[220px] truncate rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F] md:block">
+                                        {fileName}
+                                    </span>
+                                ) : null}
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="shrink-0 rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                            >
-                                {originalSvg ? text.changeSvg : text.uploadButton}
-                            </button>
+                            {originalSvg ? (
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <SvgPreviewCard
+                                        title={text.originalSvg}
+                                        previewUrl={originalPreviewUrl}
+                                        size={formatBytes(originalSize)}
+                                        fileName={fileName}
+                                    />
 
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept=".svg,image/svg+xml"
-                                onChange={handleChooseFile}
-                                className="hidden"
-                            />
-                        </div>
-
-                        <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => fileInputRef.current?.click()}
-                            onKeyDown={(event) => {
-                                if (event.key === "Enter" || event.key === " ") {
-                                    fileInputRef.current?.click();
-                                }
-                            }}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onDrop={handleDrop}
-                            className={`mb-5 cursor-pointer rounded-3xl border border-dashed p-6 text-center transition ${isDragging
-                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
-                                }`}
-                        >
-                            <p className="text-sm font-semibold text-[#E6765B]">
-                                {originalSvg ? text.changeSvg : text.uploadButton}
-                            </p>
-
-                            <p className="mt-2 text-sm leading-6 text-gray-500">
-                                {text.dropHint}
-                            </p>
-                        </div>
-
-                        {originalSvg ? (
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <SvgPreviewCard
-                                    title={text.originalSvg}
-                                    previewUrl={originalPreviewUrl}
-                                    size={formatBytes(originalSize)}
-                                    fileName={fileName}
-                                />
-
-                                <SvgPreviewCard
-                                    title={text.transparentSvg}
-                                    previewUrl={transparentPreviewUrl}
-                                    size={transparentSvg ? formatBytes(transparentSize) : "-"}
-                                    fileName={transparentSvg ? `${fileName} transparent` : "-"}
-                                    emptyText={text.emptyDescription}
-                                />
-                            </div>
-                        ) : (
-                            <div className="flex min-h-[300px] items-center justify-center rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-8 text-center">
-                                <div>
-                                    <h4 className="text-lg font-semibold text-gray-900">
-                                        {text.emptyTitle}
-                                    </h4>
-
-                                    <p className="mt-2 max-w-sm text-sm leading-6 text-gray-500">
-                                        {text.emptyDescription}
-                                    </p>
+                                    <SvgPreviewCard
+                                        title={text.transparentSvg}
+                                        previewUrl={transparentPreviewUrl}
+                                        size={transparentSvg ? formatBytes(transparentSize) : "-"}
+                                        fileName={
+                                            transparentSvg
+                                                ? `${fileName} transparent`
+                                                : "-"
+                                        }
+                                        emptyText={text.emptyDescription}
+                                    />
                                 </div>
+                            ) : (
+                                <div className="flex min-h-[220px] items-center justify-center rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center md:min-h-[320px]">
+                                    <div>
+                                        <h4 className="text-lg font-semibold text-gray-900">
+                                            {text.emptyTitle}
+                                        </h4>
+
+                                        <p className="mt-2 max-w-sm text-sm leading-6 text-gray-500">
+                                            {text.emptyDescription}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </section>
+
+                        <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                            <div className="mb-4 flex items-center justify-between gap-4">
+                                <SectionHeader title={text.outputTitle} />
+
+                                <button
+                                    type="button"
+                                    onClick={handleCopy}
+                                    disabled={!transparentSvg}
+                                    className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {copied ? text.copied : text.copySvg}
+                                </button>
                             </div>
-                        )}
-                    </section>
 
-                    <section className="rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                        <div className="mb-4 flex items-center justify-between gap-4">
-                            <h3 className="font-semibold text-gray-900">
-                                {text.outputTitle}
-                            </h3>
-
-                            <button
-                                type="button"
-                                onClick={handleCopy}
-                                className="rounded-xl border border-[#F1E5DF] bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
-                            >
-                                {text.copySvg}
-                            </button>
-                        </div>
-
-                        <textarea
-                            value={transparentSvg}
-                            onChange={(event) => {
-                                setTransparentSvg(event.target.value);
-                                setStatus("");
-                            }}
-                            placeholder={text.emptyDescription}
-                            className="min-h-[260px] w-full resize-y rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 font-mono text-sm leading-7 text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                        />
-
-                        <div className="mt-4 grid grid-cols-2 gap-3">
-                            <button
-                                type="button"
-                                onClick={handleCopy}
-                                className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                            >
-                                {text.copySvg}
-                            </button>
+                            <textarea
+                                value={transparentSvg}
+                                onChange={(event) => {
+                                    setTransparentSvg(event.target.value);
+                                    setStatus("");
+                                    setCopied(false);
+                                }}
+                                placeholder={text.emptyDescription}
+                                className="h-[180px] w-full resize-y rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 font-mono text-sm leading-6 text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] md:h-[260px] md:leading-7"
+                            />
 
                             <button
                                 type="button"
                                 onClick={handleDownload}
-                                className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                                disabled={!transparentSvg}
+                                className="mt-4 hidden w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50 lg:block"
                             >
                                 {text.downloadSvg}
                             </button>
-                        </div>
+
+                            {error && originalSvg ? (
+                                <p className="mt-3 text-sm font-medium text-red-500">
+                                    {error}
+                                </p>
+                            ) : null}
+                        </section>
+                    </div>
+
+                    <section className="hidden min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm lg:block">
+                        {settingsPanel}
                     </section>
                 </div>
+            </div>
 
-                <section className="min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm">
-                    <h3 className="font-semibold text-gray-900">
-                        {text.controlsTitle}
-                    </h3>
+            <MobileActionBar
+                settingsButtonText={settingsButtonText}
+                downloadText={actionDownloadText}
+                canDownload={!!transparentSvg}
+                onOpenSettings={() => setIsMobileSettingsOpen(true)}
+                onDownload={handleDownload}
+            />
 
-                    <div className="mt-5 space-y-5">
-                        <ColorInput
-                            label={text.targetColorLabel}
-                            value={targetColor}
-                            onChange={(value) => {
-                                setTargetColor(value);
-                                setStatus("");
-                            }}
-                        />
+            {isMobileSettingsOpen ? (
+                <MobileSettingsSheet
+                    title={text.controlsTitle}
+                    onClose={() => setIsMobileSettingsOpen(false)}
+                >
+                    {mobileSettingsPanel}
+                </MobileSettingsSheet>
+            ) : null}
+        </>
+    );
+}
 
-                        <CheckOption
-                            label={text.removeWhiteBackgroundRect}
-                            checked={options.removeWhiteBackgroundRect}
-                            onChange={(value) =>
-                                updateOption("removeWhiteBackgroundRect", value)
-                            }
-                        />
+function TransparentSettingsPanel({
+    text,
+    targetColor,
+    options,
+    originalSvg,
+    transparentSvg,
+    originalSize,
+    transparentSize,
+    savedPercent,
+    status,
+    error,
+    setTargetColor,
+    updateOption,
+    handleMakeTransparent,
+    handleReset,
+    compact = false,
+}: {
+    text: typeof t.svgTransparentBackground;
+    targetColor: string;
+    options: RemoveOptions;
+    originalSvg: string;
+    transparentSvg: string;
+    originalSize: number;
+    transparentSize: number;
+    savedPercent: number;
+    status: string;
+    error: string;
+    setTargetColor: (value: string) => void;
+    updateOption: (key: keyof RemoveOptions, value: boolean) => void;
+    handleMakeTransparent: () => void;
+    handleReset: () => void;
+    compact?: boolean;
+}) {
+    return (
+        <div>
+            {!compact ? <SectionHeader title={text.controlsTitle} /> : null}
 
-                        <CheckOption
-                            label={text.removeTargetColorRect}
-                            checked={options.removeTargetColorRect}
-                            onChange={(value) =>
-                                updateOption("removeTargetColorRect", value)
-                            }
-                        />
+            <div className={compact ? "space-y-3" : "mt-5 space-y-5"}>
+                <ColorInput
+                    label={text.targetColorLabel}
+                    value={targetColor}
+                    compact={compact}
+                    onChange={(value) => {
+                        setTargetColor(value);
+                    }}
+                />
 
-                        <CheckOption
-                            label={text.removeFirstBackgroundRect}
-                            checked={options.removeFirstBackgroundRect}
-                            onChange={(value) =>
-                                updateOption("removeFirstBackgroundRect", value)
-                            }
-                        />
+                <div className={compact ? "space-y-2.5" : "space-y-3"}>
+                    <CheckOption
+                        label={text.removeWhiteBackgroundRect}
+                        checked={options.removeWhiteBackgroundRect}
+                        compact={compact}
+                        onChange={(value) =>
+                            updateOption("removeWhiteBackgroundRect", value)
+                        }
+                    />
 
-                        <CheckOption
-                            label={text.removeSvgBackgroundStyle}
-                            checked={options.removeSvgBackgroundStyle}
-                            onChange={(value) =>
-                                updateOption("removeSvgBackgroundStyle", value)
-                            }
-                        />
-                    </div>
+                    <CheckOption
+                        label={text.removeTargetColorRect}
+                        checked={options.removeTargetColorRect}
+                        compact={compact}
+                        onChange={(value) =>
+                            updateOption("removeTargetColorRect", value)
+                        }
+                    />
 
-                    <button
-                        type="button"
-                        onClick={handleMakeTransparent}
-                        className="mt-5 w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-                    >
-                        {text.makeTransparent}
-                    </button>
+                    <CheckOption
+                        label={text.removeFirstBackgroundRect}
+                        checked={options.removeFirstBackgroundRect}
+                        compact={compact}
+                        onChange={(value) =>
+                            updateOption("removeFirstBackgroundRect", value)
+                        }
+                    />
 
-                    <button
-                        type="button"
-                        onClick={handleReset}
-                        className="mt-3 w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-                    >
-                        {text.reset}
-                    </button>
+                    <CheckOption
+                        label={text.removeSvgBackgroundStyle}
+                        checked={options.removeSvgBackgroundStyle}
+                        compact={compact}
+                        onChange={(value) =>
+                            updateOption("removeSvgBackgroundStyle", value)
+                        }
+                    />
+                </div>
+            </div>
 
-                    <div className="mt-8 border-t border-[#F1E5DF] pt-6">
-                        <h3 className="font-semibold text-gray-900">
-                            {text.outputTitle}
-                        </h3>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+                <button
+                    type="button"
+                    onClick={handleMakeTransparent}
+                    className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                >
+                    {text.makeTransparent}
+                </button>
 
-                        <div className="mt-4 grid grid-cols-1 gap-3">
-                            <InfoBox
-                                label={text.originalSize}
-                                value={originalSvg ? formatBytes(originalSize) : "-"}
-                            />
+                <button
+                    type="button"
+                    onClick={handleReset}
+                    className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                >
+                    {text.reset}
+                </button>
+            </div>
 
-                            <InfoBox
-                                label={text.transparentSize}
-                                value={transparentSvg ? formatBytes(transparentSize) : "-"}
-                            />
+            <div className="mt-6">
+                <h3 className="font-semibold text-gray-900">
+                    {text.statsTitle}
+                </h3>
 
-                            <InfoBox label={text.saved} value={`${savedPercent}%`} />
-                        </div>
+                <div className="mt-4 grid grid-cols-3 gap-2 lg:grid-cols-1 lg:gap-3">
+                    <InfoBox
+                        label={text.originalSize}
+                        value={originalSvg ? formatBytes(originalSize) : "-"}
+                    />
 
-                        {status ? (
-                            <p className="mt-3 text-sm text-[#7A5A4F]">{status}</p>
-                        ) : null}
+                    <InfoBox
+                        label={text.transparentSize}
+                        value={transparentSvg ? formatBytes(transparentSize) : "-"}
+                    />
 
-                        {error ? (
-                            <p className="mt-3 text-sm font-medium text-red-500">{error}</p>
-                        ) : null}
-                    </div>
-                </section>
+                    <InfoBox
+                        label={text.saved}
+                        value={transparentSvg ? `${savedPercent}%` : "-"}
+                    />
+                </div>
+
+                {status ? (
+                    <p className="mt-3 text-sm text-[#7A5A4F]">{status}</p>
+                ) : null}
+
+                {error && !originalSvg ? (
+                    <p className="mt-3 text-sm font-medium text-red-500">
+                        {error}
+                    </p>
+                ) : null}
             </div>
         </div>
     );
@@ -768,7 +918,7 @@ function SvgPreviewCard({
     emptyText?: string;
 }) {
     return (
-        <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+        <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-3 md:p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
                 <h4 className="text-sm font-semibold text-gray-900">{title}</h4>
 
@@ -779,23 +929,24 @@ function SvgPreviewCard({
 
             {previewUrl ? (
                 <div
-                    className="flex min-h-[220px] items-center justify-center overflow-hidden rounded-2xl p-6"
+                    className="flex min-h-[180px] items-center justify-center overflow-hidden rounded-2xl p-4 md:min-h-[220px] md:p-6"
                     style={{
                         backgroundColor: "#ffffff",
                         backgroundImage:
                             "linear-gradient(45deg, #f1f5f9 25%, transparent 25%), linear-gradient(-45deg, #f1f5f9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f1f5f9 75%), linear-gradient(-45deg, transparent 75%, #f1f5f9 75%)",
                         backgroundSize: "20px 20px",
-                        backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0",
+                        backgroundPosition:
+                            "0 0, 0 10px, 10px -10px, -10px 0",
                     }}
                 >
                     <img
                         src={previewUrl}
                         alt={title}
-                        className="max-h-[260px] w-full object-contain"
+                        className="max-h-[180px] w-full object-contain md:max-h-[240px]"
                     />
                 </div>
             ) : (
-                <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center">
+                <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-4 text-center md:min-h-[220px] md:p-6">
                     <p className="text-sm leading-6 text-gray-500">{emptyText}</p>
                 </div>
             )}
@@ -807,33 +958,201 @@ function SvgPreviewCard({
     );
 }
 
+function MobileActionBar({
+    settingsButtonText,
+    downloadText,
+    canDownload,
+    onOpenSettings,
+    onDownload,
+}: {
+    settingsButtonText: string;
+    downloadText: string;
+    canDownload: boolean;
+    onOpenSettings: () => void;
+    onDownload: () => void;
+}) {
+    const actionBarRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const updateSpace = () => {
+            const element = actionBarRef.current;
+            if (!element) return;
+
+            const rect = element.getBoundingClientRect();
+
+            document.documentElement.style.setProperty(
+                "--mobile-action-bar-space",
+                `${Math.ceil(rect.height + 24)}px`,
+            );
+        };
+
+        const timer = window.setTimeout(updateSpace, 0);
+        window.addEventListener("resize", updateSpace);
+
+        return () => {
+            window.clearTimeout(timer);
+            window.removeEventListener("resize", updateSpace);
+            document.documentElement.style.removeProperty(
+                "--mobile-action-bar-space",
+            );
+        };
+    }, []);
+
+    return (
+        <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
+            <div
+                ref={actionBarRef}
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-2 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+            >
+                <button
+                    type="button"
+                    onClick={onOpenSettings}
+                    className="rounded-2xl border border-[#F1E5DF] bg-white px-3 py-2.5 text-center text-sm font-semibold leading-tight text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
+                >
+                    {settingsButtonText}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onDownload}
+                    disabled={!canDownload}
+                    className="rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
+                >
+                    {downloadText}
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function MobileSettingsSheet({
+    title,
+    children,
+    onClose,
+}: {
+    title: string;
+    children: ReactNode;
+    onClose: () => void;
+}) {
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const previousOverflow = document.body.style.overflow;
+        const previousTouchAction = document.body.style.touchAction;
+
+        document.body.style.overflow = "hidden";
+        document.body.style.touchAction = "none";
+
+        const frame = requestAnimationFrame(() => {
+            setIsVisible(true);
+        });
+
+        return () => {
+            cancelAnimationFrame(frame);
+            document.body.style.overflow = previousOverflow;
+            document.body.style.touchAction = previousTouchAction;
+        };
+    }, []);
+
+    function handleClose() {
+        setIsVisible(false);
+
+        window.setTimeout(() => {
+            onClose();
+        }, 180);
+    }
+
+    return (
+        <div
+            className={`fixed inset-0 z-[70] overscroll-none bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+                }`}
+            onClick={handleClose}
+            onTouchMove={(event) => event.preventDefault()}
+        >
+            <div
+                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                    }`}
+                onClick={(event) => event.stopPropagation()}
+            >
+                <div className="flex shrink-0 items-center justify-between gap-4 px-4 pb-2 pt-4">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
+                        <h3 className="truncate text-lg font-semibold text-gray-900">
+                            {title}
+                        </h3>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <div
+                    className="min-h-0 flex-1 overscroll-contain overflow-y-auto px-4 pb-4 pt-2"
+                    onTouchMove={(event) => event.stopPropagation()}
+                >
+                    {children}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function SectionHeader({ title }: { title: string }) {
+    return (
+        <div className="flex items-center gap-3">
+            <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
+            <h3 className="font-semibold text-gray-900">{title}</h3>
+        </div>
+    );
+}
+
 function ColorInput({
     label,
     value,
+    compact = false,
     onChange,
 }: {
     label: string;
     value: string;
+    compact?: boolean;
     onChange: (value: string) => void;
 }) {
     return (
-        <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-gray-800">
+        <label className="block min-w-0">
+            <span
+                className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                    }`}
+            >
                 {label}
             </span>
 
-            <div className="grid grid-cols-[58px_1fr] gap-3">
+            <div
+                className={
+                    compact
+                        ? "grid grid-cols-[42px_1fr] gap-2"
+                        : "grid grid-cols-[58px_1fr] gap-3"
+                }
+            >
                 <input
                     type="color"
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-12 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
+                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-11" : "h-12"
+                        }`}
                 />
 
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                    className={`min-w-0 rounded-xl border border-[#F1E5DF] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-11 px-2 text-xs" : "h-12 px-4 text-sm"
+                        }`}
                 />
             </div>
         </label>
@@ -843,15 +1162,25 @@ function ColorInput({
 function CheckOption({
     label,
     checked,
+    compact = false,
     onChange,
 }: {
     label: string;
     checked: boolean;
+    compact?: boolean;
     onChange: (value: boolean) => void;
 }) {
     return (
-        <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] px-4 py-3 transition hover:bg-[#FFF7F3]">
-            <span className="text-sm font-semibold text-gray-800">{label}</span>
+        <label
+            className={`flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] transition hover:bg-[#FFF7F3] ${compact ? "px-3 py-2.5" : "px-4 py-3"
+                }`}
+        >
+            <span
+                className={`font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                    }`}
+            >
+                {label}
+            </span>
 
             <input
                 type="checkbox"
@@ -865,12 +1194,14 @@ function CheckOption({
 
 function InfoBox({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#9C7B70]">
+        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5 lg:p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9C7B70] lg:text-xs">
                 {label}
             </p>
 
-            <p className="mt-2 text-lg font-bold text-gray-900">{value}</p>
+            <p className="mt-1 text-base font-bold text-gray-900 lg:mt-2 lg:text-lg">
+                {value}
+            </p>
         </div>
     );
 }
