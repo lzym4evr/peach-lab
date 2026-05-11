@@ -1,9 +1,18 @@
 "use client";
 
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import {
+    type ReactNode,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { t } from "@/data/messages";
 
+type ButtonStyle = "solid" | "outline" | "soft" | "pill" | "ghost" | "threeD";
+
 type ButtonSettings = {
+    buttonStyle: ButtonStyle;
     buttonText: string;
     fontSize: number;
     paddingX: number;
@@ -22,6 +31,7 @@ type ButtonSettings = {
 };
 
 const defaultSettings: ButtonSettings = {
+    buttonStyle: "solid",
     buttonText: "Peach Button",
     fontSize: 16,
     paddingX: 28,
@@ -38,6 +48,15 @@ const defaultSettings: ButtonSettings = {
     shadowColor: "#F28C6F",
     previewBackground: "#FFF7F3",
 };
+
+const buttonStyles: ButtonStyle[] = [
+    "solid",
+    "outline",
+    "soft",
+    "pill",
+    "ghost",
+    "threeD",
+];
 
 function isValidHexColor(value: string) {
     return /^#[0-9A-Fa-f]{6}$/.test(value);
@@ -71,6 +90,28 @@ function getRandomNumber(min: number, max: number) {
     return Math.floor(min + Math.random() * (max - min + 1));
 }
 
+function getButtonStyleLabel(
+    text: typeof t.cssButtonGenerator,
+    style: ButtonStyle,
+) {
+    const labels = text as {
+        styleSolid?: string;
+        styleOutline?: string;
+        styleSoft?: string;
+        stylePill?: string;
+        styleGhost?: string;
+        styleThreeD?: string;
+    };
+
+    if (style === "outline") return labels.styleOutline ?? "Outline";
+    if (style === "soft") return labels.styleSoft ?? "Soft";
+    if (style === "pill") return labels.stylePill ?? "Pill";
+    if (style === "ghost") return labels.styleGhost ?? "Ghost";
+    if (style === "threeD") return labels.styleThreeD ?? "3D";
+
+    return labels.styleSolid ?? "Solid";
+}
+
 export default function CssButtonGeneratorTool() {
     const text = t.cssButtonGenerator;
     const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -78,10 +119,8 @@ export default function CssButtonGeneratorTool() {
     const settingsButtonText =
         (text as { settingsButton?: string }).settingsButton ?? "Settings";
 
-    const settingsTitle =
-        (text as { settingsTitle?: string }).settingsTitle ??
-        text.controlsTitle ??
-        "Button Settings";
+    const buttonStyleText =
+        (text as { buttonStyle?: string }).buttonStyle ?? "Button Style";
 
     const [settings, setSettings] = useState<ButtonSettings>(defaultSettings);
     const [copiedKey, setCopiedKey] = useState("");
@@ -107,7 +146,14 @@ export default function CssButtonGeneratorTool() {
         return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
     }, [safeShadowColor, settings.shadowOpacity]);
 
-    const boxShadowValue = `${settings.shadowOffsetX}px ${settings.shadowOffsetY}px ${settings.shadowBlur}px ${shadowRgba}`;
+    const isGhost = settings.buttonStyle === "ghost";
+    const isThreeD = settings.buttonStyle === "threeD";
+
+    const buttonBackground = isGhost ? "transparent" : safeBackgroundColor;
+
+    const boxShadowValue = isThreeD
+        ? `${settings.shadowOffsetX}px ${settings.shadowOffsetY}px 0 ${shadowRgba}`
+        : `${settings.shadowOffsetX}px ${settings.shadowOffsetY}px ${settings.shadowBlur}px ${shadowRgba}`;
 
     const cssOutput = `.peach-button {
   display: inline-flex;
@@ -116,7 +162,7 @@ export default function CssButtonGeneratorTool() {
   padding: ${settings.paddingY}px ${settings.paddingX}px;
   border: ${settings.borderWidth}px solid ${safeBorderColor};
   border-radius: ${settings.borderRadius}px;
-  background: ${safeBackgroundColor};
+  background: ${buttonBackground};
   color: ${safeTextColor};
   font-size: ${settings.fontSize}px;
   font-weight: 700;
@@ -127,8 +173,15 @@ export default function CssButtonGeneratorTool() {
 }
 
 .peach-button:hover {
-  transform: translateY(-1px);
+  transform: ${isThreeD ? "translateY(2px)" : "translateY(-1px)"};
   filter: brightness(0.98);
+  box-shadow: ${isThreeD
+            ? `${settings.shadowOffsetX}px ${Math.max(
+                settings.shadowOffsetY - 2,
+                0,
+            )}px 0 ${shadowRgba}`
+            : boxShadowValue
+        };
 }`;
 
     useEffect(() => {
@@ -156,16 +209,156 @@ export default function CssButtonGeneratorTool() {
         clearCopyState();
     }
 
+    function applyButtonStyle(nextStyle: ButtonStyle) {
+        setSettings((current) => {
+            const buttonText = current.buttonText;
+
+            if (nextStyle === "outline") {
+                return {
+                    ...current,
+                    buttonStyle: nextStyle,
+                    buttonText,
+                    backgroundColor: "#FFFFFF",
+                    textColor: "#E6765B",
+                    borderColor: "#F28C6F",
+                    shadowColor: "#F28C6F",
+                    previewBackground: "#FFF7F3",
+                    fontSize: 16,
+                    paddingX: 28,
+                    paddingY: 14,
+                    borderRadius: 18,
+                    borderWidth: 2,
+                    shadowOffsetX: 0,
+                    shadowOffsetY: 0,
+                    shadowBlur: 0,
+                    shadowOpacity: 0,
+                };
+            }
+
+            if (nextStyle === "soft") {
+                return {
+                    ...current,
+                    buttonStyle: nextStyle,
+                    buttonText,
+                    backgroundColor: "#FFF0EA",
+                    textColor: "#E6765B",
+                    borderColor: "#F4C8BA",
+                    shadowColor: "#F28C6F",
+                    previewBackground: "#FFF7F3",
+                    fontSize: 16,
+                    paddingX: 28,
+                    paddingY: 14,
+                    borderRadius: 18,
+                    borderWidth: 1,
+                    shadowOffsetX: 0,
+                    shadowOffsetY: 10,
+                    shadowBlur: 24,
+                    shadowOpacity: 18,
+                };
+            }
+
+            if (nextStyle === "pill") {
+                return {
+                    ...current,
+                    buttonStyle: nextStyle,
+                    buttonText,
+                    backgroundColor: "#F28C6F",
+                    textColor: "#FFFFFF",
+                    borderColor: "#F28C6F",
+                    shadowColor: "#F28C6F",
+                    previewBackground: "#FFF7F3",
+                    fontSize: 16,
+                    paddingX: 34,
+                    paddingY: 14,
+                    borderRadius: 999,
+                    borderWidth: 1,
+                    shadowOffsetX: 0,
+                    shadowOffsetY: 10,
+                    shadowBlur: 26,
+                    shadowOpacity: 26,
+                };
+            }
+
+            if (nextStyle === "ghost") {
+                return {
+                    ...current,
+                    buttonStyle: nextStyle,
+                    buttonText,
+                    backgroundColor: "#FFFFFF",
+                    textColor: "#E6765B",
+                    borderColor: "#F4C8BA",
+                    shadowColor: "#F28C6F",
+                    previewBackground: "#FFF7F3",
+                    fontSize: 16,
+                    paddingX: 26,
+                    paddingY: 13,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    shadowOffsetX: 0,
+                    shadowOffsetY: 0,
+                    shadowBlur: 0,
+                    shadowOpacity: 0,
+                };
+            }
+
+            if (nextStyle === "threeD") {
+                return {
+                    ...current,
+                    buttonStyle: nextStyle,
+                    buttonText,
+                    backgroundColor: "#F28C6F",
+                    textColor: "#FFFFFF",
+                    borderColor: "#E6765B",
+                    shadowColor: "#B85D48",
+                    previewBackground: "#FFF7F3",
+                    fontSize: 16,
+                    paddingX: 30,
+                    paddingY: 14,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    shadowOffsetX: 0,
+                    shadowOffsetY: 7,
+                    shadowBlur: 0,
+                    shadowOpacity: 80,
+                };
+            }
+
+            return {
+                ...current,
+                buttonStyle: "solid",
+                buttonText,
+                backgroundColor: "#F28C6F",
+                textColor: "#FFFFFF",
+                borderColor: "#F28C6F",
+                shadowColor: "#F28C6F",
+                previewBackground: "#FFF7F3",
+                fontSize: 16,
+                paddingX: 28,
+                paddingY: 14,
+                borderRadius: 18,
+                borderWidth: 1,
+                shadowOffsetX: 0,
+                shadowOffsetY: 10,
+                shadowBlur: 24,
+                shadowOpacity: 28,
+            };
+        });
+
+        clearCopyState();
+    }
+
     function handleShuffle() {
         setSettings((current) => ({
             ...current,
-            fontSize: getRandomNumber(14, 22),
-            borderRadius: getRandomNumber(4, 40),
+            borderRadius:
+                current.buttonStyle === "pill" ? 999 : getRandomNumber(4, 40),
             borderWidth: getRandomNumber(0, 4),
-            shadowOffsetX: getRandomNumber(-16, 16),
+            shadowOffsetX: getRandomNumber(-8, 8),
             shadowOffsetY: getRandomNumber(0, 24),
-            shadowBlur: getRandomNumber(0, 45),
+            shadowBlur:
+                current.buttonStyle === "threeD" ? 0 : getRandomNumber(0, 45),
             shadowOpacity: getRandomNumber(10, 60),
+            fontSize: getRandomNumber(14, 22),
         }));
 
         clearCopyState();
@@ -173,13 +366,14 @@ export default function CssButtonGeneratorTool() {
 
     function handleRandomAll() {
         setSettings({
+            buttonStyle: buttonStyles[Math.floor(Math.random() * buttonStyles.length)],
             buttonText: "Peach Button",
             fontSize: getRandomNumber(14, 22),
             paddingX: getRandomNumber(18, 42),
             paddingY: getRandomNumber(10, 20),
-            borderRadius: getRandomNumber(4, 40),
+            borderRadius: getRandomNumber(4, 48),
             borderWidth: getRandomNumber(0, 4),
-            shadowOffsetX: getRandomNumber(-20, 20),
+            shadowOffsetX: getRandomNumber(-8, 8),
             shadowOffsetY: getRandomNumber(0, 24),
             shadowBlur: getRandomNumber(0, 45),
             shadowOpacity: getRandomNumber(10, 60),
@@ -198,11 +392,11 @@ export default function CssButtonGeneratorTool() {
         clearCopyState();
     }
 
-    async function handleCopyCss() {
+    async function handleCopyCss(key: string) {
         try {
             await navigator.clipboard.writeText(cssOutput);
 
-            setCopiedKey("copy-css");
+            setCopiedKey(key);
             setCopyError("");
 
             if (copyTimerRef.current) {
@@ -217,20 +411,13 @@ export default function CssButtonGeneratorTool() {
         }
     }
 
-    const previewProps = {
-        settings,
-        safeBackgroundColor,
-        safeTextColor,
-        safeBorderColor,
-        safePreviewBackground,
-        boxShadowValue,
-    };
-
     const settingsPanel = (
         <CssButtonSettingsPanel
             text={text}
             settings={settings}
+            buttonStyleText={buttonStyleText}
             updateSetting={updateSetting}
+            onApplyButtonStyle={applyButtonStyle}
             onShuffle={handleShuffle}
             onRandom={handleRandomAll}
             onReset={handleReset}
@@ -241,7 +428,9 @@ export default function CssButtonGeneratorTool() {
         <CssButtonSettingsPanel
             text={text}
             settings={settings}
+            buttonStyleText={buttonStyleText}
             updateSetting={updateSetting}
+            onApplyButtonStyle={applyButtonStyle}
             onShuffle={handleShuffle}
             onRandom={handleRandomAll}
             onReset={handleReset}
@@ -251,50 +440,60 @@ export default function CssButtonGeneratorTool() {
 
     return (
         <>
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-                <div className="min-w-0 space-y-6">
-                    <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                        <div className="mb-5">
-                            <SectionHeader title={text.previewTitle} />
+            <div className="space-y-6">
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+                    <div className="min-w-0 space-y-6">
+                        <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                            <div className="mb-5">
+                                <SectionHeader title={text.previewTitle} />
 
-                            <p className="mt-2 max-w-[320px] text-sm leading-6 text-gray-500">
-                                {text.previewDescription}
-                            </p>
-                        </div>
+                                <p className="mt-2 max-w-[320px] text-sm leading-6 text-gray-500">
+                                    {text.previewDescription}
+                                </p>
+                            </div>
 
-                        <ButtonPreview {...previewProps} />
-                    </section>
+                            <ButtonPreview
+                                settings={settings}
+                                safeBackgroundColor={safeBackgroundColor}
+                                safeTextColor={safeTextColor}
+                                safeBorderColor={safeBorderColor}
+                                safePreviewBackground={safePreviewBackground}
+                                boxShadowValue={boxShadowValue}
+                                isGhost={isGhost}
+                            />
+                        </section>
 
-                    <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                        <div className="mb-4 flex items-center justify-between gap-4">
-                            <SectionHeader title={text.outputTitle} />
+                        <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                            <div className="mb-4 flex items-center justify-between gap-4">
+                                <SectionHeader title={text.outputTitle} />
 
-                            <button
-                                type="button"
-                                onClick={handleCopyCss}
-                                className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                            >
-                                {copiedKey === "copy-css" ? text.copied : text.copyCss}
-                            </button>
-                        </div>
+                                <button
+                                    type="button"
+                                    onClick={() => handleCopyCss("top-copy")}
+                                    className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                >
+                                    {copiedKey === "top-copy" ? text.copied : text.copyCss}
+                                </button>
+                            </div>
 
-                        <pre className="overflow-x-auto rounded-2xl bg-[#FFF7F3] p-4 text-sm leading-7 text-gray-700">
-                            <code>{cssOutput}</code>
-                        </pre>
+                            <pre className="overflow-x-auto rounded-2xl bg-[#FFF7F3] p-4 text-sm leading-7 text-gray-700">
+                                <code>{cssOutput}</code>
+                            </pre>
 
-                        {copyError ? (
-                            <p className="mt-3 text-sm font-medium text-red-500">
-                                {copyError}
-                            </p>
-                        ) : null}
+                            {copyError ? (
+                                <p className="mt-3 text-sm font-medium text-red-500">
+                                    {copyError}
+                                </p>
+                            ) : null}
+                        </section>
+                    </div>
+
+                    <section className="hidden min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm lg:block">
+                        <SectionHeader title={text.controlsTitle} />
+
+                        <div className="mt-5">{settingsPanel}</div>
                     </section>
                 </div>
-
-                <section className="hidden min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm lg:block">
-                    <SectionHeader title={settingsTitle} />
-
-                    <div className="mt-5">{settingsPanel}</div>
-                </section>
             </div>
 
             <MobileActionBar
@@ -304,13 +503,20 @@ export default function CssButtonGeneratorTool() {
 
             {isMobileSettingsOpen ? (
                 <MobileSettingsSheet
-                    title={settingsTitle}
+                    title={text.controlsTitle}
                     onClose={() => setIsMobileSettingsOpen(false)}
                 >
                     <div className="space-y-3">
-                        <div className="sticky top-0 z-10 bg-white pb-3">
-                            <ButtonMiniPreview {...previewProps} />
-                        </div>
+                        <ButtonMiniPreview
+                            text={settings.buttonText}
+                            settings={settings}
+                            safeBackgroundColor={safeBackgroundColor}
+                            safeTextColor={safeTextColor}
+                            safeBorderColor={safeBorderColor}
+                            safePreviewBackground={safePreviewBackground}
+                            boxShadowValue={boxShadowValue}
+                            isGhost={isGhost}
+                        />
 
                         {mobileSettingsPanel}
                     </div>
@@ -327,6 +533,7 @@ function ButtonPreview({
     safeBorderColor,
     safePreviewBackground,
     boxShadowValue,
+    isGhost,
 }: {
     settings: ButtonSettings;
     safeBackgroundColor: string;
@@ -334,10 +541,11 @@ function ButtonPreview({
     safeBorderColor: string;
     safePreviewBackground: string;
     boxShadowValue: string;
+    isGhost: boolean;
 }) {
     return (
         <div
-            className="flex min-h-[320px] items-center justify-center rounded-3xl border border-[#F1E5DF] p-8 md:min-h-[360px]"
+            className="flex min-h-[360px] items-center justify-center rounded-3xl border border-[#F1E5DF] p-8"
             style={{ backgroundColor: safePreviewBackground }}
         >
             <button
@@ -346,7 +554,7 @@ function ButtonPreview({
                     padding: `${settings.paddingY}px ${settings.paddingX}px`,
                     border: `${settings.borderWidth}px solid ${safeBorderColor}`,
                     borderRadius: `${settings.borderRadius}px`,
-                    backgroundColor: safeBackgroundColor,
+                    backgroundColor: isGhost ? "transparent" : safeBackgroundColor,
                     color: safeTextColor,
                     fontSize: `${settings.fontSize}px`,
                     fontWeight: 700,
@@ -361,43 +569,45 @@ function ButtonPreview({
 }
 
 function ButtonMiniPreview({
+    text,
     settings,
     safeBackgroundColor,
     safeTextColor,
     safeBorderColor,
     safePreviewBackground,
     boxShadowValue,
+    isGhost,
 }: {
+    text: string;
     settings: ButtonSettings;
     safeBackgroundColor: string;
     safeTextColor: string;
     safeBorderColor: string;
     safePreviewBackground: string;
     boxShadowValue: string;
+    isGhost: boolean;
 }) {
     return (
         <div
-            className="flex h-36 items-center justify-center rounded-2xl border border-[#F1E5DF] p-4"
+            className="flex h-36 w-full items-center justify-center rounded-2xl border border-[#F1E5DF] p-4"
             style={{ backgroundColor: safePreviewBackground }}
         >
             <button
                 type="button"
                 style={{
-                    padding: `${Math.max(8, settings.paddingY * 0.75)}px ${Math.max(
-                        16,
-                        settings.paddingX * 0.75,
-                    )}px`,
+                    padding: `${settings.paddingY}px ${settings.paddingX}px`,
                     border: `${settings.borderWidth}px solid ${safeBorderColor}`,
                     borderRadius: `${settings.borderRadius}px`,
-                    backgroundColor: safeBackgroundColor,
+                    backgroundColor: isGhost ? "transparent" : safeBackgroundColor,
                     color: safeTextColor,
-                    fontSize: `${Math.max(12, settings.fontSize * 0.85)}px`,
+                    fontSize: `${Math.min(settings.fontSize, 16)}px`,
                     fontWeight: 700,
                     lineHeight: 1,
                     boxShadow: boxShadowValue,
+                    maxWidth: "92%",
                 }}
             >
-                {settings.buttonText.trim() || "Peach Button"}
+                {text.trim() || "Peach Button"}
             </button>
         </div>
     );
@@ -406,7 +616,9 @@ function ButtonMiniPreview({
 function CssButtonSettingsPanel({
     text,
     settings,
+    buttonStyleText,
     updateSetting,
+    onApplyButtonStyle,
     onShuffle,
     onRandom,
     onReset,
@@ -414,45 +626,20 @@ function CssButtonSettingsPanel({
 }: {
     text: typeof t.cssButtonGenerator;
     settings: ButtonSettings;
+    buttonStyleText: string;
     updateSetting: <K extends keyof ButtonSettings>(
         key: K,
         value: ButtonSettings[K],
     ) => void;
+    onApplyButtonStyle: (style: ButtonStyle) => void;
     onShuffle: () => void;
     onRandom: () => void;
     onReset: () => void;
     compact?: boolean;
 }) {
-    const colorGroupTitle =
-        (text as { colorGroupTitle?: string }).colorGroupTitle ?? "Colors";
-
-    const sizeGroupTitle =
-        (text as { sizeGroupTitle?: string }).sizeGroupTitle ?? "Size";
-
-    const shapeGroupTitle =
-        (text as { shapeGroupTitle?: string }).shapeGroupTitle ?? "Shape";
-
-    const shadowGroupTitle =
-        (text as { shadowGroupTitle?: string }).shadowGroupTitle ?? "Shadow";
-
-    const shadowOffsetXShortLabel =
-        (text as { shadowOffsetXShortLabel?: string }).shadowOffsetXShortLabel ??
-        "Offset X";
-
-    const shadowOffsetYShortLabel =
-        (text as { shadowOffsetYShortLabel?: string }).shadowOffsetYShortLabel ??
-        "Offset Y";
-
-    const shadowBlurShortLabel =
-        (text as { shadowBlurShortLabel?: string }).shadowBlurShortLabel ?? "Blur";
-
-    const shadowOpacityShortLabel =
-        (text as { shadowOpacityShortLabel?: string }).shadowOpacityShortLabel ??
-        "Opacity";
-
     return (
         <div className={compact ? "space-y-3" : "space-y-5"}>
-            <div className="grid grid-cols-2 gap-3">
+            <div className={compact ? "grid grid-cols-3 gap-2" : "grid grid-cols-2 gap-3"}>
                 <button
                     type="button"
                     onClick={onShuffle}
@@ -468,13 +655,20 @@ function CssButtonSettingsPanel({
                 >
                     {text.randomAll}
                 </button>
+
+                {compact ? (
+                    <button
+                        type="button"
+                        onClick={onReset}
+                        className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                    >
+                        {text.reset}
+                    </button>
+                ) : null}
             </div>
 
             <label className="block">
-                <span
-                    className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
-                        }`}
-                >
+                <span className="mb-2 block text-sm font-semibold text-gray-800">
                     {text.buttonTextLabel}
                 </span>
 
@@ -484,16 +678,34 @@ function CssButtonSettingsPanel({
                         updateSetting("buttonText", event.target.value)
                     }
                     placeholder={text.buttonTextPlaceholder}
-                    className={`w-full rounded-xl border border-[#F1E5DF] px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-11" : "h-12"
-                        }`}
+                    className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
                 />
             </label>
 
-            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                <h4 className="mb-4 text-sm font-semibold text-gray-900">
-                    {colorGroupTitle}
-                </h4>
+            <SettingGroup title={buttonStyleText}>
+                <div className="grid grid-cols-3 gap-2">
+                    {buttonStyles.map((style) => {
+                        const isActive = settings.buttonStyle === style;
 
+                        return (
+                            <button
+                                key={style}
+                                type="button"
+                                onClick={() => onApplyButtonStyle(style)}
+                                className={`rounded-2xl border px-2 font-semibold transition ${compact ? "py-2 text-xs" : "py-3 text-sm"
+                                    } ${isActive
+                                        ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                                        : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                                    }`}
+                            >
+                                {getButtonStyleLabel(text, style)}
+                            </button>
+                        );
+                    })}
+                </div>
+            </SettingGroup>
+
+            <SettingGroup title="Colors">
                 <div className="grid grid-cols-2 gap-4">
                     <ColorInput
                         label={text.backgroundColorLabel}
@@ -527,25 +739,19 @@ function CssButtonSettingsPanel({
                         onChange={(value) => updateSetting("shadowColor", value)}
                     />
 
-                    <div className={compact ? "col-span-2" : ""}>
-                        <ColorInput
-                            label={text.previewBackgroundLabel}
-                            value={settings.previewBackground}
-                            fallback="#FFF7F3"
-                            compact={compact}
-                            onChange={(value) =>
-                                updateSetting("previewBackground", value)
-                            }
-                        />
-                    </div>
+                    <ColorInput
+                        label={text.previewBackgroundLabel}
+                        value={settings.previewBackground}
+                        fallback="#FFF7F3"
+                        compact={compact}
+                        onChange={(value) =>
+                            updateSetting("previewBackground", value)
+                        }
+                    />
                 </div>
-            </div>
+            </SettingGroup>
 
-            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                <h4 className="mb-4 text-sm font-semibold text-gray-900">
-                    {sizeGroupTitle}
-                </h4>
-
+            <SettingGroup title="Size">
                 <div className="grid grid-cols-2 gap-4">
                     <RangeInput
                         label={text.fontSizeLabel}
@@ -587,46 +793,36 @@ function CssButtonSettingsPanel({
                         onChange={(value) => updateSetting("paddingY", value)}
                     />
                 </div>
-            </div>
+            </SettingGroup>
 
-            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                <h4 className="mb-4 text-sm font-semibold text-gray-900">
-                    {shapeGroupTitle}
-                </h4>
+            <SettingGroup title="Shape">
+                <RangeInput
+                    label={text.borderRadiusLabel}
+                    value={settings.borderRadius}
+                    min={0}
+                    max={999}
+                    suffix="px"
+                    compact={compact}
+                    onChange={(value) => updateSetting("borderRadius", value)}
+                />
+            </SettingGroup>
 
+            <SettingGroup title="Shadow">
                 <div className="grid grid-cols-2 gap-4">
                     <RangeInput
-                        label={text.borderRadiusLabel}
-                        value={settings.borderRadius}
-                        min={0}
-                        max={80}
-                        suffix="px"
-                        compact={compact}
-                        onChange={(value) => updateSetting("borderRadius", value)}
-                    />
-                </div>
-            </div>
-
-            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-                <h4 className="mb-4 text-sm font-semibold text-gray-900">
-                    {shadowGroupTitle}
-                </h4>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <RangeInput
-                        label={shadowOffsetXShortLabel}
+                        label={text.shadowOffsetXLabel}
                         value={settings.shadowOffsetX}
-                        min={-60}
-                        max={60}
+                        min={-40}
+                        max={40}
                         suffix="px"
                         compact={compact}
                         onChange={(value) => updateSetting("shadowOffsetX", value)}
                     />
 
                     <RangeInput
-                        label={shadowOffsetYShortLabel}
+                        label={text.shadowOffsetYLabel}
                         value={settings.shadowOffsetY}
-                        min={-60}
+                        min={-40}
                         max={60}
                         suffix="px"
                         compact={compact}
@@ -634,7 +830,7 @@ function CssButtonSettingsPanel({
                     />
 
                     <RangeInput
-                        label={shadowBlurShortLabel}
+                        label={text.shadowBlurLabel}
                         value={settings.shadowBlur}
                         min={0}
                         max={100}
@@ -644,7 +840,7 @@ function CssButtonSettingsPanel({
                     />
 
                     <RangeInput
-                        label={shadowOpacityShortLabel}
+                        label={text.shadowOpacityLabel}
                         value={settings.shadowOpacity}
                         min={0}
                         max={100}
@@ -653,16 +849,32 @@ function CssButtonSettingsPanel({
                         onChange={(value) => updateSetting("shadowOpacity", value)}
                     />
                 </div>
-            </div>
+            </SettingGroup>
 
-            <button
-                type="button"
-                onClick={onReset}
-                className={`w-full rounded-2xl border border-[#F4C8BA] bg-white text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] ${compact ? "px-4 py-2.5" : "px-4 py-3"
-                    }`}
-            >
-                {text.reset}
-            </button>
+            {!compact ? (
+                <button
+                    type="button"
+                    onClick={onReset}
+                    className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                >
+                    {text.reset}
+                </button>
+            ) : null}
+        </div>
+    );
+}
+
+function SettingGroup({
+    title,
+    children,
+}: {
+    title: string;
+    children: ReactNode;
+}) {
+    return (
+        <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+            <h4 className="mb-4 text-sm font-semibold text-gray-900">{title}</h4>
+            {children}
         </div>
     );
 }
@@ -673,6 +885,68 @@ function SectionHeader({ title }: { title: string }) {
             <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
             <h3 className="font-semibold text-gray-900">{title}</h3>
         </div>
+    );
+}
+
+function NumberInput({
+    label,
+    value,
+    min,
+    max,
+    compact = false,
+    onChange,
+}: {
+    label: string;
+    value: number;
+    min: number;
+    max: number;
+    compact?: boolean;
+    onChange: (value: number) => void;
+}) {
+    const [inputValue, setInputValue] = useState(String(value));
+
+    useEffect(() => {
+        setInputValue(String(value));
+    }, [value]);
+
+    function handleChange(nextValue: string) {
+        setInputValue(nextValue);
+
+        if (nextValue.trim() === "") {
+            return;
+        }
+
+        const parsedValue = Number(nextValue);
+
+        if (!Number.isNaN(parsedValue)) {
+            onChange(parsedValue);
+        }
+    }
+
+    return (
+        <label className="block min-w-0">
+            <span
+                className={`mb-2 block break-words font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                    }`}
+            >
+                {label}
+            </span>
+
+            <input
+                type="number"
+                min={min}
+                max={max}
+                value={inputValue}
+                onChange={(event) => handleChange(event.target.value)}
+                onBlur={() => {
+                    if (inputValue.trim() === "") {
+                        setInputValue(String(value));
+                    }
+                }}
+                className={`w-full rounded-xl border border-[#F1E5DF] px-3 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-10" : "h-12"
+                    }`}
+            />
+        </label>
     );
 }
 
@@ -694,7 +968,7 @@ function ColorInput({
     return (
         <label className="block min-w-0">
             <span
-                className={`mb-2 block truncate font-semibold text-gray-800 ${compact ? "text-[11px]" : "text-sm"
+                className={`mb-2 block break-words font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
                     }`}
             >
                 {label}
@@ -704,14 +978,14 @@ function ColorInput({
                 className={
                     compact
                         ? "grid grid-cols-[34px_1fr] gap-1.5"
-                        : "grid grid-cols-[58px_1fr] gap-3"
+                        : "grid grid-cols-[48px_1fr] gap-2"
                 }
             >
                 <input
                     type="color"
                     value={colorPickerValue}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-10" : "h-12"
+                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-10" : "h-11"
                         }`}
                 />
 
@@ -720,7 +994,7 @@ function ColorInput({
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
                     className={`w-full min-w-0 rounded-xl border border-[#F1E5DF] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
                         ? "h-10 px-2 text-[10px]"
-                        : "h-12 px-4 text-sm"
+                        : "h-11 px-3 text-xs"
                         }`}
                 />
             </div>
@@ -750,8 +1024,8 @@ function RangeInput({
             <div
                 className={
                     compact
-                        ? "mb-1 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5"
-                        : "mb-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2"
+                        ? "mb-1 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-1.5"
+                        : "mb-2 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2"
                 }
             >
                 <span
@@ -768,7 +1042,7 @@ function RangeInput({
                     className={
                         compact
                             ? "min-w-[40px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-0.5 text-center text-[11px] font-semibold leading-5 text-[#7A5A4F]"
-                            : "min-w-[48px] shrink-0 rounded-full bg-[#FFF7F3] px-3 py-1 text-center text-xs font-semibold text-[#7A5A4F]"
+                            : "min-w-[44px] shrink-0 rounded-full bg-[#FFF7F3] px-2 py-1 text-center text-xs font-semibold text-[#7A5A4F]"
                     }
                 >
                     {value}
@@ -871,12 +1145,12 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
         >
             <div
-                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >

@@ -912,6 +912,14 @@ export const messages = {
             previewDescription:
                 "Create clean CSS button styles with live preview and copy-ready code.",
 
+            buttonStyle: "Button Style",
+            styleSolid: "Solid",
+            styleOutline: "Outline",
+            styleSoft: "Soft",
+            stylePill: "Pill",
+            styleGhost: "Ghost",
+            styleThreeD: "3D",
+
             buttonTextLabel: "Button Text",
             buttonTextPlaceholder: "Type button text",
             fontSizeLabel: "Font Size",
@@ -919,15 +927,10 @@ export const messages = {
             paddingYLabel: "Vertical Padding",
             borderRadiusLabel: "Border Radius",
             borderWidthLabel: "Border Width",
-            shadowBlurLabel: "Shadow Blur",
             shadowOffsetXLabel: "Shadow Offset X",
             shadowOffsetYLabel: "Shadow Offset Y",
+            shadowBlurLabel: "Shadow Blur",
             shadowOpacityLabel: "Shadow Opacity",
-            shadowGroupTitle: "Shadow",
-            shadowOffsetXShortLabel: "Offset X",
-            shadowOffsetYShortLabel: "Offset Y",
-            shadowBlurShortLabel: "Blur",
-            shadowOpacityShortLabel: "Opacity",
 
             backgroundColorLabel: "Background Color",
             textColorLabel: "Text Color",
