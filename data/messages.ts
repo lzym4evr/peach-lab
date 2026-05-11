@@ -905,10 +905,12 @@ export const messages = {
 
         cssButtonGenerator: {
             previewTitle: "Live Preview",
-            controlsTitle: "Controls",
+            controlsTitle: "Button Settings",
+            settingsButton: "Settings",
             outputTitle: "CSS Output",
 
-            previewDescription: "Create clean CSS button styles with live preview and copy-ready code.",
+            previewDescription:
+                "Create clean CSS button styles with live preview and copy-ready code.",
 
             buttonTextLabel: "Button Text",
             buttonTextPlaceholder: "Type button text",
@@ -928,7 +930,7 @@ export const messages = {
             previewBackgroundLabel: "Preview Background",
 
             shuffle: "Shuffle",
-            randomAll: "Random All",
+            randomAll: "Random",
             copyCss: "Copy CSS",
             reset: "Reset",
             copied: "Copied",
