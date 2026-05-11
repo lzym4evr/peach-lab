@@ -985,34 +985,32 @@ export const messages = {
             supportedFormats: "Supports SVG files.",
             dropHint: "Drag and drop an SVG here, or click to choose a file.",
             noFileSelected: "No file selected",
-
-            settingsButton: "Settings",
-            actionCopy: "Copy",
-            actionDownload: "Download",
-
             svgPreview: "SVG Preview",
+            previewHint: "Checkerboard squares indicate transparent areas.",
             colorControls: "Color Controls",
-            detectedColors: "Detected Colors",
             chooseColorToReplace: "Choose color to replace",
+            transparencyHint:
+                "Detected colors are real colors in the SVG code. Transparent areas are not colors.",
+            originalColor: "Original Color",
             newColor: "New Color",
-            newColorHint: "Pick the new color you want to use.",
-            replaceSelectedColor: "Replace Selected Color",
-            replaceColor: "Replace Color",
-            replaceAllColors: "Replace All Colors",
-
+            newColorDescription: "Pick the new color you want to use.",
+            replaceColor: "Replace Selected Color",
+            replaceAllColors: "Replace Every Color",
             undo: "Undo",
             redo: "Redo",
             copySvg: "Copy SVG",
             downloadSvg: "Download SVG",
+            downloadButton: "Download",
+            settingsButton: "Settings",
             svgCode: "SVG Code",
-
             noColors:
-                "No editable HEX colors were detected. You can still edit the SVG code manually later.",
+                "No editable HEX colors were detected. You can still edit the SVG code manually.",
             localProcessingDescription:
                 "Your SVG file is read and updated directly in your browser. It is not uploaded to a server.",
             invalidSvg: "Please upload a valid SVG file.",
             invalidSvgContent: "This file does not look like a valid SVG.",
             readError: "Could not read this SVG file. Please try another file.",
+            copyError: "Could not copy the SVG. Please try again.",
         },
 
         svgOptimizer: {

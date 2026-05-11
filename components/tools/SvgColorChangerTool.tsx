@@ -1,6 +1,8 @@
 "use client";
 
 import {
+    type ChangeEvent,
+    type DragEvent,
     type ReactNode,
     useEffect,
     useMemo,
@@ -12,11 +14,12 @@ import { t } from "@/data/messages";
 type SvgInfo = {
     name: string;
     size: number;
-    content: string;
 };
 
 function normalizeHexColor(value: string) {
     let color = value.trim();
+
+    if (!color) return null;
 
     if (!color.startsWith("#")) {
         color = `#${color}`;
@@ -88,10 +91,24 @@ function replaceSvgColor(svgContent: string, fromColor: string, toColor: string)
     return updatedContent;
 }
 
+const checkerboardStyle = {
+    backgroundColor: "#FFFFFF",
+    backgroundImage:
+        "linear-gradient(45deg, #F1E5DF 25%, transparent 25%), linear-gradient(-45deg, #F1E5DF 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #F1E5DF 75%), linear-gradient(-45deg, transparent 75%, #F1E5DF 75%)",
+    backgroundSize: "18px 18px",
+    backgroundPosition: "0 0, 0 9px, 9px -9px, -9px 0px",
+} as const;
+
+const miniCheckerboardStyle = {
+    backgroundColor: "#FFFFFF",
+    backgroundImage:
+        "linear-gradient(45deg, #F1E5DF 25%, transparent 25%), linear-gradient(-45deg, #F1E5DF 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #F1E5DF 75%), linear-gradient(-45deg, transparent 75%, #F1E5DF 75%)",
+    backgroundSize: "14px 14px",
+    backgroundPosition: "0 0, 0 7px, 7px -7px, -7px 0px",
+} as const;
+
 export default function SvgColorChangerTool() {
     const text = t.svgColorChanger;
-
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
     const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const [svgInfo, setSvgInfo] = useState<SvgInfo | null>(null);
@@ -100,57 +117,29 @@ export default function SvgColorChangerTool() {
     const [newColor, setNewColor] = useState("#F28C6F");
     const [error, setError] = useState("");
     const [isDragging, setIsDragging] = useState(false);
-    const [copied, setCopied] = useState(false);
+    const [copiedKey, setCopiedKey] = useState("");
     const [history, setHistory] = useState<string[]>([]);
     const [redoHistory, setRedoHistory] = useState<string[]>([]);
+    const [previewUrl, setPreviewUrl] = useState("");
     const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);
-
-    const localProcessingTitle =
-        (t.common as { localProcessing?: string }).localProcessing ??
-        "Local processing";
-
-    const dropHint =
-        (text as { dropHint?: string }).dropHint ??
-        "Drag and drop an SVG here, or click to choose a file.";
-
-    const supportedFormats =
-        (text as { supportedFormats?: string }).supportedFormats ??
-        "Supports SVG files.";
-
-    const noFileSelected =
-        (text as { noFileSelected?: string }).noFileSelected ??
-        "No file selected";
-
-    const settingsButtonText =
-        (text as { settingsButton?: string }).settingsButton ?? "Settings";
-
-    const actionCopyText =
-        (text as { actionCopy?: string }).actionCopy ?? "Copy";
-
-    const actionDownloadText =
-        (text as { actionDownload?: string }).actionDownload ?? "Download";
-
-    const chooseColorToReplace =
-        (text as { chooseColorToReplace?: string }).chooseColorToReplace ??
-        "Choose color to replace";
-
-    const newColorHint =
-        (text as { newColorHint?: string }).newColorHint ??
-        "Pick the new color you want to use.";
-
-    const replaceSelectedColorText =
-        (text as { replaceSelectedColor?: string }).replaceSelectedColor ??
-        "Replace Selected Color";
 
     const detectedColors = useMemo(() => {
         return extractHexColors(svgContent);
     }, [svgContent]);
 
-    const previewUrl = useMemo(() => {
-        if (!svgContent) return "";
+    useEffect(() => {
+        if (!svgContent) {
+            setPreviewUrl("");
+            return;
+        }
 
         const blob = new Blob([svgContent], { type: "image/svg+xml" });
-        return URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
+        setPreviewUrl(url);
+
+        return () => {
+            URL.revokeObjectURL(url);
+        };
     }, [svgContent]);
 
     useEffect(() => {
@@ -160,6 +149,18 @@ export default function SvgColorChangerTool() {
             }
         };
     }, []);
+
+    function setTemporaryCopied(key: string) {
+        setCopiedKey(key);
+
+        if (copyTimerRef.current) {
+            clearTimeout(copyTimerRef.current);
+        }
+
+        copyTimerRef.current = setTimeout(() => {
+            setCopiedKey("");
+        }, 1500);
+    }
 
     function saveHistory() {
         if (!svgContent) return;
@@ -211,9 +212,12 @@ export default function SvgColorChangerTool() {
 
     function processSvgFile(file: File) {
         setError("");
-        setCopied(false);
+        setCopiedKey("");
 
-        if (!file.name.toLowerCase().endsWith(".svg") && file.type !== "image/svg+xml") {
+        if (
+            !file.name.toLowerCase().endsWith(".svg") &&
+            file.type !== "image/svg+xml"
+        ) {
             setError(text.invalidSvg);
             return;
         }
@@ -233,15 +237,13 @@ export default function SvgColorChangerTool() {
             setSvgInfo({
                 name: file.name,
                 size: file.size,
-                content,
             });
 
             setSvgContent(content);
             setSelectedColor(colors[0] || "");
             setHistory([]);
             setRedoHistory([]);
-            setError("");
-            setCopied(false);
+            setCopiedKey("");
         };
 
         reader.onerror = () => {
@@ -251,25 +253,24 @@ export default function SvgColorChangerTool() {
         reader.readAsText(file);
     }
 
-    function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
         if (!file) return;
 
         processSvgFile(file);
-        event.target.value = "";
     }
 
-    function handleDragOver(event: React.DragEvent<HTMLLabelElement>) {
+    function handleDragOver(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(true);
     }
 
-    function handleDragLeave(event: React.DragEvent<HTMLLabelElement>) {
+    function handleDragLeave(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
     }
 
-    function handleDrop(event: React.DragEvent<HTMLLabelElement>) {
+    function handleDrop(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
 
@@ -280,57 +281,58 @@ export default function SvgColorChangerTool() {
     }
 
     function replaceSelectedColor() {
-        if (!selectedColor) return;
+        const normalizedSelectedColor = normalizeHexColor(selectedColor);
+        const normalizedNewColor = normalizeHexColor(newColor);
+
+        if (!normalizedSelectedColor || !normalizedNewColor) return;
 
         saveHistory();
 
-        const updatedContent = replaceSvgColor(svgContent, selectedColor, newColor);
+        const updatedContent = replaceSvgColor(
+            svgContent,
+            normalizedSelectedColor,
+            normalizedNewColor,
+        );
         const colors = extractHexColors(updatedContent);
-        const normalizedNewColor = normalizeHexColor(newColor);
 
         setSvgContent(updatedContent);
         setSelectedColor(
-            normalizedNewColor && colors.includes(normalizedNewColor)
+            colors.includes(normalizedNewColor)
                 ? normalizedNewColor
                 : colors[0] || "",
         );
     }
 
     function replaceAllColors() {
-        if (detectedColors.length === 0) return;
+        const normalizedNewColor = normalizeHexColor(newColor);
+
+        if (!normalizedNewColor || detectedColors.length === 0) return;
 
         saveHistory();
 
         let updatedContent = svgContent;
 
         detectedColors.forEach((color) => {
-            updatedContent = replaceSvgColor(updatedContent, color, newColor);
+            updatedContent = replaceSvgColor(updatedContent, color, normalizedNewColor);
         });
 
         const colors = extractHexColors(updatedContent);
-        const normalizedNewColor = normalizeHexColor(newColor);
 
         setSvgContent(updatedContent);
         setSelectedColor(
-            normalizedNewColor && colors.includes(normalizedNewColor)
+            colors.includes(normalizedNewColor)
                 ? normalizedNewColor
                 : colors[0] || "",
         );
     }
 
     async function copySvg() {
-        if (!svgContent) return;
-
-        await navigator.clipboard.writeText(svgContent);
-        setCopied(true);
-
-        if (copyTimerRef.current) {
-            clearTimeout(copyTimerRef.current);
+        try {
+            await navigator.clipboard.writeText(svgContent);
+            setTemporaryCopied("svg");
+        } catch {
+            setError(text.copyError);
         }
-
-        copyTimerRef.current = setTimeout(() => {
-            setCopied(false);
-        }, 1500);
     }
 
     function downloadSvg() {
@@ -340,7 +342,6 @@ export default function SvgColorChangerTool() {
         const url = URL.createObjectURL(blob);
 
         const baseName = svgInfo.name.replace(/\.svg$/i, "");
-
         const link = document.createElement("a");
         link.href = url;
         link.download = `${baseName}-updated.svg`;
@@ -355,68 +356,40 @@ export default function SvgColorChangerTool() {
         setSelectedColor("");
         setNewColor("#F28C6F");
         setError("");
-        setCopied(false);
+        setCopiedKey("");
         setHistory([]);
         setRedoHistory([]);
         setIsMobileSettingsOpen(false);
     }
 
-    const desktopColorControlsPanel = (
-        <ColorControlsPanel
-            text={text}
-            chooseColorToReplace={chooseColorToReplace}
-            newColorHint={newColorHint}
-            replaceSelectedColorText={replaceSelectedColorText}
-            detectedColors={detectedColors}
-            selectedColor={selectedColor}
-            newColor={newColor}
-            copied={copied}
-            canUndo={history.length > 0}
-            canRedo={redoHistory.length > 0}
-            onSelectColor={setSelectedColor}
-            onChangeNewColor={setNewColor}
-            onReplaceSelected={replaceSelectedColor}
-            onReplaceAll={replaceAllColors}
-            onUndo={undoLastChange}
-            onRedo={redoLastChange}
-            onDownload={downloadSvg}
-            onCopy={copySvg}
-        />
-    );
+    const hasSvg = Boolean(svgInfo && svgContent);
 
-    const mobileColorControlsPanel = (
+    const controlsPanel = (
         <ColorControlsPanel
             text={text}
-            chooseColorToReplace={chooseColorToReplace}
-            newColorHint={newColorHint}
-            replaceSelectedColorText={replaceSelectedColorText}
             detectedColors={detectedColors}
             selectedColor={selectedColor}
             newColor={newColor}
-            copied={copied}
-            canUndo={history.length > 0}
-            canRedo={redoHistory.length > 0}
+            historyLength={history.length}
+            redoLength={redoHistory.length}
             onSelectColor={setSelectedColor}
-            onChangeNewColor={setNewColor}
+            onChangeSelectedColor={(value) => setSelectedColor(value.toUpperCase())}
+            onChangeNewColor={(value) => setNewColor(value.toUpperCase())}
             onReplaceSelected={replaceSelectedColor}
             onReplaceAll={replaceAllColors}
             onUndo={undoLastChange}
             onRedo={redoLastChange}
-            onDownload={downloadSvg}
-            onCopy={copySvg}
-            compact
-            hideHeader
         />
     );
 
     return (
         <>
-            <div className="space-y-6">
-                <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm text-[#7A5A4F]">
-                    <p className="font-semibold text-[#2A1F1B]">
-                        {localProcessingTitle}
+            <div className="space-y-6 pb-28 lg:pb-0">
+                <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 md:p-5">
+                    <p className="text-sm font-semibold text-gray-800">
+                        {t.common.localProcessing}
                     </p>
-                    <p className="mt-2 leading-6">
+                    <p className="mt-2 text-sm leading-6 text-gray-500">
                         {text.localProcessingDescription}
                     </p>
                 </div>
@@ -427,136 +400,180 @@ export default function SvgColorChangerTool() {
                     onDrop={handleDrop}
                     className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
                         ? "border-[#F28C6F] bg-[#FFF0EA]"
-                        : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                        : "border-[#F4C8BA] bg-[#FFF7F3]"
                         }`}
                 >
-                    <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
+                    <h2 className="text-2xl font-semibold text-gray-900">
                         {text.uploadTitle}
                     </h2>
 
-                    <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-gray-500 md:mt-3 md:text-base md:leading-7">
+                    <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-gray-500 md:mt-3">
                         {text.uploadDescription}
                     </p>
 
-                    <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
-                        {supportedFormats}
+                    <p className="mt-2 text-sm font-medium text-[#C4836C] md:mt-3">
+                        {text.supportedFormats}
                     </p>
 
-                    <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
-                        {dropHint}
+                    <p className="mt-2 text-sm text-gray-500 md:mt-3">
+                        {text.dropHint}
                     </p>
 
-                    <div className="mx-auto mt-4 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:mt-5">
-                        {svgInfo ? text.chooseSvg : text.chooseSvg}
+                    <div className="mt-4 md:mt-5">
+                        <span className="inline-flex rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]">
+                            {text.chooseSvg}
+                        </span>
                     </div>
 
                     <input
-                        ref={fileInputRef}
                         type="file"
                         accept=".svg,image/svg+xml"
                         onChange={handleFileChange}
                         className="hidden"
                     />
 
-                    <p className="mx-auto mt-3 max-w-xl break-all text-sm font-medium text-gray-500">
-                        {svgInfo?.name || noFileSelected}
+                    <p className="mt-3 text-sm text-gray-500">
+                        {svgInfo ? svgInfo.name : text.noFileSelected}
                     </p>
 
                     {error ? (
-                        <p className="mt-4 text-sm font-medium text-red-500">
-                            {error}
-                        </p>
+                        <p className="mt-3 text-sm font-medium text-red-500">{error}</p>
                     ) : null}
                 </label>
 
-                {svgInfo ? (
+                {hasSvg ? (
                     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
                         <div className="min-w-0 space-y-6">
                             <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                                <div className="flex items-center justify-between gap-4">
+                                <div className="mb-4 flex items-center justify-between gap-4">
                                     <SectionHeader title={text.svgPreview} />
 
                                     <button
                                         type="button"
                                         onClick={clearSvg}
-                                        className="rounded-xl border border-[#F1E5DF] bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
+                                        className="rounded-xl border border-[#F1E5DF] px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#F28C6F] hover:text-[#E6765B]"
                                     >
                                         {t.common.clear}
                                     </button>
                                 </div>
 
-                                <div className="mt-4 flex min-h-72 items-center justify-center overflow-hidden rounded-2xl bg-[#FFFDFC] p-6 md:min-h-80">
+                                <div
+                                    className="flex min-h-[260px] items-center justify-center overflow-hidden rounded-2xl border border-[#F1E5DF] p-6 md:min-h-[320px]"
+                                    style={checkerboardStyle}
+                                >
                                     {previewUrl ? (
                                         <img
                                             src={previewUrl}
-                                            alt={svgInfo.name}
-                                            className="max-h-72 max-w-full object-contain md:max-h-80"
+                                            alt={svgInfo?.name || text.svgPreview}
+                                            className="max-h-[240px] max-w-full object-contain md:max-h-[300px]"
                                         />
                                     ) : null}
                                 </div>
 
                                 <div className="mt-4 space-y-1 text-sm text-gray-500">
-                                    <p className="break-all">{svgInfo.name}</p>
-                                    <p>{formatFileSize(svgInfo.size)}</p>
+                                    <p className="break-all">{svgInfo?.name || ""}</p>
+                                    <p>{svgInfo ? formatFileSize(svgInfo.size) : ""}</p>
+                                    <p>{text.previewHint}</p>
                                 </div>
                             </section>
 
-                            <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                            <section className="md:hidden">
+                                <div className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm">
+                                    <div className="mb-3 flex items-center justify-between gap-4">
+                                        <SectionHeader title={text.svgCode} />
+
+                                        <button
+                                            type="button"
+                                            onClick={copySvg}
+                                            className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                        >
+                                            {copiedKey === "svg" ? t.common.copied : text.copySvg}
+                                        </button>
+                                    </div>
+
+                                    <textarea
+                                        value={svgContent}
+                                        onChange={(event) => setSvgContent(event.target.value)}
+                                        className="min-h-[220px] w-full resize-y rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 font-mono text-sm leading-6 text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                                    />
+                                </div>
+                            </section>
+
+                            <section className="hidden md:block md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                                 <div className="mb-4 flex items-center justify-between gap-4">
                                     <SectionHeader title={text.svgCode} />
 
                                     <button
                                         type="button"
                                         onClick={copySvg}
-                                        className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                        className="rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                                     >
-                                        {copied ? t.common.copied : t.common.copy}
+                                        {copiedKey === "svg" ? t.common.copied : text.copySvg}
                                     </button>
                                 </div>
 
                                 <textarea
                                     value={svgContent}
                                     onChange={(event) => setSvgContent(event.target.value)}
-                                    className="min-h-72 w-full resize-y rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 font-mono text-sm leading-6 text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] md:min-h-80"
+                                    className="min-h-[320px] w-full resize-y rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 font-mono text-sm leading-6 text-gray-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
                                 />
                             </section>
                         </div>
 
-                        <section className="hidden min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm lg:block">
-                            {desktopColorControlsPanel}
+                        <section className="hidden rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm lg:block">
+                            <SectionHeader title={text.colorControls} />
+                            <div className="mt-5 space-y-5">
+                                {controlsPanel}
+
+                                <button
+                                    type="button"
+                                    onClick={downloadSvg}
+                                    className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                >
+                                    {text.downloadSvg}
+                                </button>
+                            </div>
                         </section>
                     </div>
                 ) : null}
             </div>
 
-            {svgInfo ? (
-                <MobileActionBar
-                    settingsText={settingsButtonText}
-                    copyText={copied ? t.common.copied : actionCopyText}
-                    downloadText={actionDownloadText}
-                    onOpenSettings={() => setIsMobileSettingsOpen(true)}
-                    onCopy={copySvg}
-                    onDownload={downloadSvg}
-                />
-            ) : null}
+            {hasSvg ? (
+                <>
+                    <MobileActionBar
+                        settingsButtonText={text.settingsButton}
+                        downloadButtonText={text.downloadButton}
+                        onOpenSettings={() => setIsMobileSettingsOpen(true)}
+                        onDownload={downloadSvg}
+                    />
 
-            {isMobileSettingsOpen ? (
-                <MobileSettingsSheet
-                    title={text.colorControls}
-                    onClose={() => setIsMobileSettingsOpen(false)}
-                >
-                    <div className="space-y-3">
-                        <div className="sticky top-0 z-10 bg-white pb-3">
-                            <SvgMiniPreview
-                                previewUrl={previewUrl}
-                                fileName={svgInfo?.name || ""}
-                                fileSize={svgInfo ? formatFileSize(svgInfo.size) : ""}
-                            />
-                        </div>
+                    {isMobileSettingsOpen ? (
+                        <MobileSettingsSheet
+                            title={text.colorControls}
+                            onClose={() => setIsMobileSettingsOpen(false)}
+                        >
+                            <div className="sticky top-0 z-10 bg-white pb-3">
+                                <SvgMiniPreview
+                                    previewUrl={previewUrl}
+                                    fileName={svgInfo?.name || ""}
+                                    previewHint={text.previewHint}
+                                />
+                            </div>
 
-                        {mobileColorControlsPanel}
-                    </div>
-                </MobileSettingsSheet>
+                            <div className="space-y-4">
+                                {controlsPanel}
+
+                                <button
+                                    type="button"
+                                    onClick={downloadSvg}
+                                    className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                                >
+                                    {text.downloadSvg}
+                                </button>
+                            </div>
+                        </MobileSettingsSheet>
+                    ) : null}
+                </>
             ) : null}
         </>
     );
@@ -564,79 +581,67 @@ export default function SvgColorChangerTool() {
 
 function ColorControlsPanel({
     text,
-    chooseColorToReplace,
-    newColorHint,
-    replaceSelectedColorText,
     detectedColors,
     selectedColor,
     newColor,
-    copied,
-    canUndo,
-    canRedo,
+    historyLength,
+    redoLength,
     onSelectColor,
+    onChangeSelectedColor,
     onChangeNewColor,
     onReplaceSelected,
     onReplaceAll,
     onUndo,
     onRedo,
-    onDownload,
-    onCopy,
-    compact = false,
-    hideHeader = false,
 }: {
     text: typeof t.svgColorChanger;
-    chooseColorToReplace: string;
-    newColorHint: string;
-    replaceSelectedColorText: string;
     detectedColors: string[];
     selectedColor: string;
     newColor: string;
-    copied: boolean;
-    canUndo: boolean;
-    canRedo: boolean;
-    onSelectColor: (value: string) => void;
+    historyLength: number;
+    redoLength: number;
+    onSelectColor: (color: string) => void;
+    onChangeSelectedColor: (value: string) => void;
     onChangeNewColor: (value: string) => void;
     onReplaceSelected: () => void;
     onReplaceAll: () => void;
     onUndo: () => void;
     onRedo: () => void;
-    onDownload: () => void;
-    onCopy: () => void;
-    compact?: boolean;
-    hideHeader?: boolean;
 }) {
-    const normalizedNewColor = normalizeHexColor(newColor) || "#F28C6F";
+    const safeNewColor = normalizeHexColor(newColor) || "#F28C6F";
 
     return (
-        <div>
-            {!hideHeader ? <SectionHeader title={text.colorControls} /> : null}
+        <div className="space-y-5">
+            <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                <h4 className="text-sm font-semibold text-gray-900">
+                    {text.chooseColorToReplace}
+                </h4>
 
-            <div className={compact ? "mt-0 space-y-3" : "mt-5 space-y-5"}>
-                <div>
-                    <p className="mb-2 text-sm font-semibold text-gray-800">
-                        {chooseColorToReplace}
-                    </p>
+                <p className="mt-2 text-sm leading-6 text-gray-500">
+                    {text.transparencyHint}
+                </p>
 
+                <div className="mt-4">
                     {detectedColors.length > 0 ? (
-                        <div className={compact ? "grid grid-cols-2 gap-2" : "flex flex-wrap gap-2"}>
+                        <div className="flex flex-wrap gap-2">
                             {detectedColors.map((color) => {
-                                const active = selectedColor === color;
+                                const isActive = selectedColor === color;
 
                                 return (
                                     <button
                                         key={color}
                                         type="button"
                                         onClick={() => onSelectColor(color)}
-                                        className={`flex min-w-0 items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${active
-                                            ? "border-[#F28C6F] bg-[#FFF0EA] text-[#E6765B] shadow-sm"
+                                        className={`flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${isActive
+                                            ? "border-[#F28C6F] bg-[#FFF0EA] text-[#E6765B]"
                                             : "border-[#F1E5DF] bg-white text-gray-700 hover:border-[#F28C6F] hover:bg-[#FFF7F3]"
                                             }`}
                                     >
                                         <span
-                                            className="h-5 w-5 shrink-0 rounded-md border border-[#F1E5DF]"
+                                            className="h-5 w-5 rounded-md border border-[#F1E5DF]"
                                             style={{ backgroundColor: color }}
                                         />
-                                        <span className="min-w-0 truncate">{color}</span>
+                                        {color}
                                     </button>
                                 );
                             })}
@@ -647,101 +652,94 @@ function ColorControlsPanel({
                         </div>
                     )}
                 </div>
+            </div>
 
-                <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-3">
-                    <div className="mb-3 flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                            <p className="text-sm font-semibold text-gray-900">
-                                {text.newColor}
-                            </p>
-                            <p className="mt-1 text-xs leading-5 text-gray-500">
-                                {newColorHint}
-                            </p>
-                        </div>
+            <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label className="mb-2 block text-sm font-semibold text-gray-800">
+                            {text.originalColor}
+                        </label>
 
-                        <div
-                            className="h-10 w-10 shrink-0 rounded-2xl border border-[#F1E5DF] shadow-sm"
-                            style={{ backgroundColor: normalizedNewColor }}
+                        <input
+                            value={selectedColor}
+                            onChange={(event) =>
+                                onChangeSelectedColor(event.target.value.toUpperCase())
+                            }
+                            placeholder="#000000"
+                            className="h-12 w-full rounded-xl border border-[#F1E5DF] px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
                         />
                     </div>
 
-                    <div className="grid grid-cols-[44px_minmax(0,1fr)] gap-2">
-                        <input
-                            type="color"
-                            value={normalizedNewColor}
-                            onChange={(event) =>
-                                onChangeNewColor(event.target.value.toUpperCase())
-                            }
-                            className="h-11 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
-                        />
+                    <div>
+                        <label className="mb-2 block text-sm font-semibold text-gray-800">
+                            {text.newColor}
+                        </label>
 
-                        <input
-                            value={newColor}
-                            onChange={(event) =>
-                                onChangeNewColor(event.target.value.toUpperCase())
-                            }
-                            className="h-11 min-w-0 rounded-xl border border-[#F1E5DF] px-3 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                        />
+                        <p className="mb-2 text-sm leading-6 text-gray-500">
+                            {text.newColorDescription}
+                        </p>
+
+                        <div className="grid grid-cols-[64px_minmax(0,1fr)] gap-3">
+                            <input
+                                type="color"
+                                value={safeNewColor}
+                                onChange={(event) =>
+                                    onChangeNewColor(event.target.value.toUpperCase())
+                                }
+                                className="h-12 w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
+                            />
+
+                            <input
+                                value={newColor}
+                                onChange={(event) =>
+                                    onChangeNewColor(event.target.value.toUpperCase())
+                                }
+                                className="h-12 min-w-0 rounded-xl border border-[#F1E5DF] px-4 text-sm font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                            />
+                        </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <button
                         type="button"
                         onClick={onReplaceSelected}
-                        disabled={!selectedColor}
-                        className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-3 py-2.5 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-40"
+                        disabled={!normalizeHexColor(selectedColor)}
+                        className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-40"
                     >
-                        {replaceSelectedColorText}
+                        {text.replaceColor}
                     </button>
 
                     <button
                         type="button"
                         onClick={onReplaceAll}
                         disabled={detectedColors.length === 0}
-                        className="rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40"
+                        className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         {text.replaceAllColors}
                     </button>
                 </div>
+            </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                    <button
-                        type="button"
-                        onClick={onUndo}
-                        disabled={!canUndo}
-                        className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2.5 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                        {text.undo}
-                    </button>
+            <div className="grid gap-3 sm:grid-cols-2">
+                <button
+                    type="button"
+                    onClick={onUndo}
+                    disabled={historyLength === 0}
+                    className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                    {text.undo}
+                </button>
 
-                    <button
-                        type="button"
-                        onClick={onRedo}
-                        disabled={!canRedo}
-                        className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2.5 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                        {text.redo}
-                    </button>
-                </div>
-
-                <div className="hidden gap-3 sm:grid-cols-2 lg:grid">
-                    <button
-                        type="button"
-                        onClick={onCopy}
-                        className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3]"
-                    >
-                        {copied ? t.common.copied : text.copySvg}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={onDownload}
-                        className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
-                    >
-                        {text.downloadSvg}
-                    </button>
-                </div>
+                <button
+                    type="button"
+                    onClick={onRedo}
+                    disabled={redoLength === 0}
+                    className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                    {text.redo}
+                </button>
             </div>
         </div>
     );
@@ -750,56 +748,55 @@ function ColorControlsPanel({
 function SvgMiniPreview({
     previewUrl,
     fileName,
-    fileSize,
+    previewHint,
 }: {
     previewUrl: string;
     fileName: string;
-    fileSize: string;
+    previewHint: string;
 }) {
     return (
-        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5">
-            <div className="grid grid-cols-[88px_minmax(0,1fr)] items-center gap-3">
-                <div className="flex h-20 w-full items-center justify-center overflow-hidden rounded-xl border border-[#F1E5DF] bg-white p-2 shadow-sm">
-                    {previewUrl ? (
-                        <img
-                            src={previewUrl}
-                            alt={fileName}
-                            className="max-h-full max-w-full object-contain"
-                        />
-                    ) : null}
-                </div>
-
-                <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-[#2A1F1B]">
-                        {fileName}
-                    </p>
-
-                    <p className="mt-1 text-xs font-medium text-gray-500">
-                        {fileSize}
-                    </p>
-
-                    <p className="mt-2 text-xs leading-5 text-[#7A5A4F]">
-                        Pick a color below, choose a new color, then replace it.
-                    </p>
-                </div>
+        <div className="rounded-3xl border border-[#F1E5DF] bg-white p-3 shadow-sm">
+            <div className="mb-3 flex items-center gap-3">
+                <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
+                <h3 className="text-base font-semibold text-gray-900">{fileName}</h3>
             </div>
+
+            <div
+                className="flex h-28 w-full items-center justify-center overflow-hidden rounded-2xl border border-[#F1E5DF] p-3"
+                style={miniCheckerboardStyle}
+            >
+                {previewUrl ? (
+                    <img
+                        src={previewUrl}
+                        alt={fileName}
+                        className="max-h-full max-w-full object-contain"
+                    />
+                ) : null}
+            </div>
+
+            <p className="mt-3 text-xs leading-5 text-gray-500">{previewHint}</p>
+        </div>
+    );
+}
+
+function SectionHeader({ title }: { title: string }) {
+    return (
+        <div className="flex items-center gap-3">
+            <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
+            <h3 className="font-semibold text-gray-900">{title}</h3>
         </div>
     );
 }
 
 function MobileActionBar({
-    settingsText,
-    copyText,
-    downloadText,
+    settingsButtonText,
+    downloadButtonText,
     onOpenSettings,
-    onCopy,
     onDownload,
 }: {
-    settingsText: string;
-    copyText: string;
-    downloadText: string;
+    settingsButtonText: string;
+    downloadButtonText: string;
     onOpenSettings: () => void;
-    onCopy: () => void;
     onDownload: () => void;
 }) {
     const actionBarRef = useRef<HTMLDivElement | null>(null);
@@ -835,30 +832,22 @@ function MobileActionBar({
         <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
             <div
                 ref={actionBarRef}
-                className="pointer-events-auto mx-auto grid max-w-md grid-cols-3 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-2 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
             >
                 <button
                     type="button"
                     onClick={onOpenSettings}
-                    className="rounded-2xl bg-[#F28C6F] px-2 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B]"
+                    className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2.5 text-center text-sm font-semibold leading-tight text-[#E6765B] transition hover:bg-[#FFF7F3]"
                 >
-                    {settingsText}
-                </button>
-
-                <button
-                    type="button"
-                    onClick={onCopy}
-                    className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-2.5 text-center text-sm font-semibold leading-tight text-[#2A1F1B] transition hover:bg-[#FFF7F3]"
-                >
-                    {copyText}
+                    {settingsButtonText}
                 </button>
 
                 <button
                     type="button"
                     onClick={onDownload}
-                    className="rounded-2xl bg-[#F28C6F] px-2 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B]"
+                    className="rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B]"
                 >
-                    {downloadText}
+                    {downloadButtonText}
                 </button>
             </div>
         </div>
@@ -877,17 +866,11 @@ function MobileSettingsSheet({
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
-        const previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-
         const frame = requestAnimationFrame(() => {
             setIsVisible(true);
         });
 
-        return () => {
-            cancelAnimationFrame(frame);
-            document.body.style.overflow = previousOverflow;
-        };
+        return () => cancelAnimationFrame(frame);
     }, []);
 
     function handleClose() {
@@ -930,15 +913,6 @@ function MobileSettingsSheet({
                     {children}
                 </div>
             </div>
-        </div>
-    );
-}
-
-function SectionHeader({ title }: { title: string }) {
-    return (
-        <div className="flex items-center gap-3">
-            <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
-            <h3 className="font-semibold text-gray-900">{title}</h3>
         </div>
     );
 }
