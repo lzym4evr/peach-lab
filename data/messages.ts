@@ -1301,10 +1301,25 @@ export const messages = {
 
         textStrokeGenerator: {
             previewTitle: "Live Preview",
-            controlsTitle: "Controls",
+            controlsTitle: "Text Stroke Settings",
+            settingsButton: "Settings",
             outputTitle: "CSS Output",
 
-            previewDescription: "Create outlined text styles with live preview and copy-ready CSS.",
+            previewDescription:
+                "Create outlined text styles with live preview and copy-ready CSS.",
+
+            textGroupTitle: "Preview Text",
+            styleGroupTitle: "Stroke Style",
+            typographyGroupTitle: "Typography",
+            colorsGroupTitle: "Colors",
+            backgroundGroupTitle: "Background",
+
+            stylePeach: "Peach",
+            styleOutline: "Outline",
+            styleNeon: "Neon",
+            styleRetro: "Retro",
+            styleBold: "Bold",
+            styleHollow: "Hollow",
 
             sampleTextLabel: "Preview Text",
             sampleTextPlaceholder: "Type your preview text here",
@@ -1312,14 +1327,25 @@ export const messages = {
             fontSizeLabel: "Font Size",
             fontWeightLabel: "Font Weight",
             strokeWidthLabel: "Stroke Width",
+            letterSpacingLabel: "Letter Spacing",
+            textAlignLabel: "Text Align",
 
             textColorLabel: "Text Color",
             strokeColorLabel: "Stroke Color",
-            backgroundColorLabel: "Preview Background",
+            backgroundColorLabel: "Custom Background",
 
             fillModeLabel: "Fill Mode",
             solidFill: "Solid Fill",
             transparentFill: "Transparent Fill",
+
+            backgroundLight: "Light",
+            backgroundDark: "Dark",
+            backgroundTransparent: "Transparent",
+            backgroundCustom: "Custom",
+
+            alignLeft: "Left",
+            alignCenter: "Center",
+            alignRight: "Right",
 
             normal: "Normal",
             medium: "Medium",
@@ -1327,12 +1353,17 @@ export const messages = {
             extraBold: "Extra Bold",
 
             shuffle: "Shuffle",
-            randomAll: "Random All",
+            randomAll: "Random",
             copyCss: "Copy CSS",
             reset: "Reset",
+            downloadPng: "Download PNG",
+            downloadSvg: "Download SVG",
+            downloadPngShort: "PNG",
+            downloadSvgShort: "SVG",
 
             copied: "Copied",
             copyError: "Copy failed. Please copy the CSS manually.",
+            downloadError: "Download failed. Please try again.",
         },
 
         fluidTypographyGenerator: {
