@@ -162,12 +162,12 @@ ${text.paragraphs}: ${stats.paragraphs}`;
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 md:flex md:shrink-0 md:flex-wrap md:justify-end">
+                        <div className="hidden gap-3 md:flex md:shrink-0 md:flex-wrap md:justify-end">
                             <button
                                 type="button"
                                 onClick={copyText}
                                 disabled={!inputText}
-                                className={`${primaryButtonClass} w-full md:w-auto`}
+                                className={`${primaryButtonClass} md:w-auto`}
                             >
                                 {copied ? text.copied : text.copyText}
                             </button>
@@ -176,7 +176,7 @@ ${text.paragraphs}: ${stats.paragraphs}`;
                                 type="button"
                                 onClick={clearText}
                                 disabled={!inputText}
-                                className={`${whiteButtonClass} w-full md:w-auto`}
+                                className={`${whiteButtonClass} md:w-auto`}
                             >
                                 {text.clear}
                             </button>
