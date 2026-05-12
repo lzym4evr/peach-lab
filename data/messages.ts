@@ -1123,6 +1123,7 @@ export const messages = {
 
             actionsTitle: "Text Actions",
             statsTitle: "Text Stats",
+            statCopyHint: "Click or tap a value to copy it.",
 
             uppercase: "UPPERCASE",
             lowercase: "lowercase",
@@ -1138,7 +1139,7 @@ export const messages = {
             reverseText: "Reverse Text",
 
             copyResult: "Copy Result",
-            statCopyHint: "Click or tap a value to copy it.",
+            copyStats: "Copy Stats",
             clear: "Clear",
             undo: "Undo",
             redo: "Redo",

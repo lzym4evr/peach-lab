@@ -74,6 +74,7 @@ export default function TextCaseConverterTool() {
 
   const [inputText, setInputText] = useState("");
   const [copied, setCopied] = useState(false);
+  const [copiedStats, setCopiedStats] = useState(false);
   const [copiedStatKey, setCopiedStatKey] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [redoHistory, setRedoHistory] = useState<string[]>([]);
@@ -104,8 +105,16 @@ export default function TextCaseConverterTool() {
     };
   }, []);
 
+  function getStatsOutput() {
+    return `${text.characters}: ${stats.characters}
+${text.noSpaces}: ${stats.charactersNoSpaces}
+${text.words}: ${stats.words}
+${text.lines}: ${stats.lines}`;
+  }
+
   function clearCopiedState() {
     setCopied(false);
+    setCopiedStats(false);
     setCopiedStatKey("");
 
     if (copyTimerRef.current) {
@@ -168,6 +177,7 @@ export default function TextCaseConverterTool() {
       await navigator.clipboard.writeText(inputText);
 
       setCopied(true);
+      setCopiedStats(false);
       setCopiedStatKey("");
 
       if (copyTimerRef.current) {
@@ -182,12 +192,13 @@ export default function TextCaseConverterTool() {
     }
   }
 
-  async function copyStatValue(key: string, value: number) {
+  async function copyStatValue(key: string, label: string, value: number) {
     try {
-      await navigator.clipboard.writeText(String(value));
+      await navigator.clipboard.writeText(`${label}: ${value}`);
 
       setCopiedStatKey(key);
       setCopied(false);
+      setCopiedStats(false);
 
       if (statCopyTimerRef.current) {
         clearTimeout(statCopyTimerRef.current);
@@ -198,6 +209,26 @@ export default function TextCaseConverterTool() {
       }, 1500);
     } catch {
       setCopiedStatKey("");
+    }
+  }
+
+  async function copyAllStats() {
+    try {
+      await navigator.clipboard.writeText(getStatsOutput());
+
+      setCopiedStats(true);
+      setCopied(false);
+      setCopiedStatKey("");
+
+      if (statCopyTimerRef.current) {
+        clearTimeout(statCopyTimerRef.current);
+      }
+
+      statCopyTimerRef.current = setTimeout(() => {
+        setCopiedStats(false);
+      }, 1500);
+    } catch {
+      setCopiedStats(false);
     }
   }
 
@@ -357,25 +388,47 @@ export default function TextCaseConverterTool() {
             </button>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <button
-              type="button"
-              onClick={copyText}
-              disabled={!inputText}
-              className={primaryButtonClass}
-            >
-              {copied ? text.copied : text.copyResult}
-            </button>
+          <div className="mt-4 hidden rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4 md:block">
+            <div className="grid grid-cols-4 gap-3">
+              <button
+                type="button"
+                onClick={copyText}
+                disabled={!inputText}
+                className={primaryButtonClass}
+              >
+                {copied ? text.copied : text.copyResult}
+              </button>
 
-            <button
-              type="button"
-              onClick={clearText}
-              disabled={!inputText}
-              className={whiteButtonClass}
-            >
-              {text.clear}
-            </button>
+              <button
+                type="button"
+                onClick={clearText}
+                disabled={!inputText}
+                className={whiteButtonClass}
+              >
+                {text.clear}
+              </button>
 
+              <button
+                type="button"
+                onClick={handleUndo}
+                disabled={history.length === 0}
+                className={whiteButtonClass}
+              >
+                {text.undo}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleRedo}
+                disabled={redoHistory.length === 0}
+                className={whiteButtonClass}
+              >
+                {text.redo}
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3 md:hidden">
             <button
               type="button"
               onClick={handleUndo}
@@ -393,6 +446,15 @@ export default function TextCaseConverterTool() {
             >
               {text.redo}
             </button>
+
+            <button
+              type="button"
+              onClick={clearText}
+              disabled={!inputText}
+              className={`${whiteButtonClass} col-span-2 w-full`}
+            >
+              {text.clear}
+            </button>
           </div>
         </section>
 
@@ -400,9 +462,19 @@ export default function TextCaseConverterTool() {
           <div className="flex items-center justify-between gap-4">
             <SectionHeader title={text.statsTitle} />
 
-            <p className="text-right text-xs font-medium text-[#9C7B70]">
-              {text.statCopyHint}
-            </p>
+            <div className="flex items-center gap-3">
+              <p className="text-right text-xs font-medium text-[#9C7B70]">
+                {text.statCopyHint}
+              </p>
+
+              <button
+                type="button"
+                onClick={copyAllStats}
+                className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+              >
+                {copiedStats ? text.copied : text.copyStats}
+              </button>
+            </div>
           </div>
 
           <div className="mt-5 grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3">
@@ -411,7 +483,9 @@ export default function TextCaseConverterTool() {
               value={stats.characters}
               copied={copiedStatKey === "characters"}
               copiedText={text.copied}
-              onClick={() => copyStatValue("characters", stats.characters)}
+              onClick={() =>
+                copyStatValue("characters", text.characters, stats.characters)
+              }
             />
 
             <StatCard
@@ -420,7 +494,11 @@ export default function TextCaseConverterTool() {
               copied={copiedStatKey === "no-spaces"}
               copiedText={text.copied}
               onClick={() =>
-                copyStatValue("no-spaces", stats.charactersNoSpaces)
+                copyStatValue(
+                  "no-spaces",
+                  text.noSpaces,
+                  stats.charactersNoSpaces,
+                )
               }
             />
 
@@ -429,7 +507,7 @@ export default function TextCaseConverterTool() {
               value={stats.words}
               copied={copiedStatKey === "words"}
               copiedText={text.copied}
-              onClick={() => copyStatValue("words", stats.words)}
+              onClick={() => copyStatValue("words", text.words, stats.words)}
             />
 
             <StatCard
@@ -437,7 +515,7 @@ export default function TextCaseConverterTool() {
               value={stats.lines}
               copied={copiedStatKey === "lines"}
               copiedText={text.copied}
-              onClick={() => copyStatValue("lines", stats.lines)}
+              onClick={() => copyStatValue("lines", text.lines, stats.lines)}
             />
           </div>
         </section>
@@ -447,9 +525,11 @@ export default function TextCaseConverterTool() {
         text={text}
         stats={stats}
         copied={copied}
+        copiedStats={copiedStats}
         copiedStatKey={copiedStatKey}
         canCopy={!!inputText}
         onCopyText={copyText}
+        onCopyStats={copyAllStats}
         onCopyStatValue={copyStatValue}
       />
     </>
@@ -460,9 +540,11 @@ function MobileStatsActionBar({
   text,
   stats,
   copied,
+  copiedStats,
   copiedStatKey,
   canCopy,
   onCopyText,
+  onCopyStats,
   onCopyStatValue,
 }: {
   text: typeof t.textCaseConverter;
@@ -473,10 +555,12 @@ function MobileStatsActionBar({
     lines: number;
   };
   copied: boolean;
+  copiedStats: boolean;
   copiedStatKey: string;
   canCopy: boolean;
   onCopyText: () => void;
-  onCopyStatValue: (key: string, value: number) => void;
+  onCopyStats: () => void;
+  onCopyStatValue: (key: string, label: string, value: number) => void;
 }) {
   const actionBarRef = useRef<HTMLDivElement | null>(null);
 
@@ -518,15 +602,23 @@ function MobileStatsActionBar({
             label={text.characters}
             value={stats.characters}
             copied={copiedStatKey === "characters"}
-            onClick={() => onCopyStatValue("characters", stats.characters)}
+            copiedText={text.copied}
+            onClick={() =>
+              onCopyStatValue("characters", text.characters, stats.characters)
+            }
           />
 
           <MobileStatButton
             label={text.noSpaces}
             value={stats.charactersNoSpaces}
             copied={copiedStatKey === "no-spaces"}
+            copiedText={text.copied}
             onClick={() =>
-              onCopyStatValue("no-spaces", stats.charactersNoSpaces)
+              onCopyStatValue(
+                "no-spaces",
+                text.noSpaces,
+                stats.charactersNoSpaces,
+              )
             }
           />
 
@@ -534,26 +626,38 @@ function MobileStatsActionBar({
             label={text.words}
             value={stats.words}
             copied={copiedStatKey === "words"}
-            onClick={() => onCopyStatValue("words", stats.words)}
+            copiedText={text.copied}
+            onClick={() => onCopyStatValue("words", text.words, stats.words)}
           />
 
           <MobileStatButton
             label={text.lines}
             value={stats.lines}
             copied={copiedStatKey === "lines"}
-            onClick={() => onCopyStatValue("lines", stats.lines)}
+            copiedText={text.copied}
+            onClick={() => onCopyStatValue("lines", text.lines, stats.lines)}
           />
         </div>
 
         <div className="mt-2">
-          <button
-            type="button"
-            onClick={onCopyText}
-            disabled={!canCopy}
-            className="w-full rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
-          >
-            {copied ? text.copied : text.copyResult}
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={onCopyText}
+              disabled={!canCopy}
+              className="w-full rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
+            >
+              {copied ? text.copied : text.copyResult}
+            </button>
+
+            <button
+              type="button"
+              onClick={onCopyStats}
+              className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2.5 text-center text-sm font-semibold leading-tight text-[#E6765B] transition hover:bg-[#FFF0EA]"
+            >
+              {copiedStats ? text.copied : text.copyStats}
+            </button>
+          </div>
 
           <p className="mt-1.5 text-center text-[10px] font-medium leading-4 text-[#9C7B70]">
             {text.statCopyHint}
@@ -568,11 +672,13 @@ function MobileStatButton({
   label,
   value,
   copied,
+  copiedText,
   onClick,
 }: {
   label: string;
   value: number;
   copied: boolean;
+  copiedText: string;
   onClick: () => void;
 }) {
   return (
@@ -582,7 +688,7 @@ function MobileStatButton({
       className="min-w-0 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] px-1.5 py-2 text-center transition hover:bg-[#FFF7F3]"
     >
       <span className="block truncate text-[9px] font-semibold uppercase tracking-wide text-[#9C7B70]">
-        {copied ? "Copied" : label}
+        {copied ? copiedText : label}
       </span>
 
       <span className="mt-0.5 block truncate text-sm font-bold text-gray-900">
