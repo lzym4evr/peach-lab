@@ -1138,6 +1138,7 @@ export const messages = {
             reverseText: "Reverse Text",
 
             copyResult: "Copy Result",
+            statCopyHint: "Or tap a value above to copy it.",
             clear: "Clear",
             undo: "Undo",
             redo: "Redo",

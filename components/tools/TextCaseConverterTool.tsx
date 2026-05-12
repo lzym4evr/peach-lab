@@ -516,14 +516,20 @@ function MobileStatsActionBar({
           />
         </div>
 
-        <button
-          type="button"
-          onClick={onCopyText}
-          disabled={!canCopy}
-          className="mt-2 w-full rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
-        >
-          {copied ? text.copied : text.copyResult}
-        </button>
+        <div className="mt-2">
+          <button
+            type="button"
+            onClick={onCopyText}
+            disabled={!canCopy}
+            className="w-full rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
+          >
+            {copied ? text.copied : text.copyResult}
+          </button>
+
+          <p className="mt-1.5 text-center text-[10px] font-medium leading-4 text-[#9C7B70]">
+            {text.statCopyHint}
+          </p>
+        </div>
       </div>
     </div>
   );
