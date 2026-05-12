@@ -514,7 +514,7 @@ export default function TextShadowGeneratorTool() {
             <div className="space-y-6">
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
                     <div className="min-w-0 space-y-6">
-                        <div className="lg:sticky lg:top-6">
+                        <div className="lg:sticky lg:top-24">
                             <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                                 <div className="mb-5">
                                     <SectionHeader title={text.previewTitle} />
@@ -810,8 +810,8 @@ function TextShadowSettingsPanel({
                         updateSetting("useSecondShadow", !settings.useSecondShadow)
                     }
                     className={`w-full rounded-2xl border px-4 py-3 text-sm font-semibold transition ${settings.useSecondShadow
-                            ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
-                            : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                        ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                        : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
                         }`}
                 >
                     {settings.useSecondShadow
