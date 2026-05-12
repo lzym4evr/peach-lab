@@ -1177,8 +1177,14 @@ export const messages = {
 
         textShadowGenerator: {
             previewTitle: "Live Preview",
-            controlsTitle: "Shadow Controls",
+            controlsTitle: "Text Shadow Settings",
+            settingsButton: "Settings",
             outputTitle: "CSS Output",
+
+            textGroupTitle: "Text",
+            colorsGroupTitle: "Colors",
+            shadowGroupTitle: "Shadow",
+            sizeGroupTitle: "Size",
 
             sampleTextLabel: "Preview Text",
             sampleTextPlaceholder: "Type your preview text here",
@@ -1193,7 +1199,7 @@ export const messages = {
             fontSizeLabel: "Font Size",
 
             shuffle: "Shuffle",
-            randomAll: "Random All",
+            randomAll: "Random",
             reset: "Reset",
             copyCss: "Copy CSS",
             copied: "Copied",
