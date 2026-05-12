@@ -629,23 +629,25 @@ function TextShadowMiniPreview({
     safeBackgroundColor: string;
 }) {
     return (
-        <div
-            className="sticky top-0 z-10 flex h-32 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white p-4 text-center"
-            style={{ backgroundColor: safeBackgroundColor }}
-        >
-            {settings.sampleText.trim() ? (
-                <div
-                    className="w-full max-w-full break-words leading-tight"
-                    style={{
-                        ...previewStyle,
-                        fontSize: `${Math.min(settings.fontSize, 34)}px`,
-                    }}
-                >
-                    {settings.sampleText}
-                </div>
-            ) : (
-                <p className="text-sm text-[#9C7B70]">{text.emptyPreview}</p>
-            )}
+        <div className="sticky top-0 z-20 -mx-4 bg-white px-4 pb-3 pt-1">
+            <div
+                className="flex h-32 items-center justify-center rounded-2xl border border-[#F1E5DF] p-4 text-center"
+                style={{ backgroundColor: safeBackgroundColor }}
+            >
+                {settings.sampleText.trim() ? (
+                    <div
+                        className="w-full max-w-full break-words leading-tight"
+                        style={{
+                            ...previewStyle,
+                            fontSize: `${Math.min(settings.fontSize, 34)}px`,
+                        }}
+                    >
+                        {settings.sampleText}
+                    </div>
+                ) : (
+                    <p className="text-sm text-[#9C7B70]">{text.emptyPreview}</p>
+                )}
+            </div>
         </div>
     );
 }
