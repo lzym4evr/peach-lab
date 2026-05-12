@@ -525,8 +525,8 @@ function SettingGroup({
     children: ReactNode;
 }) {
     return (
-        <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-            <h4 className="mb-4 text-sm font-semibold text-gray-900">{title}</h4>
+        <div>
+            <h4 className="mb-3 text-sm font-semibold text-gray-900">{title}</h4>
             {children}
         </div>
     );
