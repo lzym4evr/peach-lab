@@ -128,6 +128,18 @@ export default function TextCaseConverterTool() {
     clearCopiedState();
   }
 
+  const primaryButtonClass =
+    "rounded-xl bg-[#F28C6F] px-3 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50 md:rounded-2xl md:px-4 md:py-3 md:text-sm";
+
+  const peachButtonClass =
+    "rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-3 py-2.5 text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50 md:rounded-2xl md:px-4 md:py-3 md:text-sm";
+
+  const whiteButtonClass =
+    "rounded-xl border border-[#F4C8BA] bg-white px-3 py-2.5 text-xs font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50 md:rounded-2xl md:px-4 md:py-3 md:text-sm";
+
+  const neutralButtonClass =
+    "rounded-xl border border-[#F4C8BA] bg-white px-3 py-2.5 text-xs font-semibold text-gray-800 transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-50 md:rounded-2xl md:px-4 md:py-3 md:text-sm";
+
   return (
     <div className="space-y-6">
       <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
@@ -157,7 +169,7 @@ export default function TextCaseConverterTool() {
             type="button"
             onClick={() => applyTransform(inputText.toUpperCase())}
             disabled={!inputText}
-            className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
+            className={primaryButtonClass}
           >
             {text.uppercase}
           </button>
@@ -166,7 +178,7 @@ export default function TextCaseConverterTool() {
             type="button"
             onClick={() => applyTransform(inputText.toLowerCase())}
             disabled={!inputText}
-            className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+            className={peachButtonClass}
           >
             {text.lowercase}
           </button>
@@ -175,7 +187,7 @@ export default function TextCaseConverterTool() {
             type="button"
             onClick={() => applyTransform(toTitleCase(inputText))}
             disabled={!inputText}
-            className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-gray-800 transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-50"
+            className={neutralButtonClass}
           >
             {text.titleCase}
           </button>
@@ -184,7 +196,7 @@ export default function TextCaseConverterTool() {
             type="button"
             onClick={() => applyTransform(toSentenceCase(inputText))}
             disabled={!inputText}
-            className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-gray-800 transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-50"
+            className={neutralButtonClass}
           >
             {text.sentenceCase}
           </button>
@@ -195,7 +207,7 @@ export default function TextCaseConverterTool() {
             type="button"
             onClick={copyText}
             disabled={!inputText}
-            className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
+            className={primaryButtonClass}
           >
             {copied ? text.copied : text.copyResult}
           </button>
@@ -204,7 +216,7 @@ export default function TextCaseConverterTool() {
             type="button"
             onClick={clearText}
             disabled={!inputText}
-            className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+            className={whiteButtonClass}
           >
             {text.clear}
           </button>
@@ -213,7 +225,7 @@ export default function TextCaseConverterTool() {
             type="button"
             onClick={handleUndo}
             disabled={history.length === 0}
-            className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+            className={whiteButtonClass}
           >
             {text.undo}
           </button>
@@ -222,7 +234,7 @@ export default function TextCaseConverterTool() {
             type="button"
             onClick={handleRedo}
             disabled={redoHistory.length === 0}
-            className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+            className={whiteButtonClass}
           >
             {text.redo}
           </button>
