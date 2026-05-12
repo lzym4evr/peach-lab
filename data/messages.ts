@@ -1368,10 +1368,25 @@ export const messages = {
 
         fluidTypographyGenerator: {
             previewTitle: "Live Preview",
-            controlsTitle: "Controls",
+            controlsTitle: "Fluid Typography Settings",
+            settingsButton: "Settings",
             outputTitle: "CSS Output",
 
-            previewDescription: "Create responsive CSS clamp font sizes with live preview and copy-ready code.",
+            previewDescription:
+                "Create responsive CSS clamp font sizes with live preview and copy-ready code.",
+
+            textGroupTitle: "Preview Text",
+            presetGroupTitle: "Typography Preset",
+            colorsGroupTitle: "Colors",
+            sizeGroupTitle: "Fluid Size",
+            backgroundGroupTitle: "Background",
+
+            presetHero: "Hero",
+            presetHeading: "Heading",
+            presetSubheading: "Subheading",
+            presetBody: "Body",
+            presetCaption: "Caption",
+            presetDisplay: "Display",
 
             sampleTextLabel: "Preview Text",
             sampleTextPlaceholder: "Type your preview text here",
@@ -1382,9 +1397,24 @@ export const messages = {
             maxViewportLabel: "Max Viewport",
             previewWidthLabel: "Preview Width",
             fontWeightLabel: "Font Weight",
+            letterSpacingLabel: "Letter Spacing",
+            lineHeightLabel: "Line Height",
+            textAlignLabel: "Text Align",
 
             textColorLabel: "Text Color",
-            backgroundColorLabel: "Preview Background",
+            backgroundColorLabel: "Custom Background",
+
+            backgroundLight: "Light",
+            backgroundDark: "Dark",
+            backgroundTransparent: "Transparent",
+            backgroundCustom: "Custom",
+
+            alignLeft: "Left",
+            alignCenter: "Center",
+            alignRight: "Right",
+
+            previewWidthValue: "preview",
+            previewFontValue: "font",
 
             normal: "Normal",
             medium: "Medium",
@@ -1392,7 +1422,7 @@ export const messages = {
             extraBold: "Extra Bold",
 
             shuffle: "Shuffle",
-            randomAll: "Random All",
+            randomAll: "Random",
             copyCss: "Copy CSS",
             reset: "Reset",
 
