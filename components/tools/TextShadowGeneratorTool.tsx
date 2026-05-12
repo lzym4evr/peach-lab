@@ -569,18 +569,17 @@ export default function TextShadowGeneratorTool() {
             {isMobileSettingsOpen ? (
                 <MobileSettingsSheet
                     title={text.controlsTitle}
-                    onClose={() => setIsMobileSettingsOpen(false)}
-                >
-                    <div className="space-y-3">
+                    preview={
                         <TextShadowMiniPreview
                             text={text}
                             settings={settings}
                             previewStyle={previewStyle}
                             safeBackgroundColor={safeBackgroundColor}
                         />
-
-                        {mobileSettingsPanel}
-                    </div>
+                    }
+                    onClose={() => setIsMobileSettingsOpen(false)}
+                >
+                    {mobileSettingsPanel}
                 </MobileSettingsSheet>
             ) : null}
         </>
@@ -629,7 +628,7 @@ function TextShadowMiniPreview({
     safeBackgroundColor: string;
 }) {
     return (
-        <div className="sticky top-0 z-20 -mx-4 bg-white px-4 pb-3 pt-1">
+        <div>
             <div
                 className="flex h-32 items-center justify-center rounded-2xl border border-[#F1E5DF] p-4 text-center"
                 style={{ backgroundColor: safeBackgroundColor }}
@@ -1113,10 +1112,12 @@ function MobileActionBar({
 
 function MobileSettingsSheet({
     title,
+    preview,
     children,
     onClose,
 }: {
     title: string;
+    preview?: ReactNode;
     children: ReactNode;
     onClose: () => void;
 }) {
@@ -1169,21 +1170,25 @@ function MobileSettingsSheet({
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
-                <div className="flex items-center justify-between gap-4 px-4 pb-2 pt-4">
-                    <div className="flex min-w-0 items-center gap-3">
-                        <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
-                        <h3 className="truncate text-lg font-semibold text-gray-900">
-                            {title}
-                        </h3>
+                <div className="shrink-0 bg-white px-4 pb-3 pt-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex min-w-0 items-center gap-3">
+                            <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
+                            <h3 className="truncate text-lg font-semibold text-gray-900">
+                                {title}
+                            </h3>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={handleClose}
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
+                        >
+                            ×
+                        </button>
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={handleClose}
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
-                    >
-                        ×
-                    </button>
+                    {preview ? <div className="mt-3">{preview}</div> : null}
                 </div>
 
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4 pt-2">
