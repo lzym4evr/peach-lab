@@ -49,7 +49,7 @@ import CssButtonGeneratorTool from "@/components/tools/CssButtonGeneratorTool";
 import SvgToPngTool from "@/components/tools/SvgToPngTool";
 import SvgColorChangerTool from "@/components/tools/SvgColorChangerTool";
 import SvgOptimizerTool from "@/components/tools/SvgOptimizerTool";
-import SvgTransparentBackgroundTool from "@/components/tools/SvgTransparentBackgroundTool";
+//import SvgTransparentBackgroundTool from "@/components/tools/SvgTransparentBackgroundTool";//
 
 // =========================
 // Text Tools
@@ -161,9 +161,9 @@ export default function ToolRenderer({ slug, icon }: ToolRendererProps) {
     if (slug === "svg-optimizer") {
         return <SvgOptimizerTool />;
     }
-    if (slug === "svg-transparent-background") {
-        return <SvgTransparentBackgroundTool />;
-    }
+    //if (slug === "svg-transparent-background") {
+    //    return <SvgTransparentBackgroundTool />;
+    //}
 
     // =========================
     // Text Tools

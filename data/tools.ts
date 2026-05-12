@@ -192,14 +192,14 @@ export const tools = [
     icon: "FileCode",
     featured: false,
   },
-  {
-    title: t.toolMeta.svgTransparentBackground.title,
-    slug: "svg-transparent-background",
-    category: "SVG Tools",
-    description: t.toolMeta.svgTransparentBackground.description,
-    icon: "Eraser",
-    featured: false,
-  },
+  //{
+  //title: t.toolMeta.svgTransparentBackground.title,
+  //slug: "svg-transparent-background",
+  //category: "SVG Tools",
+  //description: t.toolMeta.svgTransparentBackground.description,
+  //icon: "Eraser",
+  //featured: false,
+  //},
 
   // =========================
   // Text Tools
