@@ -1241,18 +1241,44 @@ export const messages = {
                 "Create gradient text styles with live preview and copy-ready CSS.",
 
             textGroupTitle: "Preview Text",
+            styleGroupTitle: "Gradient Style",
             typographyGroupTitle: "Typography",
             colorsGroupTitle: "Colors",
+            backgroundGroupTitle: "Background",
+
+            stylePeach: "Peach",
+            styleSunset: "Sunset",
+            styleOcean: "Ocean",
+            styleCandy: "Candy",
+            styleNeon: "Neon",
+            styleGold: "Gold",
+
+            gradientTypeLabel: "Gradient Type",
+            typeLinear: "Linear",
+            typeRadial: "Radial",
+            typeConic: "Conic",
 
             sampleTextLabel: "Preview Text",
             sampleTextPlaceholder: "Type your preview text here",
             fontSizeLabel: "Font Size",
             fontWeightLabel: "Font Weight",
+            letterSpacingLabel: "Letter Spacing",
+            textAlignLabel: "Text Align",
             gradientAngleLabel: "Gradient Angle",
+
             colorOneLabel: "Color 1",
             colorTwoLabel: "Color 2",
             colorThreeLabel: "Color 3",
-            backgroundColorLabel: "Preview Background",
+            backgroundColorLabel: "Custom Background",
+
+            backgroundLight: "Light",
+            backgroundDark: "Dark",
+            backgroundTransparent: "Transparent",
+            backgroundCustom: "Custom",
+
+            alignLeft: "Left",
+            alignCenter: "Center",
+            alignRight: "Right",
 
             normal: "Normal",
             medium: "Medium",
@@ -1263,9 +1289,14 @@ export const messages = {
             randomAll: "Random",
             copyCss: "Copy CSS",
             reset: "Reset",
+            downloadPng: "Download PNG",
+            downloadSvg: "Download SVG",
+            downloadPngShort: "PNG",
+            downloadSvgShort: "SVG",
 
             copied: "Copied",
             copyError: "Copy failed. Please copy the CSS manually.",
+            downloadError: "Download failed. Please try again.",
         },
 
         textStrokeGenerator: {

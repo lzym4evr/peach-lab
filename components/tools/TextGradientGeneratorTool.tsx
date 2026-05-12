@@ -11,30 +11,60 @@ import {
 import { t } from "@/data/messages";
 
 type FontWeight = "400" | "500" | "700" | "800";
+type GradientStyle = "peach" | "sunset" | "ocean" | "candy" | "neon" | "gold";
+type GradientType = "linear" | "radial" | "conic";
+type TextAlign = "left" | "center" | "right";
+type BackgroundMode = "light" | "dark" | "transparent" | "custom";
 
 type TextGradientSettings = {
+    gradientStyle: GradientStyle;
+    gradientType: GradientType;
     sampleText: string;
     fontSize: number;
     fontWeight: FontWeight;
+    letterSpacing: number;
+    textAlign: TextAlign;
     gradientAngle: number;
     colorOne: string;
     colorTwo: string;
     colorThree: string;
+    backgroundMode: BackgroundMode;
     backgroundColor: string;
 };
 
 const defaultSettings: TextGradientSettings = {
+    gradientStyle: "peach",
+    gradientType: "linear",
     sampleText: "Peach Lab",
     fontSize: 64,
     fontWeight: "800",
+    letterSpacing: 0,
+    textAlign: "center",
     gradientAngle: 90,
     colorOne: "#F28C6F",
     colorTwo: "#FFD6C8",
     colorThree: "#E6765B",
+    backgroundMode: "light",
     backgroundColor: "#FFF7F3",
 };
 
 const fontWeights: FontWeight[] = ["400", "500", "700", "800"];
+const gradientStyles: GradientStyle[] = [
+    "peach",
+    "sunset",
+    "ocean",
+    "candy",
+    "neon",
+    "gold",
+];
+const gradientTypes: GradientType[] = ["linear", "radial", "conic"];
+const textAlignOptions: TextAlign[] = ["left", "center", "right"];
+const backgroundModes: BackgroundMode[] = [
+    "light",
+    "dark",
+    "transparent",
+    "custom",
+];
 
 function isValidHexColor(value: string) {
     return /^#[0-9A-Fa-f]{6}$/.test(value);
@@ -68,6 +98,95 @@ function getFontWeightLabel(
     return text.extraBold;
 }
 
+function getGradientStyleLabel(
+    text: typeof t.textGradientGenerator,
+    style: GradientStyle,
+) {
+    if (style === "sunset") return text.styleSunset;
+    if (style === "ocean") return text.styleOcean;
+    if (style === "candy") return text.styleCandy;
+    if (style === "neon") return text.styleNeon;
+    if (style === "gold") return text.styleGold;
+
+    return text.stylePeach;
+}
+
+function getGradientTypeLabel(
+    text: typeof t.textGradientGenerator,
+    type: GradientType,
+) {
+    if (type === "radial") return text.typeRadial;
+    if (type === "conic") return text.typeConic;
+
+    return text.typeLinear;
+}
+
+function getTextAlignLabel(
+    text: typeof t.textGradientGenerator,
+    align: TextAlign,
+) {
+    if (align === "left") return text.alignLeft;
+    if (align === "right") return text.alignRight;
+
+    return text.alignCenter;
+}
+
+function getBackgroundModeLabel(
+    text: typeof t.textGradientGenerator,
+    mode: BackgroundMode,
+) {
+    if (mode === "dark") return text.backgroundDark;
+    if (mode === "transparent") return text.backgroundTransparent;
+    if (mode === "custom") return text.backgroundCustom;
+
+    return text.backgroundLight;
+}
+
+function getPreviewBackgroundColor(settings: TextGradientSettings) {
+    if (settings.backgroundMode === "dark") return "#2A1F1B";
+    if (settings.backgroundMode === "transparent") return "transparent";
+    if (settings.backgroundMode === "custom") {
+        return getSafeHexColor(settings.backgroundColor, "#FFF7F3");
+    }
+
+    return "#FFF7F3";
+}
+
+function getGradientValue(
+    settings: TextGradientSettings,
+    safeColorOne: string,
+    safeColorTwo: string,
+    safeColorThree: string,
+) {
+    if (settings.gradientType === "radial") {
+        return `radial-gradient(circle, ${safeColorOne}, ${safeColorTwo}, ${safeColorThree})`;
+    }
+
+    if (settings.gradientType === "conic") {
+        return `conic-gradient(from ${settings.gradientAngle}deg, ${safeColorOne}, ${safeColorTwo}, ${safeColorThree}, ${safeColorOne})`;
+    }
+
+    return `linear-gradient(${settings.gradientAngle}deg, ${safeColorOne}, ${safeColorTwo}, ${safeColorThree})`;
+}
+
+function getCheckerboardStyle(): CSSProperties {
+    return {
+        backgroundColor: "#ffffff",
+        backgroundImage:
+            "linear-gradient(45deg, #f1f5f9 25%, transparent 25%), linear-gradient(-45deg, #f1f5f9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f1f5f9 75%), linear-gradient(-45deg, transparent 75%, #f1f5f9 75%)",
+        backgroundSize: "20px 20px",
+        backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0",
+    };
+}
+
+function escapeXml(value: string) {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
 export default function TextGradientGeneratorTool() {
     const text = t.textGradientGenerator;
     const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -79,17 +198,20 @@ export default function TextGradientGeneratorTool() {
         useState<TextGradientSettings>(defaultSettings);
     const [copiedKey, setCopiedKey] = useState("");
     const [copyError, setCopyError] = useState("");
+    const [downloadError, setDownloadError] = useState("");
     const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);
 
     const safeColorOne = getSafeHexColor(settings.colorOne, "#F28C6F");
     const safeColorTwo = getSafeHexColor(settings.colorTwo, "#FFD6C8");
     const safeColorThree = getSafeHexColor(settings.colorThree, "#E6765B");
-    const safeBackgroundColor = getSafeHexColor(
-        settings.backgroundColor,
-        "#FFF7F3",
-    );
+    const safeBackgroundColor = getPreviewBackgroundColor(settings);
 
-    const gradientValue = `linear-gradient(${settings.gradientAngle}deg, ${safeColorOne}, ${safeColorTwo}, ${safeColorThree})`;
+    const gradientValue = getGradientValue(
+        settings,
+        safeColorOne,
+        safeColorTwo,
+        safeColorThree,
+    );
 
     const cssOutput = useMemo(() => {
         return `.gradient-text {
@@ -103,9 +225,17 @@ export default function TextGradientGeneratorTool() {
   -webkit-text-fill-color: transparent;
   font-size: ${settings.fontSize}px;
   font-weight: ${settings.fontWeight};
+  letter-spacing: ${settings.letterSpacing}px;
+  text-align: ${settings.textAlign};
   line-height: 1.1;
 }`;
-    }, [gradientValue, settings.fontSize, settings.fontWeight]);
+    }, [
+        gradientValue,
+        settings.fontSize,
+        settings.fontWeight,
+        settings.letterSpacing,
+        settings.textAlign,
+    ]);
 
     const previewStyle: CSSProperties = {
         backgroundImage: gradientValue,
@@ -117,6 +247,8 @@ export default function TextGradientGeneratorTool() {
         WebkitTextFillColor: "transparent",
         fontSize: `${settings.fontSize}px`,
         fontWeight: settings.fontWeight,
+        letterSpacing: `${settings.letterSpacing}px`,
+        textAlign: settings.textAlign,
         lineHeight: 1.1,
     };
 
@@ -131,6 +263,7 @@ export default function TextGradientGeneratorTool() {
     function clearCopyState() {
         setCopiedKey("");
         setCopyError("");
+        setDownloadError("");
     }
 
     function updateSetting<K extends keyof TextGradientSettings>(
@@ -145,12 +278,107 @@ export default function TextGradientGeneratorTool() {
         clearCopyState();
     }
 
+    function applyGradientStyle(nextStyle: GradientStyle) {
+        setSettings((current) => {
+            const sampleText = current.sampleText;
+
+            if (nextStyle === "sunset") {
+                return {
+                    ...current,
+                    gradientStyle: "sunset",
+                    sampleText,
+                    gradientType: "linear",
+                    gradientAngle: 45,
+                    colorOne: "#FF7A59",
+                    colorTwo: "#FFD166",
+                    colorThree: "#EF476F",
+                    backgroundMode: "light",
+                };
+            }
+
+            if (nextStyle === "ocean") {
+                return {
+                    ...current,
+                    gradientStyle: "ocean",
+                    sampleText,
+                    gradientType: "linear",
+                    gradientAngle: 120,
+                    colorOne: "#00B4D8",
+                    colorTwo: "#90E0EF",
+                    colorThree: "#0077B6",
+                    backgroundMode: "light",
+                };
+            }
+
+            if (nextStyle === "candy") {
+                return {
+                    ...current,
+                    gradientStyle: "candy",
+                    sampleText,
+                    gradientType: "radial",
+                    gradientAngle: 90,
+                    colorOne: "#FF8FAB",
+                    colorTwo: "#FFC2D1",
+                    colorThree: "#B8C0FF",
+                    backgroundMode: "light",
+                };
+            }
+
+            if (nextStyle === "neon") {
+                return {
+                    ...current,
+                    gradientStyle: "neon",
+                    sampleText,
+                    gradientType: "linear",
+                    gradientAngle: 90,
+                    colorOne: "#00F5D4",
+                    colorTwo: "#F15BB5",
+                    colorThree: "#FEE440",
+                    backgroundMode: "dark",
+                };
+            }
+
+            if (nextStyle === "gold") {
+                return {
+                    ...current,
+                    gradientStyle: "gold",
+                    sampleText,
+                    gradientType: "linear",
+                    gradientAngle: 110,
+                    colorOne: "#8A5A00",
+                    colorTwo: "#FFD166",
+                    colorThree: "#FFF3B0",
+                    backgroundMode: "dark",
+                };
+            }
+
+            return {
+                ...current,
+                gradientStyle: "peach",
+                sampleText,
+                gradientType: "linear",
+                gradientAngle: 90,
+                colorOne: "#F28C6F",
+                colorTwo: "#FFD6C8",
+                colorThree: "#E6765B",
+                backgroundMode: "light",
+            };
+        });
+
+        clearCopyState();
+    }
+
     function handleShuffle() {
         setSettings((current) => ({
             ...current,
             fontSize: getRandomNumber(42, 88),
             fontWeight: fontWeights[Math.floor(Math.random() * fontWeights.length)],
+            letterSpacing: getRandomNumber(-2, 10),
             gradientAngle: getRandomNumber(0, 360),
+            gradientType:
+                gradientTypes[Math.floor(Math.random() * gradientTypes.length)],
+            textAlign:
+                textAlignOptions[Math.floor(Math.random() * textAlignOptions.length)],
         }));
 
         clearCopyState();
@@ -159,13 +387,22 @@ export default function TextGradientGeneratorTool() {
     function handleRandomAll() {
         setSettings((current) => ({
             ...current,
+            gradientStyle:
+                gradientStyles[Math.floor(Math.random() * gradientStyles.length)],
             fontSize: getRandomNumber(42, 88),
             fontWeight: fontWeights[Math.floor(Math.random() * fontWeights.length)],
+            letterSpacing: getRandomNumber(-2, 10),
             gradientAngle: getRandomNumber(0, 360),
+            gradientType:
+                gradientTypes[Math.floor(Math.random() * gradientTypes.length)],
+            textAlign:
+                textAlignOptions[Math.floor(Math.random() * textAlignOptions.length)],
             colorOne: getRandomHexColor(),
             colorTwo: getRandomHexColor(),
             colorThree: getRandomHexColor(),
             backgroundColor: getRandomHexColor(),
+            backgroundMode:
+                backgroundModes[Math.floor(Math.random() * backgroundModes.length)],
         }));
 
         clearCopyState();
@@ -195,9 +432,109 @@ export default function TextGradientGeneratorTool() {
         }
     }
 
+    function createSvgMarkup() {
+        const width = 1200;
+        const height = 720;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const displayText = settings.sampleText.trim() || "Peach Lab";
+        const escapedText = escapeXml(displayText);
+        const dominantBaseline = "middle";
+
+        const gradientId = "peachTextGradient";
+        const backgroundFill =
+            settings.backgroundMode === "transparent"
+                ? "none"
+                : safeBackgroundColor;
+
+        const gradientDef =
+            settings.gradientType === "radial"
+                ? `<radialGradient id="${gradientId}" cx="50%" cy="50%" r="65%">
+  <stop offset="0%" stop-color="${safeColorOne}" />
+  <stop offset="50%" stop-color="${safeColorTwo}" />
+  <stop offset="100%" stop-color="${safeColorThree}" />
+</radialGradient>`
+                : `<linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="0%" gradientTransform="rotate(${settings.gradientAngle} 0.5 0.5)">
+  <stop offset="0%" stop-color="${safeColorOne}" />
+  <stop offset="50%" stop-color="${safeColorTwo}" />
+  <stop offset="100%" stop-color="${safeColorThree}" />
+</linearGradient>`;
+
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+<defs>
+${gradientDef}
+</defs>
+<rect width="100%" height="100%" fill="${backgroundFill}" />
+<text x="${centerX}" y="${centerY}" text-anchor="middle" dominant-baseline="${dominantBaseline}" fill="url(#${gradientId})" font-family="Arial, Helvetica, sans-serif" font-size="${settings.fontSize * 2.6}" font-weight="${settings.fontWeight}" letter-spacing="${settings.letterSpacing * 2.6}">${escapedText}</text>
+</svg>`;
+    }
+
+    function downloadTextFile(content: string, filename: string, type: string) {
+        const blob = new Blob([content], { type });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.click();
+
+        URL.revokeObjectURL(url);
+    }
+
+    function handleDownloadSvg() {
+        const svgMarkup = createSvgMarkup();
+
+        downloadTextFile(
+            svgMarkup,
+            "peach-lab-gradient-text.svg",
+            "image/svg+xml;charset=utf-8",
+        );
+    }
+
+    function handleDownloadPng() {
+        const svgMarkup = createSvgMarkup();
+        const svgBlob = new Blob([svgMarkup], {
+            type: "image/svg+xml;charset=utf-8",
+        });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        const image = new Image();
+
+        image.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = 1200;
+            canvas.height = 720;
+
+            const context = canvas.getContext("2d");
+
+            if (!context) {
+                setDownloadError(text.downloadError);
+                URL.revokeObjectURL(svgUrl);
+                return;
+            }
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+            const pngUrl = canvas.toDataURL("image/png");
+
+            const link = document.createElement("a");
+            link.href = pngUrl;
+            link.download = "peach-lab-gradient-text.png";
+            link.click();
+
+            URL.revokeObjectURL(svgUrl);
+        };
+
+        image.onerror = () => {
+            setDownloadError(text.downloadError);
+            URL.revokeObjectURL(svgUrl);
+        };
+
+        image.src = svgUrl;
+    }
+
     const previewPanel = (
         <TextGradientPreview
-            text={text}
             settings={settings}
             previewStyle={previewStyle}
             safeBackgroundColor={safeBackgroundColor}
@@ -209,6 +546,7 @@ export default function TextGradientGeneratorTool() {
             text={text}
             settings={settings}
             updateSetting={updateSetting}
+            onApplyGradientStyle={applyGradientStyle}
             onShuffle={handleShuffle}
             onRandom={handleRandomAll}
             onReset={handleReset}
@@ -220,6 +558,7 @@ export default function TextGradientGeneratorTool() {
             text={text}
             settings={settings}
             updateSetting={updateSetting}
+            onApplyGradientStyle={applyGradientStyle}
             onShuffle={handleShuffle}
             onRandom={handleRandomAll}
             onReset={handleReset}
@@ -263,9 +602,33 @@ export default function TextGradientGeneratorTool() {
                                 <code>{cssOutput}</code>
                             </pre>
 
+                            <div className="mt-4 grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleDownloadPng}
+                                    className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
+                                >
+                                    {text.downloadPng}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={handleDownloadSvg}
+                                    className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                                >
+                                    {text.downloadSvg}
+                                </button>
+                            </div>
+
                             {copyError ? (
                                 <p className="mt-3 text-sm font-medium text-red-500">
                                     {copyError}
+                                </p>
+                            ) : null}
+
+                            {downloadError ? (
+                                <p className="mt-3 text-sm font-medium text-red-500">
+                                    {downloadError}
                                 </p>
                             ) : null}
                         </section>
@@ -281,7 +644,11 @@ export default function TextGradientGeneratorTool() {
 
             <MobileActionBar
                 settingsButtonText={settingsButtonText}
+                downloadPngText={text.downloadPngShort}
+                downloadSvgText={text.downloadSvgShort}
                 onOpenSettings={() => setIsMobileSettingsOpen(true)}
+                onDownloadPng={handleDownloadPng}
+                onDownloadSvg={handleDownloadSvg}
             />
 
             {isMobileSettingsOpen ? (
@@ -289,7 +656,6 @@ export default function TextGradientGeneratorTool() {
                     title={text.controlsTitle}
                     preview={
                         <TextGradientMiniPreview
-                            text={text}
                             settings={settings}
                             previewStyle={previewStyle}
                             safeBackgroundColor={safeBackgroundColor}
@@ -305,20 +671,23 @@ export default function TextGradientGeneratorTool() {
 }
 
 function TextGradientPreview({
-    text,
     settings,
     previewStyle,
     safeBackgroundColor,
 }: {
-    text: typeof t.textGradientGenerator;
     settings: TextGradientSettings;
     previewStyle: CSSProperties;
     safeBackgroundColor: string;
 }) {
+    const backgroundStyle =
+        settings.backgroundMode === "transparent"
+            ? getCheckerboardStyle()
+            : { backgroundColor: safeBackgroundColor };
+
     return (
         <div
             className="flex h-[260px] items-center justify-center rounded-3xl border border-[#F1E5DF] p-6 text-center md:min-h-[360px]"
-            style={{ backgroundColor: safeBackgroundColor }}
+            style={backgroundStyle}
         >
             <span
                 className="inline-block max-w-full break-words"
@@ -331,20 +700,23 @@ function TextGradientPreview({
 }
 
 function TextGradientMiniPreview({
-    text,
     settings,
     previewStyle,
     safeBackgroundColor,
 }: {
-    text: typeof t.textGradientGenerator;
     settings: TextGradientSettings;
     previewStyle: CSSProperties;
     safeBackgroundColor: string;
 }) {
+    const backgroundStyle =
+        settings.backgroundMode === "transparent"
+            ? getCheckerboardStyle()
+            : { backgroundColor: safeBackgroundColor };
+
     return (
         <div
             className="flex h-32 items-center justify-center rounded-2xl border border-[#F1E5DF] p-4 text-center"
-            style={{ backgroundColor: safeBackgroundColor }}
+            style={backgroundStyle}
         >
             <span
                 className="inline-block max-w-full break-words"
@@ -363,6 +735,7 @@ function TextGradientSettingsPanel({
     text,
     settings,
     updateSetting,
+    onApplyGradientStyle,
     onShuffle,
     onRandom,
     onReset,
@@ -374,6 +747,7 @@ function TextGradientSettingsPanel({
         key: K,
         value: TextGradientSettings[K],
     ) => void;
+    onApplyGradientStyle: (style: GradientStyle) => void;
     onShuffle: () => void;
     onRandom: () => void;
     onReset: () => void;
@@ -418,6 +792,29 @@ function TextGradientSettingsPanel({
                 />
             </SettingGroup>
 
+            <SettingGroup title={text.styleGroupTitle}>
+                <div className="grid grid-cols-3 gap-2">
+                    {gradientStyles.map((style) => {
+                        const isActive = settings.gradientStyle === style;
+
+                        return (
+                            <button
+                                key={style}
+                                type="button"
+                                onClick={() => onApplyGradientStyle(style)}
+                                className={`rounded-2xl border px-2 font-semibold transition ${compact ? "py-2 text-xs" : "py-3 text-sm"
+                                    } ${isActive
+                                        ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                                        : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                                    }`}
+                            >
+                                {getGradientStyleLabel(text, style)}
+                            </button>
+                        );
+                    })}
+                </div>
+            </SettingGroup>
+
             <SettingGroup title={text.typographyGroupTitle}>
                 <div className="grid grid-cols-2 gap-4">
                     <RangeInput
@@ -439,6 +836,43 @@ function TextGradientSettingsPanel({
                         compact={compact}
                         onChange={(value) => updateSetting("gradientAngle", value)}
                     />
+
+                    <RangeInput
+                        label={text.letterSpacingLabel}
+                        value={settings.letterSpacing}
+                        min={-5}
+                        max={20}
+                        suffix="px"
+                        compact={compact}
+                        onChange={(value) => updateSetting("letterSpacing", value)}
+                    />
+                </div>
+
+                <div className="mt-4">
+                    <span className="mb-2 block text-sm font-semibold text-gray-800">
+                        {text.gradientTypeLabel}
+                    </span>
+
+                    <div className="grid grid-cols-3 gap-2">
+                        {gradientTypes.map((type) => {
+                            const isActive = settings.gradientType === type;
+
+                            return (
+                                <button
+                                    key={type}
+                                    type="button"
+                                    onClick={() => updateSetting("gradientType", type)}
+                                    className={`rounded-2xl border px-2 font-semibold transition ${compact ? "py-2 text-xs" : "py-3 text-sm"
+                                        } ${isActive
+                                            ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                                            : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                                        }`}
+                                >
+                                    {getGradientTypeLabel(text, type)}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 <div className="mt-4">
@@ -462,6 +896,33 @@ function TextGradientSettingsPanel({
                                         }`}
                                 >
                                     {getFontWeightLabel(text, weight)}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div className="mt-4">
+                    <span className="mb-2 block text-sm font-semibold text-gray-800">
+                        {text.textAlignLabel}
+                    </span>
+
+                    <div className="grid grid-cols-3 gap-2">
+                        {textAlignOptions.map((align) => {
+                            const isActive = settings.textAlign === align;
+
+                            return (
+                                <button
+                                    key={align}
+                                    type="button"
+                                    onClick={() => updateSetting("textAlign", align)}
+                                    className={`rounded-2xl border px-2 font-semibold transition ${compact ? "py-2 text-xs" : "py-3 text-sm"
+                                        } ${isActive
+                                            ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                                            : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                                        }`}
+                                >
+                                    {getTextAlignLabel(text, align)}
                                 </button>
                             );
                         })}
@@ -502,6 +963,29 @@ function TextGradientSettingsPanel({
                         compact={compact}
                         onChange={(value) => updateSetting("backgroundColor", value)}
                     />
+                </div>
+            </SettingGroup>
+
+            <SettingGroup title={text.backgroundGroupTitle}>
+                <div className="grid grid-cols-2 gap-2">
+                    {backgroundModes.map((mode) => {
+                        const isActive = settings.backgroundMode === mode;
+
+                        return (
+                            <button
+                                key={mode}
+                                type="button"
+                                onClick={() => updateSetting("backgroundMode", mode)}
+                                className={`rounded-2xl border px-2 font-semibold transition ${compact ? "py-2 text-xs" : "py-3 text-sm"
+                                    } ${isActive
+                                        ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                                        : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                                    }`}
+                            >
+                                {getBackgroundModeLabel(text, mode)}
+                            </button>
+                        );
+                    })}
                 </div>
             </SettingGroup>
         </div>
@@ -635,10 +1119,18 @@ function RangeInput({
 
 function MobileActionBar({
     settingsButtonText,
+    downloadPngText,
+    downloadSvgText,
     onOpenSettings,
+    onDownloadPng,
+    onDownloadSvg,
 }: {
     settingsButtonText: string;
+    downloadPngText: string;
+    downloadSvgText: string;
     onOpenSettings: () => void;
+    onDownloadPng: () => void;
+    onDownloadSvg: () => void;
 }) {
     const actionBarRef = useRef<HTMLDivElement | null>(null);
 
@@ -673,14 +1165,30 @@ function MobileActionBar({
         <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
             <div
                 ref={actionBarRef}
-                className="pointer-events-auto mx-auto grid max-w-md grid-cols-1 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-3 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
             >
                 <button
                     type="button"
                     onClick={onOpenSettings}
-                    className="rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B]"
+                    className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2.5 text-center text-sm font-semibold leading-tight text-[#E6765B] transition hover:bg-[#FFF0EA]"
                 >
                     {settingsButtonText}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onDownloadPng}
+                    className="rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B]"
+                >
+                    {downloadPngText}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onDownloadSvg}
+                    className="rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2.5 text-center text-sm font-semibold leading-tight text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                >
+                    {downloadSvgText}
                 </button>
             </div>
         </div>
