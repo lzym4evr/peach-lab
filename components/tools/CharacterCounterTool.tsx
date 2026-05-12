@@ -10,6 +10,7 @@ export default function CharacterCounterTool() {
 
     const [inputText, setInputText] = useState("");
     const [copied, setCopied] = useState(false);
+    const [copiedStats, setCopiedStats] = useState(false);
     const [copiedStatKey, setCopiedStatKey] = useState("");
 
     const stats = useMemo(() => {
@@ -47,8 +48,18 @@ export default function CharacterCounterTool() {
         };
     }, []);
 
+    function getStatsOutput() {
+        return `${text.characters}: ${stats.characters}
+${text.charactersNoSpaces}: ${stats.charactersNoSpaces}
+${text.words}: ${stats.words}
+${text.spaces}: ${stats.spaces}
+${text.lines}: ${stats.lines}
+${text.paragraphs}: ${stats.paragraphs}`;
+    }
+
     function clearCopiedState() {
         setCopied(false);
+        setCopiedStats(false);
         setCopiedStatKey("");
 
         if (copyTimerRef.current) {
@@ -72,6 +83,7 @@ export default function CharacterCounterTool() {
             await navigator.clipboard.writeText(inputText);
 
             setCopied(true);
+            setCopiedStats(false);
             setCopiedStatKey("");
 
             if (copyTimerRef.current) {
@@ -86,12 +98,13 @@ export default function CharacterCounterTool() {
         }
     }
 
-    async function copyStatValue(key: string, value: number) {
+    async function copyStatValue(key: string, label: string, value: number) {
         try {
-            await navigator.clipboard.writeText(String(value));
+            await navigator.clipboard.writeText(`${label}: ${value}`);
 
             setCopiedStatKey(key);
             setCopied(false);
+            setCopiedStats(false);
 
             if (statCopyTimerRef.current) {
                 clearTimeout(statCopyTimerRef.current);
@@ -102,6 +115,26 @@ export default function CharacterCounterTool() {
             }, 1500);
         } catch {
             setCopiedStatKey("");
+        }
+    }
+
+    async function copyAllStats() {
+        try {
+            await navigator.clipboard.writeText(getStatsOutput());
+
+            setCopiedStats(true);
+            setCopied(false);
+            setCopiedStatKey("");
+
+            if (statCopyTimerRef.current) {
+                clearTimeout(statCopyTimerRef.current);
+            }
+
+            statCopyTimerRef.current = setTimeout(() => {
+                setCopiedStats(false);
+            }, 1500);
+        } catch {
+            setCopiedStats(false);
         }
     }
 
@@ -118,7 +151,7 @@ export default function CharacterCounterTool() {
 
     return (
         <>
-            <div className="space-y-5 pb-1 lg:space-y-6 lg:pb-0">
+            <div className="space-y-6 pb-2 lg:pb-0">
                 <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                     <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4">
                         <div>
@@ -162,9 +195,19 @@ export default function CharacterCounterTool() {
                     <div className="flex items-center justify-between gap-4">
                         <SectionHeader title={text.statsTitle} />
 
-                        <p className="text-right text-xs font-medium text-[#9C7B70]">
-                            {text.statCopyHint}
-                        </p>
+                        <div className="flex items-center gap-3">
+                            <p className="text-right text-xs font-medium text-[#9C7B70]">
+                                {text.statCopyHint}
+                            </p>
+
+                            <button
+                                type="button"
+                                onClick={copyAllStats}
+                                className="shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                            >
+                                {copiedStats ? text.copied : text.copyStats}
+                            </button>
+                        </div>
                     </div>
 
                     <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-3">
@@ -173,7 +216,9 @@ export default function CharacterCounterTool() {
                             value={stats.characters}
                             copied={copiedStatKey === "characters"}
                             copiedText={text.copied}
-                            onClick={() => copyStatValue("characters", stats.characters)}
+                            onClick={() =>
+                                copyStatValue("characters", text.characters, stats.characters)
+                            }
                         />
 
                         <StatCard
@@ -184,6 +229,7 @@ export default function CharacterCounterTool() {
                             onClick={() =>
                                 copyStatValue(
                                     "characters-no-spaces",
+                                    text.charactersNoSpaces,
                                     stats.charactersNoSpaces,
                                 )
                             }
@@ -194,7 +240,7 @@ export default function CharacterCounterTool() {
                             value={stats.words}
                             copied={copiedStatKey === "words"}
                             copiedText={text.copied}
-                            onClick={() => copyStatValue("words", stats.words)}
+                            onClick={() => copyStatValue("words", text.words, stats.words)}
                         />
 
                         <StatCard
@@ -202,7 +248,7 @@ export default function CharacterCounterTool() {
                             value={stats.spaces}
                             copied={copiedStatKey === "spaces"}
                             copiedText={text.copied}
-                            onClick={() => copyStatValue("spaces", stats.spaces)}
+                            onClick={() => copyStatValue("spaces", text.spaces, stats.spaces)}
                         />
 
                         <StatCard
@@ -210,7 +256,7 @@ export default function CharacterCounterTool() {
                             value={stats.lines}
                             copied={copiedStatKey === "lines"}
                             copiedText={text.copied}
-                            onClick={() => copyStatValue("lines", stats.lines)}
+                            onClick={() => copyStatValue("lines", text.lines, stats.lines)}
                         />
 
                         <StatCard
@@ -218,7 +264,9 @@ export default function CharacterCounterTool() {
                             value={stats.paragraphs}
                             copied={copiedStatKey === "paragraphs"}
                             copiedText={text.copied}
-                            onClick={() => copyStatValue("paragraphs", stats.paragraphs)}
+                            onClick={() =>
+                                copyStatValue("paragraphs", text.paragraphs, stats.paragraphs)
+                            }
                         />
                     </div>
                 </section>
@@ -228,9 +276,11 @@ export default function CharacterCounterTool() {
                 text={text}
                 stats={stats}
                 copied={copied}
+                copiedStats={copiedStats}
                 copiedStatKey={copiedStatKey}
                 canCopy={!!inputText}
                 onCopyText={copyText}
+                onCopyStats={copyAllStats}
                 onCopyStatValue={copyStatValue}
             />
         </>
@@ -241,9 +291,11 @@ function MobileStatsActionBar({
     text,
     stats,
     copied,
+    copiedStats,
     copiedStatKey,
     canCopy,
     onCopyText,
+    onCopyStats,
     onCopyStatValue,
 }: {
     text: typeof t.characterCounter;
@@ -256,10 +308,12 @@ function MobileStatsActionBar({
         paragraphs: number;
     };
     copied: boolean;
+    copiedStats: boolean;
     copiedStatKey: string;
     canCopy: boolean;
     onCopyText: () => void;
-    onCopyStatValue: (key: string, value: number) => void;
+    onCopyStats: () => void;
+    onCopyStatValue: (key: string, label: string, value: number) => void;
 }) {
     const actionBarRef = useRef<HTMLDivElement | null>(null);
 
@@ -302,7 +356,9 @@ function MobileStatsActionBar({
                         value={stats.characters}
                         copied={copiedStatKey === "characters"}
                         copiedText={text.copied}
-                        onClick={() => onCopyStatValue("characters", stats.characters)}
+                        onClick={() =>
+                            onCopyStatValue("characters", text.characters, stats.characters)
+                        }
                     />
 
                     <MobileStatButton
@@ -313,6 +369,7 @@ function MobileStatsActionBar({
                         onClick={() =>
                             onCopyStatValue(
                                 "characters-no-spaces",
+                                text.charactersNoSpaces,
                                 stats.charactersNoSpaces,
                             )
                         }
@@ -323,7 +380,7 @@ function MobileStatsActionBar({
                         value={stats.words}
                         copied={copiedStatKey === "words"}
                         copiedText={text.copied}
-                        onClick={() => onCopyStatValue("words", stats.words)}
+                        onClick={() => onCopyStatValue("words", text.words, stats.words)}
                     />
 
                     <MobileStatButton
@@ -331,7 +388,9 @@ function MobileStatsActionBar({
                         value={stats.spaces}
                         copied={copiedStatKey === "spaces"}
                         copiedText={text.copied}
-                        onClick={() => onCopyStatValue("spaces", stats.spaces)}
+                        onClick={() =>
+                            onCopyStatValue("spaces", text.spaces, stats.spaces)
+                        }
                     />
 
                     <MobileStatButton
@@ -339,7 +398,7 @@ function MobileStatsActionBar({
                         value={stats.lines}
                         copied={copiedStatKey === "lines"}
                         copiedText={text.copied}
-                        onClick={() => onCopyStatValue("lines", stats.lines)}
+                        onClick={() => onCopyStatValue("lines", text.lines, stats.lines)}
                     />
 
                     <MobileStatButton
@@ -347,19 +406,35 @@ function MobileStatsActionBar({
                         value={stats.paragraphs}
                         copied={copiedStatKey === "paragraphs"}
                         copiedText={text.copied}
-                        onClick={() => onCopyStatValue("paragraphs", stats.paragraphs)}
+                        onClick={() =>
+                            onCopyStatValue(
+                                "paragraphs",
+                                text.paragraphs,
+                                stats.paragraphs,
+                            )
+                        }
                     />
                 </div>
 
                 <div className="mt-2">
-                    <button
-                        type="button"
-                        onClick={onCopyText}
-                        disabled={!canCopy}
-                        className="w-full rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
-                    >
-                        {copied ? text.copied : text.copyText}
-                    </button>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            onClick={onCopyText}
+                            disabled={!canCopy}
+                            className="w-full rounded-2xl bg-[#F28C6F] px-3 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
+                        >
+                            {copied ? text.copied : text.copyText}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={onCopyStats}
+                            className="w-full rounded-2xl border border-[#F4C8BA] bg-white px-3 py-2.5 text-center text-sm font-semibold leading-tight text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                        >
+                            {copiedStats ? text.copied : text.copyStats}
+                        </button>
+                    </div>
 
                     <p className="mt-1.5 text-center text-[10px] font-medium leading-4 text-[#9C7B70]">
                         {text.statCopyHint}

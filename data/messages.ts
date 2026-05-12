@@ -1160,6 +1160,7 @@ export const messages = {
             statsTitle: "Text Stats",
             statCopyHint: "Click or tap a value to copy it.",
 
+            copyStats: "Copy Stats",
             copyText: "Copy Text",
             clear: "Clear",
 
