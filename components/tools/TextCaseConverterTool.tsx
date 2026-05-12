@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { t } from "@/data/messages";
 
 function toTitleCase(value: string) {
@@ -13,19 +13,24 @@ function toSentenceCase(value: string) {
   const lower = value.toLowerCase();
 
   return lower.replace(/(^\s*\w|[.!?]\s*\w)/g, (match) =>
-    match.toUpperCase()
+    match.toUpperCase(),
   );
 }
 
 export default function TextCaseConverterTool() {
-  const [text, setText] = useState("");
+  const text = t.textCaseConverter;
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [inputText, setInputText] = useState("");
   const [copied, setCopied] = useState(false);
+  const [history, setHistory] = useState<string[]>([]);
+  const [redoHistory, setRedoHistory] = useState<string[]>([]);
 
   const stats = useMemo(() => {
-    const characters = text.length;
-    const charactersNoSpaces = text.replace(/\s/g, "").length;
-    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-    const lines = text ? text.split(/\r\n|\r|\n/).length : 0;
+    const characters = inputText.length;
+    const charactersNoSpaces = inputText.replace(/\s/g, "").length;
+    const words = inputText.trim() ? inputText.trim().split(/\s+/).length : 0;
+    const lines = inputText ? inputText.split(/\r\n|\r|\n/).length : 0;
 
     return {
       characters,
@@ -33,110 +38,239 @@ export default function TextCaseConverterTool() {
       words,
       lines,
     };
-  }, [text]);
+  }, [inputText]);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
+    };
+  }, []);
+
+  function clearCopiedState() {
+    setCopied(false);
+
+    if (copyTimerRef.current) {
+      clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = null;
+    }
+  }
+
+  function updateText(value: string) {
+    setInputText(value);
+    clearCopiedState();
+  }
+
+  function applyTransform(nextText: string) {
+    if (nextText === inputText) return;
+
+    setHistory((current) => [...current, inputText]);
+    setRedoHistory([]);
+    setInputText(nextText);
+    clearCopiedState();
+  }
+
+  function handleUndo() {
+    setHistory((current) => {
+      if (!current.length) return current;
+
+      const previousText = current[current.length - 1];
+      const nextHistory = current.slice(0, -1);
+
+      setRedoHistory((redoCurrent) => [...redoCurrent, inputText]);
+      setInputText(previousText);
+      clearCopiedState();
+
+      return nextHistory;
+    });
+  }
+
+  function handleRedo() {
+    setRedoHistory((current) => {
+      if (!current.length) return current;
+
+      const nextText = current[current.length - 1];
+      const nextRedoHistory = current.slice(0, -1);
+
+      setHistory((historyCurrent) => [...historyCurrent, inputText]);
+      setInputText(nextText);
+      clearCopiedState();
+
+      return nextRedoHistory;
+    });
+  }
 
   async function copyText() {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
+    try {
+      await navigator.clipboard.writeText(inputText);
 
-    setTimeout(() => {
+      setCopied(true);
+
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
+
+      copyTimerRef.current = setTimeout(() => {
+        setCopied(false);
+      }, 1500);
+    } catch {
       setCopied(false);
-    }, 1500);
+    }
   }
 
   function clearText() {
-    setText("");
-    setCopied(false);
+    if (!inputText) return;
+
+    setHistory((current) => [...current, inputText]);
+    setRedoHistory([]);
+    setInputText("");
+    clearCopiedState();
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <label className="mb-3 block text-sm font-semibold text-gray-800">
-          {t.textCaseConverter.enterText}
-        </label>
+      <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <SectionHeader title={text.enterText} />
+
+            <p className="mt-2 max-w-[420px] text-sm leading-6 text-gray-500">
+              {text.description}
+            </p>
+          </div>
+        </div>
 
         <textarea
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          placeholder={t.textCaseConverter.placeholder}
-          className="min-h-52 w-full resize-y rounded-2xl border border-[#F1E5DF] bg-white p-4 text-sm leading-6 text-gray-800 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+          value={inputText}
+          onChange={(event) => updateText(event.target.value)}
+          placeholder={text.placeholder}
+          className="h-[220px] w-full resize-y rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4 text-sm leading-6 text-gray-800 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] md:h-[260px]"
         />
-      </div>
+      </section>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <button
-          onClick={() => setText(text.toUpperCase())}
-          className="rounded-xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#E6765B]"
-        >
-          {t.textCaseConverter.uppercase}
-        </button>
+      <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+        <SectionHeader title={text.actionsTitle} />
 
-        <button
-          onClick={() => setText(text.toLowerCase())}
-          className="rounded-xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
-        >
-          {t.textCaseConverter.lowercase}
-        </button>
+        <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <button
+            type="button"
+            onClick={() => applyTransform(inputText.toUpperCase())}
+            disabled={!inputText}
+            className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {text.uppercase}
+          </button>
 
-        <button
-          onClick={() => setText(toTitleCase(text))}
-          className="rounded-xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-gray-800 transition hover:bg-[#FFF7F3]"
-        >
-          {t.textCaseConverter.titleCase}
-        </button>
+          <button
+            type="button"
+            onClick={() => applyTransform(inputText.toLowerCase())}
+            disabled={!inputText}
+            className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {text.lowercase}
+          </button>
 
-        <button
-          onClick={() => setText(toSentenceCase(text))}
-          className="rounded-xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-gray-800 transition hover:bg-[#FFF7F3]"
-        >
-          {t.textCaseConverter.sentenceCase}
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => applyTransform(toTitleCase(inputText))}
+            disabled={!inputText}
+            className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-gray-800 transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {text.titleCase}
+          </button>
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          onClick={copyText}
-          className="rounded-xl border border-[#F1E5DF] bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-[#F28C6F]"
-        >
-          {copied ? t.common.copied : t.textCaseConverter.copyResult}
-        </button>
-
-        <button
-          onClick={clearText}
-          className="rounded-xl border border-[#F1E5DF] bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-[#F28C6F]"
-        >
-          {t.textCaseConverter.clear}
-        </button>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-4">
-        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-          <p className="text-xs text-gray-500">
-            {t.textCaseConverter.characters}
-          </p>
-          <p className="mt-1 text-2xl font-bold">{stats.characters}</p>
+          <button
+            type="button"
+            onClick={() => applyTransform(toSentenceCase(inputText))}
+            disabled={!inputText}
+            className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-gray-800 transition hover:bg-[#FFF7F3] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {text.sentenceCase}
+          </button>
         </div>
 
-        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-          <p className="text-xs text-gray-500">
-            {t.textCaseConverter.noSpaces}
-          </p>
-          <p className="mt-1 text-2xl font-bold">
-            {stats.charactersNoSpaces}
-          </p>
-        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <button
+            type="button"
+            onClick={copyText}
+            disabled={!inputText}
+            className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {copied ? text.copied : text.copyResult}
+          </button>
 
-        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-          <p className="text-xs text-gray-500">{t.textCaseConverter.words}</p>
-          <p className="mt-1 text-2xl font-bold">{stats.words}</p>
-        </div>
+          <button
+            type="button"
+            onClick={clearText}
+            disabled={!inputText}
+            className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {text.clear}
+          </button>
 
-        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4">
-          <p className="text-xs text-gray-500">{t.textCaseConverter.lines}</p>
-          <p className="mt-1 text-2xl font-bold">{stats.lines}</p>
+          <button
+            type="button"
+            onClick={handleUndo}
+            disabled={history.length === 0}
+            className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {text.undo}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleRedo}
+            disabled={redoHistory.length === 0}
+            className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {text.redo}
+          </button>
         </div>
-      </div>
+      </section>
+
+      <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+        <SectionHeader title={text.statsTitle} />
+
+        <div className="mt-5 grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3">
+          <StatCard
+            label={text.characters}
+            value={stats.characters}
+          />
+
+          <StatCard
+            label={text.noSpaces}
+            value={stats.charactersNoSpaces}
+          />
+
+          <StatCard label={text.words} value={stats.words} />
+
+          <StatCard label={text.lines} value={stats.lines} />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
+      <h3 className="font-semibold text-gray-900">{title}</h3>
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5 md:p-4">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9C7B70] md:text-xs">
+        {label}
+      </p>
+
+      <p className="mt-1 text-base font-bold text-gray-900 md:mt-2 md:text-2xl">
+        {value}
+      </p>
     </div>
   );
 }

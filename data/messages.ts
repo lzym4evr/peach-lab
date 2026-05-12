@@ -1116,18 +1116,30 @@ export const messages = {
         // Text Tools
         // =========================
         textCaseConverter: {
-            enterText: "Enter your text",
+            enterText: "Enter Text",
+            description:
+                "Convert text between uppercase, lowercase, title case, and sentence case.",
             placeholder: "Type or paste your text here...",
+
+            actionsTitle: "Text Actions",
+            statsTitle: "Text Stats",
+
             uppercase: "UPPERCASE",
             lowercase: "lowercase",
             titleCase: "Title Case",
             sentenceCase: "Sentence case",
-            copyResult: "Copy result",
+
+            copyResult: "Copy Result",
             clear: "Clear",
+            undo: "Undo",
+            redo: "Redo",
+
             characters: "Characters",
-            noSpaces: "No spaces",
+            noSpaces: "No Spaces",
             words: "Words",
             lines: "Lines",
+
+            copied: "Copied",
         },
 
         characterCounter: {
