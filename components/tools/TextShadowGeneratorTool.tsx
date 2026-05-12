@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    type CSSProperties,
     type ReactNode,
     useEffect,
     useMemo,
@@ -9,7 +10,11 @@ import {
 } from "react";
 import { t } from "@/data/messages";
 
+type TextShadowStyle = "soft" | "glow" | "neon" | "retro" | "hard" | "deep";
+type TextAlign = "left" | "center" | "right";
+
 type TextShadowSettings = {
+    shadowStyle: TextShadowStyle;
     sampleText: string;
     textColor: string;
     shadowColor: string;
@@ -19,9 +24,18 @@ type TextShadowSettings = {
     blurRadius: number;
     shadowOpacity: number;
     fontSize: number;
+    fontWeight: number;
+    letterSpacing: number;
+    textAlign: TextAlign;
+    useSecondShadow: boolean;
+    secondOffsetX: number;
+    secondOffsetY: number;
+    secondBlurRadius: number;
+    secondShadowOpacity: number;
 };
 
 const defaultSettings: TextShadowSettings = {
+    shadowStyle: "soft",
     sampleText: "Peach Lab",
     textColor: "#2A1F1B",
     shadowColor: "#F28C6F",
@@ -31,7 +45,26 @@ const defaultSettings: TextShadowSettings = {
     blurRadius: 14,
     shadowOpacity: 45,
     fontSize: 56,
+    fontWeight: 800,
+    letterSpacing: 0,
+    textAlign: "center",
+    useSecondShadow: false,
+    secondOffsetX: 12,
+    secondOffsetY: 16,
+    secondBlurRadius: 26,
+    secondShadowOpacity: 24,
 };
+
+const shadowStyles: TextShadowStyle[] = [
+    "soft",
+    "glow",
+    "neon",
+    "retro",
+    "hard",
+    "deep",
+];
+
+const textAlignOptions: TextAlign[] = ["left", "center", "right"];
 
 function randomNumber(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -67,6 +100,50 @@ function hexToRgb(hex: string) {
     };
 }
 
+function getRgba(hex: string, opacity: number) {
+    const rgb = hexToRgb(hex);
+
+    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity / 100})`;
+}
+
+function getShadowStyleLabel(
+    text: typeof t.textShadowGenerator,
+    style: TextShadowStyle,
+) {
+    const labels = text as {
+        styleSoft?: string;
+        styleGlow?: string;
+        styleNeon?: string;
+        styleRetro?: string;
+        styleHard?: string;
+        styleDeep?: string;
+    };
+
+    if (style === "glow") return labels.styleGlow ?? "Glow";
+    if (style === "neon") return labels.styleNeon ?? "Neon";
+    if (style === "retro") return labels.styleRetro ?? "Retro";
+    if (style === "hard") return labels.styleHard ?? "Hard";
+    if (style === "deep") return labels.styleDeep ?? "Deep";
+
+    return labels.styleSoft ?? "Soft";
+}
+
+function getTextAlignLabel(
+    text: typeof t.textShadowGenerator,
+    align: TextAlign,
+) {
+    const labels = text as {
+        alignLeft?: string;
+        alignCenter?: string;
+        alignRight?: string;
+    };
+
+    if (align === "left") return labels.alignLeft ?? "Left";
+    if (align === "right") return labels.alignRight ?? "Right";
+
+    return labels.alignCenter ?? "Center";
+}
+
 export default function TextShadowGeneratorTool() {
     const text = t.textShadowGenerator;
     const meta = t.toolMeta.textShadowGenerator;
@@ -88,32 +165,69 @@ export default function TextShadowGeneratorTool() {
         "#FFF7F3",
     );
 
-    const shadowRgba = useMemo(() => {
-        const rgb = hexToRgb(safeShadowColor);
-        const opacity = settings.shadowOpacity / 100;
+    const primaryShadow = useMemo(() => {
+        return `${settings.offsetX}px ${settings.offsetY}px ${settings.blurRadius}px ${getRgba(
+            safeShadowColor,
+            settings.shadowOpacity,
+        )}`;
+    }, [
+        settings.offsetX,
+        settings.offsetY,
+        settings.blurRadius,
+        settings.shadowOpacity,
+        safeShadowColor,
+    ]);
 
-        return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
-    }, [safeShadowColor, settings.shadowOpacity]);
+    const secondShadow = useMemo(() => {
+        return `${settings.secondOffsetX}px ${settings.secondOffsetY}px ${settings.secondBlurRadius}px ${getRgba(
+            safeShadowColor,
+            settings.secondShadowOpacity,
+        )}`;
+    }, [
+        settings.secondOffsetX,
+        settings.secondOffsetY,
+        settings.secondBlurRadius,
+        settings.secondShadowOpacity,
+        safeShadowColor,
+    ]);
+
+    const textShadowValue = settings.useSecondShadow
+        ? `${primaryShadow}, ${secondShadow}`
+        : primaryShadow;
 
     const cssOutput = useMemo(() => {
+        const shadowCss = settings.useSecondShadow
+            ? `text-shadow:
+    ${primaryShadow},
+    ${secondShadow};`
+            : `text-shadow: ${primaryShadow};`;
+
         return `.peach-text-shadow {
   color: ${safeTextColor};
   font-size: ${settings.fontSize}px;
-  text-shadow: ${settings.offsetX}px ${settings.offsetY}px ${settings.blurRadius}px ${shadowRgba};
+  font-weight: ${settings.fontWeight};
+  letter-spacing: ${settings.letterSpacing}px;
+  text-align: ${settings.textAlign};
+  ${shadowCss}
 }`;
     }, [
         safeTextColor,
         settings.fontSize,
-        settings.offsetX,
-        settings.offsetY,
-        settings.blurRadius,
-        shadowRgba,
+        settings.fontWeight,
+        settings.letterSpacing,
+        settings.textAlign,
+        settings.useSecondShadow,
+        primaryShadow,
+        secondShadow,
     ]);
 
-    const previewStyle = {
+    const previewStyle: CSSProperties = {
         color: safeTextColor,
         fontSize: `${settings.fontSize}px`,
-        textShadow: `${settings.offsetX}px ${settings.offsetY}px ${settings.blurRadius}px ${shadowRgba}`,
+        fontWeight: settings.fontWeight,
+        letterSpacing: `${settings.letterSpacing}px`,
+        textAlign: settings.textAlign,
+        textShadow: textShadowValue,
     };
 
     useEffect(() => {
@@ -141,6 +255,156 @@ export default function TextShadowGeneratorTool() {
         clearCopyState();
     }
 
+    function applyShadowStyle(nextStyle: TextShadowStyle) {
+        setSettings((current) => {
+            const sampleText = current.sampleText;
+
+            if (nextStyle === "glow") {
+                return {
+                    ...current,
+                    shadowStyle: "glow",
+                    sampleText,
+                    textColor: "#2A1F1B",
+                    shadowColor: "#F28C6F",
+                    backgroundColor: "#FFF7F3",
+                    offsetX: 0,
+                    offsetY: 0,
+                    blurRadius: 24,
+                    shadowOpacity: 75,
+                    fontSize: 58,
+                    fontWeight: 800,
+                    letterSpacing: 0,
+                    textAlign: "center",
+                    useSecondShadow: true,
+                    secondOffsetX: 0,
+                    secondOffsetY: 0,
+                    secondBlurRadius: 44,
+                    secondShadowOpacity: 35,
+                };
+            }
+
+            if (nextStyle === "neon") {
+                return {
+                    ...current,
+                    shadowStyle: "neon",
+                    sampleText,
+                    textColor: "#FFFFFF",
+                    shadowColor: "#F28C6F",
+                    backgroundColor: "#2A1F1B",
+                    offsetX: 0,
+                    offsetY: 0,
+                    blurRadius: 10,
+                    shadowOpacity: 95,
+                    fontSize: 58,
+                    fontWeight: 800,
+                    letterSpacing: 1,
+                    textAlign: "center",
+                    useSecondShadow: true,
+                    secondOffsetX: 0,
+                    secondOffsetY: 0,
+                    secondBlurRadius: 32,
+                    secondShadowOpacity: 80,
+                };
+            }
+
+            if (nextStyle === "retro") {
+                return {
+                    ...current,
+                    shadowStyle: "retro",
+                    sampleText,
+                    textColor: "#2A1F1B",
+                    shadowColor: "#F28C6F",
+                    backgroundColor: "#FFF7F3",
+                    offsetX: 5,
+                    offsetY: 5,
+                    blurRadius: 0,
+                    shadowOpacity: 80,
+                    fontSize: 58,
+                    fontWeight: 900,
+                    letterSpacing: 1,
+                    textAlign: "center",
+                    useSecondShadow: true,
+                    secondOffsetX: 10,
+                    secondOffsetY: 10,
+                    secondBlurRadius: 0,
+                    secondShadowOpacity: 35,
+                };
+            }
+
+            if (nextStyle === "hard") {
+                return {
+                    ...current,
+                    shadowStyle: "hard",
+                    sampleText,
+                    textColor: "#2A1F1B",
+                    shadowColor: "#F28C6F",
+                    backgroundColor: "#FFF7F3",
+                    offsetX: 8,
+                    offsetY: 8,
+                    blurRadius: 0,
+                    shadowOpacity: 85,
+                    fontSize: 56,
+                    fontWeight: 800,
+                    letterSpacing: 0,
+                    textAlign: "center",
+                    useSecondShadow: false,
+                    secondOffsetX: 12,
+                    secondOffsetY: 16,
+                    secondBlurRadius: 26,
+                    secondShadowOpacity: 24,
+                };
+            }
+
+            if (nextStyle === "deep") {
+                return {
+                    ...current,
+                    shadowStyle: "deep",
+                    sampleText,
+                    textColor: "#2A1F1B",
+                    shadowColor: "#7A5A4F",
+                    backgroundColor: "#FFF7F3",
+                    offsetX: 8,
+                    offsetY: 12,
+                    blurRadius: 18,
+                    shadowOpacity: 52,
+                    fontSize: 58,
+                    fontWeight: 800,
+                    letterSpacing: 0,
+                    textAlign: "center",
+                    useSecondShadow: true,
+                    secondOffsetX: 16,
+                    secondOffsetY: 24,
+                    secondBlurRadius: 34,
+                    secondShadowOpacity: 24,
+                };
+            }
+
+            return {
+                ...current,
+                shadowStyle: "soft",
+                sampleText,
+                textColor: "#2A1F1B",
+                shadowColor: "#F28C6F",
+                backgroundColor: "#FFF7F3",
+                offsetX: 6,
+                offsetY: 8,
+                blurRadius: 14,
+                shadowOpacity: 45,
+                fontSize: 56,
+                fontWeight: 800,
+                letterSpacing: 0,
+                textAlign: "center",
+                useSecondShadow: false,
+                secondOffsetX: 12,
+                secondOffsetY: 16,
+                secondBlurRadius: 26,
+                secondShadowOpacity: 24,
+            };
+        });
+
+        clearCopyState();
+    }
+
     function handleShuffle() {
         setSettings((current) => ({
             ...current,
@@ -149,6 +413,13 @@ export default function TextShadowGeneratorTool() {
             blurRadius: randomNumber(0, 40),
             shadowOpacity: randomNumber(20, 80),
             fontSize: randomNumber(36, 72),
+            fontWeight: randomNumber(4, 9) * 100,
+            letterSpacing: randomNumber(-2, 8),
+            useSecondShadow: Math.random() > 0.55,
+            secondOffsetX: randomNumber(-18, 28),
+            secondOffsetY: randomNumber(-18, 32),
+            secondBlurRadius: randomNumber(0, 50),
+            secondShadowOpacity: randomNumber(12, 55),
         }));
 
         clearCopyState();
@@ -157,6 +428,7 @@ export default function TextShadowGeneratorTool() {
     function handleRandomAll() {
         setSettings((current) => ({
             ...current,
+            shadowStyle: shadowStyles[Math.floor(Math.random() * shadowStyles.length)],
             textColor: randomHexColor(),
             shadowColor: randomHexColor(),
             backgroundColor: randomHexColor(),
@@ -165,6 +437,15 @@ export default function TextShadowGeneratorTool() {
             blurRadius: randomNumber(0, 40),
             shadowOpacity: randomNumber(20, 85),
             fontSize: randomNumber(32, 80),
+            fontWeight: randomNumber(4, 9) * 100,
+            letterSpacing: randomNumber(-2, 10),
+            textAlign:
+                textAlignOptions[Math.floor(Math.random() * textAlignOptions.length)],
+            useSecondShadow: Math.random() > 0.45,
+            secondOffsetX: randomNumber(-24, 32),
+            secondOffsetY: randomNumber(-24, 36),
+            secondBlurRadius: randomNumber(0, 56),
+            secondShadowOpacity: randomNumber(12, 60),
         }));
 
         clearCopyState();
@@ -209,6 +490,7 @@ export default function TextShadowGeneratorTool() {
             text={text}
             settings={settings}
             updateSetting={updateSetting}
+            onApplyShadowStyle={applyShadowStyle}
             onShuffle={handleShuffle}
             onRandom={handleRandomAll}
             onReset={handleReset}
@@ -220,6 +502,7 @@ export default function TextShadowGeneratorTool() {
             text={text}
             settings={settings}
             updateSetting={updateSetting}
+            onApplyShadowStyle={applyShadowStyle}
             onShuffle={handleShuffle}
             onRandom={handleRandomAll}
             onReset={handleReset}
@@ -305,7 +588,6 @@ export default function TextShadowGeneratorTool() {
 
 function TextShadowPreview({
     text,
-    metaDescription,
     settings,
     previewStyle,
     safeBackgroundColor,
@@ -313,7 +595,7 @@ function TextShadowPreview({
     text: typeof t.textShadowGenerator;
     metaDescription: string;
     settings: TextShadowSettings;
-    previewStyle: React.CSSProperties;
+    previewStyle: CSSProperties;
     safeBackgroundColor: string;
 }) {
     return (
@@ -323,7 +605,7 @@ function TextShadowPreview({
         >
             {settings.sampleText.trim() ? (
                 <div
-                    className="max-w-full break-words font-bold leading-tight"
+                    className="w-full max-w-full break-words leading-tight"
                     style={previewStyle}
                 >
                     {settings.sampleText}
@@ -343,7 +625,7 @@ function TextShadowMiniPreview({
 }: {
     text: typeof t.textShadowGenerator;
     settings: TextShadowSettings;
-    previewStyle: React.CSSProperties;
+    previewStyle: CSSProperties;
     safeBackgroundColor: string;
 }) {
     return (
@@ -353,7 +635,7 @@ function TextShadowMiniPreview({
         >
             {settings.sampleText.trim() ? (
                 <div
-                    className="max-w-full break-words font-bold leading-tight"
+                    className="w-full max-w-full break-words leading-tight"
                     style={{
                         ...previewStyle,
                         fontSize: `${Math.min(settings.fontSize, 34)}px`,
@@ -372,6 +654,7 @@ function TextShadowSettingsPanel({
     text,
     settings,
     updateSetting,
+    onApplyShadowStyle,
     onShuffle,
     onRandom,
     onReset,
@@ -383,13 +666,14 @@ function TextShadowSettingsPanel({
         key: K,
         value: TextShadowSettings[K],
     ) => void;
+    onApplyShadowStyle: (style: TextShadowStyle) => void;
     onShuffle: () => void;
     onRandom: () => void;
     onReset: () => void;
     compact?: boolean;
 }) {
     return (
-        <div className={compact ? "space-y-3" : "space-y-5"}>
+        <div className={compact ? "space-y-4" : "space-y-6"}>
             <div className="grid grid-cols-3 gap-2">
                 <button
                     type="button"
@@ -425,6 +709,29 @@ function TextShadowSettingsPanel({
                     placeholder={text.sampleTextPlaceholder}
                     className="h-12 w-full rounded-xl border border-[#F1E5DF] bg-white px-4 text-sm text-[#2A1F1B] outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
                 />
+            </SettingGroup>
+
+            <SettingGroup title={text.styleGroupTitle}>
+                <div className="grid grid-cols-3 gap-2">
+                    {shadowStyles.map((style) => {
+                        const isActive = settings.shadowStyle === style;
+
+                        return (
+                            <button
+                                key={style}
+                                type="button"
+                                onClick={() => onApplyShadowStyle(style)}
+                                className={`rounded-2xl border px-2 font-semibold transition ${compact ? "py-2 text-xs" : "py-3 text-sm"
+                                    } ${isActive
+                                        ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                                        : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                                    }`}
+                            >
+                                {getShadowStyleLabel(text, style)}
+                            </button>
+                        );
+                    })}
+                </div>
             </SettingGroup>
 
             <SettingGroup title={text.colorsGroupTitle}>
@@ -496,16 +803,127 @@ function TextShadowSettingsPanel({
                 </div>
             </SettingGroup>
 
+            <SettingGroup title={text.multipleShadowGroupTitle}>
+                <button
+                    type="button"
+                    onClick={() =>
+                        updateSetting("useSecondShadow", !settings.useSecondShadow)
+                    }
+                    className={`w-full rounded-2xl border px-4 py-3 text-sm font-semibold transition ${settings.useSecondShadow
+                            ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                            : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                        }`}
+                >
+                    {settings.useSecondShadow
+                        ? text.secondShadowOn
+                        : text.secondShadowOff}
+                </button>
+
+                {settings.useSecondShadow ? (
+                    <div className="mt-4 grid grid-cols-2 gap-4">
+                        <RangeControl
+                            label={text.secondHorizontalOffsetLabel}
+                            value={settings.secondOffsetX}
+                            min={-60}
+                            max={60}
+                            suffix="px"
+                            compact={compact}
+                            onChange={(value) => updateSetting("secondOffsetX", value)}
+                        />
+
+                        <RangeControl
+                            label={text.secondVerticalOffsetLabel}
+                            value={settings.secondOffsetY}
+                            min={-60}
+                            max={60}
+                            suffix="px"
+                            compact={compact}
+                            onChange={(value) => updateSetting("secondOffsetY", value)}
+                        />
+
+                        <RangeControl
+                            label={text.secondBlurRadiusLabel}
+                            value={settings.secondBlurRadius}
+                            min={0}
+                            max={100}
+                            suffix="px"
+                            compact={compact}
+                            onChange={(value) => updateSetting("secondBlurRadius", value)}
+                        />
+
+                        <RangeControl
+                            label={text.secondShadowOpacityLabel}
+                            value={settings.secondShadowOpacity}
+                            min={0}
+                            max={100}
+                            suffix="%"
+                            compact={compact}
+                            onChange={(value) => updateSetting("secondShadowOpacity", value)}
+                        />
+                    </div>
+                ) : null}
+            </SettingGroup>
+
             <SettingGroup title={text.sizeGroupTitle}>
-                <RangeControl
-                    label={text.fontSizeLabel}
-                    value={settings.fontSize}
-                    min={24}
-                    max={120}
-                    suffix="px"
-                    compact={compact}
-                    onChange={(value) => updateSetting("fontSize", value)}
-                />
+                <div className="grid grid-cols-2 gap-4">
+                    <RangeControl
+                        label={text.fontSizeLabel}
+                        value={settings.fontSize}
+                        min={24}
+                        max={120}
+                        suffix="px"
+                        compact={compact}
+                        onChange={(value) => updateSetting("fontSize", value)}
+                    />
+
+                    <RangeControl
+                        label={text.fontWeightLabel}
+                        value={settings.fontWeight}
+                        min={100}
+                        max={900}
+                        step={100}
+                        suffix=""
+                        compact={compact}
+                        onChange={(value) => updateSetting("fontWeight", value)}
+                    />
+
+                    <RangeControl
+                        label={text.letterSpacingLabel}
+                        value={settings.letterSpacing}
+                        min={-5}
+                        max={20}
+                        suffix="px"
+                        compact={compact}
+                        onChange={(value) => updateSetting("letterSpacing", value)}
+                    />
+                </div>
+
+                <div className="mt-4">
+                    <span className="mb-2 block text-sm font-semibold text-gray-800">
+                        {text.textAlignLabel}
+                    </span>
+
+                    <div className="grid grid-cols-3 gap-2">
+                        {textAlignOptions.map((align) => {
+                            const isActive = settings.textAlign === align;
+
+                            return (
+                                <button
+                                    key={align}
+                                    type="button"
+                                    onClick={() => updateSetting("textAlign", align)}
+                                    className={`rounded-2xl border px-3 font-semibold transition ${compact ? "py-2 text-xs" : "py-3 text-sm"
+                                        } ${isActive
+                                            ? "border-[#F28C6F] bg-[#F28C6F] text-white shadow-sm"
+                                            : "border-[#F4C8BA] bg-white text-[#E6765B] hover:bg-[#FFF7F3]"
+                                        }`}
+                                >
+                                    {getTextAlignLabel(text, align)}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
             </SettingGroup>
         </div>
     );
@@ -580,6 +998,7 @@ function RangeControl({
     min,
     max,
     suffix,
+    step = 1,
     compact = false,
     onChange,
 }: {
@@ -588,6 +1007,7 @@ function RangeControl({
     min: number;
     max: number;
     suffix: string;
+    step?: number;
     compact?: boolean;
     onChange: (value: number) => void;
 }) {
@@ -626,6 +1046,7 @@ function RangeControl({
                 type="range"
                 min={min}
                 max={max}
+                step={step}
                 value={value}
                 onChange={(event) => onChange(Number(event.target.value))}
                 className="w-full accent-[#F28C6F]"

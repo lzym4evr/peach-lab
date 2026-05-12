@@ -1182,9 +1182,18 @@ export const messages = {
             outputTitle: "CSS Output",
 
             textGroupTitle: "Preview Text",
+            styleGroupTitle: "Shadow Style",
             colorsGroupTitle: "Colors",
             shadowGroupTitle: "Shadow",
-            sizeGroupTitle: "Size",
+            multipleShadowGroupTitle: "Multiple Shadows",
+            sizeGroupTitle: "Typography",
+
+            styleSoft: "Soft",
+            styleGlow: "Glow",
+            styleNeon: "Neon",
+            styleRetro: "Retro",
+            styleHard: "Hard",
+            styleDeep: "Deep",
 
             sampleTextLabel: "Preview Text",
             sampleTextPlaceholder: "Type your preview text here",
@@ -1196,7 +1205,21 @@ export const messages = {
             verticalOffsetLabel: "Vertical Offset",
             blurRadiusLabel: "Blur Radius",
             shadowOpacityLabel: "Shadow Opacity",
+
+            secondShadowOn: "Second Shadow On",
+            secondShadowOff: "Second Shadow Off",
+            secondHorizontalOffsetLabel: "Second X Offset",
+            secondVerticalOffsetLabel: "Second Y Offset",
+            secondBlurRadiusLabel: "Second Blur",
+            secondShadowOpacityLabel: "Second Opacity",
+
             fontSizeLabel: "Font Size",
+            fontWeightLabel: "Font Weight",
+            letterSpacingLabel: "Letter Spacing",
+            textAlignLabel: "Text Align",
+            alignLeft: "Left",
+            alignCenter: "Center",
+            alignRight: "Right",
 
             shuffle: "Shuffle",
             randomAll: "Random",
