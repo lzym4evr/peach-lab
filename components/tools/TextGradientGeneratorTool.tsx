@@ -602,7 +602,7 @@ ${gradientDef}
                                 <code>{cssOutput}</code>
                             </pre>
 
-                            <div className="mt-4 grid grid-cols-2 gap-3">
+                            <div className="mt-4 hidden grid-cols-2 gap-3 lg:grid">
                                 <button
                                     type="button"
                                     onClick={handleDownloadPng}
@@ -932,29 +932,31 @@ function TextGradientSettingsPanel({
 
             <SettingGroup title={text.colorsGroupTitle}>
                 <div className={compact ? "grid grid-cols-2 gap-2" : "grid gap-4"}>
-                    <ColorInput
-                        label={text.colorOneLabel}
-                        value={settings.colorOne}
-                        fallback="#F28C6F"
-                        compact={compact}
-                        onChange={(value) => updateSetting("colorOne", value)}
-                    />
+                    <div className={compact ? "contents" : "grid grid-cols-3 gap-3"}>
+                        <ColorInput
+                            label={text.colorOneLabel}
+                            value={settings.colorOne}
+                            fallback="#F28C6F"
+                            compact={compact}
+                            onChange={(value) => updateSetting("colorOne", value)}
+                        />
 
-                    <ColorInput
-                        label={text.colorTwoLabel}
-                        value={settings.colorTwo}
-                        fallback="#FFD6C8"
-                        compact={compact}
-                        onChange={(value) => updateSetting("colorTwo", value)}
-                    />
+                        <ColorInput
+                            label={text.colorTwoLabel}
+                            value={settings.colorTwo}
+                            fallback="#FFD6C8"
+                            compact={compact}
+                            onChange={(value) => updateSetting("colorTwo", value)}
+                        />
 
-                    <ColorInput
-                        label={text.colorThreeLabel}
-                        value={settings.colorThree}
-                        fallback="#E6765B"
-                        compact={compact}
-                        onChange={(value) => updateSetting("colorThree", value)}
-                    />
+                        <ColorInput
+                            label={text.colorThreeLabel}
+                            value={settings.colorThree}
+                            fallback="#E6765B"
+                            compact={compact}
+                            onChange={(value) => updateSetting("colorThree", value)}
+                        />
+                    </div>
 
                     <ColorInput
                         label={text.backgroundColorLabel}
