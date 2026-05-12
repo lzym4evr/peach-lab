@@ -478,7 +478,6 @@ export default function TextShadowGeneratorTool() {
     const previewPanel = (
         <TextShadowPreview
             text={text}
-            metaDescription={meta.description}
             settings={settings}
             previewStyle={previewStyle}
             safeBackgroundColor={safeBackgroundColor}
@@ -515,17 +514,19 @@ export default function TextShadowGeneratorTool() {
             <div className="space-y-6">
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
                     <div className="min-w-0 space-y-6">
-                        <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                            <div className="mb-5">
-                                <SectionHeader title={text.previewTitle} />
+                        <div className="lg:sticky lg:top-6">
+                            <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                                <div className="mb-5">
+                                    <SectionHeader title={text.previewTitle} />
 
-                                <p className="mt-2 max-w-[320px] text-sm leading-6 text-slate-500">
-                                    {meta.description}
-                                </p>
-                            </div>
+                                    <p className="mt-2 max-w-[320px] text-sm leading-6 text-slate-500">
+                                        {meta.description}
+                                    </p>
+                                </div>
 
-                            {previewPanel}
-                        </section>
+                                {previewPanel}
+                            </section>
+                        </div>
 
                         <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                             <div className="mb-4 flex items-center justify-between gap-4">
@@ -593,7 +594,6 @@ function TextShadowPreview({
     safeBackgroundColor,
 }: {
     text: typeof t.textShadowGenerator;
-    metaDescription: string;
     settings: TextShadowSettings;
     previewStyle: CSSProperties;
     safeBackgroundColor: string;
@@ -630,7 +630,7 @@ function TextShadowMiniPreview({
 }) {
     return (
         <div
-            className="sticky top-0 z-10 flex h-32 items-center justify-center rounded-2xl border border-[#F1E5DF] p-4 text-center"
+            className="sticky top-0 z-10 flex h-32 items-center justify-center rounded-2xl border border-[#F1E5DF] bg-white p-4 text-center"
             style={{ backgroundColor: safeBackgroundColor }}
         >
             {settings.sampleText.trim() ? (
@@ -1121,11 +1121,31 @@ function MobileSettingsSheet({
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
+        const scrollY = window.scrollY;
+        const originalPosition = document.body.style.position;
+        const originalTop = document.body.style.top;
+        const originalWidth = document.body.style.width;
+        const originalOverflow = document.body.style.overflow;
+
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.width = "100%";
+        document.body.style.overflow = "hidden";
+
         const frame = requestAnimationFrame(() => {
             setIsVisible(true);
         });
 
-        return () => cancelAnimationFrame(frame);
+        return () => {
+            cancelAnimationFrame(frame);
+
+            document.body.style.position = originalPosition;
+            document.body.style.top = originalTop;
+            document.body.style.width = originalWidth;
+            document.body.style.overflow = originalOverflow;
+
+            window.scrollTo(0, scrollY);
+        };
     }, []);
 
     function handleClose() {
@@ -1138,12 +1158,12 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-3 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[70] overscroll-contain bg-[#2A1F1B]/35 px-3 pb-3 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
         >
             <div
-                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden overscroll-contain rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
@@ -1164,7 +1184,7 @@ function MobileSettingsSheet({
                     </button>
                 </div>
 
-                <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-2">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4 pt-2">
                     {children}
                 </div>
             </div>
