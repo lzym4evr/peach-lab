@@ -417,24 +417,18 @@ function TextShadowSettingsPanel({
             </div>
 
             <SettingGroup title={text.textGroupTitle}>
-                <label className="block">
-                    <span className="mb-2 block text-sm font-semibold text-gray-800">
-                        {text.sampleTextLabel}
-                    </span>
-
-                    <input
-                        value={settings.sampleText}
-                        onChange={(event) =>
-                            updateSetting("sampleText", event.target.value)
-                        }
-                        placeholder={text.sampleTextPlaceholder}
-                        className="h-12 w-full rounded-xl border border-[#F1E5DF] bg-white px-4 text-sm text-[#2A1F1B] outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                    />
-                </label>
+                <input
+                    value={settings.sampleText}
+                    onChange={(event) =>
+                        updateSetting("sampleText", event.target.value)
+                    }
+                    placeholder={text.sampleTextPlaceholder}
+                    className="h-12 w-full rounded-xl border border-[#F1E5DF] bg-white px-4 text-sm text-[#2A1F1B] outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+                />
             </SettingGroup>
 
             <SettingGroup title={text.colorsGroupTitle}>
-                <div className={compact ? "grid grid-cols-1 gap-3" : "grid gap-4"}>
+                <div className={compact ? "grid grid-cols-3 gap-2" : "grid gap-4"}>
                     <ColorInput
                         label={text.textColorLabel}
                         value={settings.textColor}
@@ -557,7 +551,7 @@ function ColorInput({
             <div
                 className={
                     compact
-                        ? "grid grid-cols-[42px_1fr] gap-2"
+                        ? "grid grid-cols-[34px_1fr] gap-1.5"
                         : "grid grid-cols-[54px_1fr] gap-3"
                 }
             >
@@ -565,14 +559,14 @@ function ColorInput({
                     type="color"
                     value={colorPickerValue}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-10" : "h-12"
+                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-9" : "h-12"
                         }`}
                 />
 
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className={`w-full min-w-0 rounded-xl border border-[#F1E5DF] bg-white font-semibold uppercase text-slate-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-10 px-2 text-[10px]" : "h-12 px-4 text-sm"
+                    className={`w-full min-w-0 rounded-xl border border-[#F1E5DF] bg-white font-semibold uppercase text-slate-700 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-9 px-1.5 text-[9px]" : "h-12 px-4 text-sm"
                         }`}
                 />
             </div>

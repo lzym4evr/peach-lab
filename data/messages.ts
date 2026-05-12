@@ -1181,7 +1181,7 @@ export const messages = {
             settingsButton: "Settings",
             outputTitle: "CSS Output",
 
-            textGroupTitle: "Text",
+            textGroupTitle: "Preview Text",
             colorsGroupTitle: "Colors",
             shadowGroupTitle: "Shadow",
             sizeGroupTitle: "Size",
