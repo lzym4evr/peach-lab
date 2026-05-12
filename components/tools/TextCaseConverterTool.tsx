@@ -397,19 +397,48 @@ export default function TextCaseConverterTool() {
         </section>
 
         <section className="hidden md:block md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-          <SectionHeader title={text.statsTitle} />
+          <div className="flex items-center justify-between gap-4">
+            <SectionHeader title={text.statsTitle} />
+
+            <p className="text-right text-xs font-medium text-[#9C7B70]">
+              {text.statCopyHint}
+            </p>
+          </div>
 
           <div className="mt-5 grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3">
-            <StatCard label={text.characters} value={stats.characters} />
+            <StatCard
+              label={text.characters}
+              value={stats.characters}
+              copied={copiedStatKey === "characters"}
+              copiedText={text.copied}
+              onClick={() => copyStatValue("characters", stats.characters)}
+            />
 
             <StatCard
               label={text.noSpaces}
               value={stats.charactersNoSpaces}
+              copied={copiedStatKey === "no-spaces"}
+              copiedText={text.copied}
+              onClick={() =>
+                copyStatValue("no-spaces", stats.charactersNoSpaces)
+              }
             />
 
-            <StatCard label={text.words} value={stats.words} />
+            <StatCard
+              label={text.words}
+              value={stats.words}
+              copied={copiedStatKey === "words"}
+              copiedText={text.copied}
+              onClick={() => copyStatValue("words", stats.words)}
+            />
 
-            <StatCard label={text.lines} value={stats.lines} />
+            <StatCard
+              label={text.lines}
+              value={stats.lines}
+              copied={copiedStatKey === "lines"}
+              copiedText={text.copied}
+              onClick={() => copyStatValue("lines", stats.lines)}
+            />
           </div>
         </section>
       </div>
@@ -572,16 +601,32 @@ function SectionHeader({ title }: { title: string }) {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatCard({
+  label,
+  value,
+  copied,
+  copiedText,
+  onClick,
+}: {
+  label: string;
+  value: number;
+  copied: boolean;
+  copiedText: string;
+  onClick: () => void;
+}) {
   return (
-    <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5 md:p-4">
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5 text-left transition hover:border-[#F28C6F] hover:bg-[#FFF0EA] md:p-4"
+    >
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9C7B70] md:text-xs">
-        {label}
+        {copied ? copiedText : label}
       </p>
 
       <p className="mt-1 text-base font-bold text-gray-900 md:mt-2 md:text-2xl">
         {value}
       </p>
-    </div>
+    </button>
   );
 }

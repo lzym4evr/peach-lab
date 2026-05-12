@@ -1138,7 +1138,7 @@ export const messages = {
             reverseText: "Reverse Text",
 
             copyResult: "Copy Result",
-            statCopyHint: "Or tap a value above to copy it.",
+            statCopyHint: "Click or tap a value to copy it.",
             clear: "Clear",
             undo: "Undo",
             redo: "Redo",
@@ -1152,16 +1152,25 @@ export const messages = {
         },
 
         characterCounter: {
-            enterText: "Paste or type your text",
+            enterText: "Paste or Type Your Text",
+            description:
+                "Count characters, words, spaces, lines, and paragraphs in real time.",
             placeholder: "Start typing or paste your text here...",
-            copyText: "Copy text",
+
+            statsTitle: "Text Stats",
+            statCopyHint: "Click or tap a value to copy it.",
+
+            copyText: "Copy Text",
             clear: "Clear",
+
             characters: "Characters",
-            charactersNoSpaces: "Characters no spaces",
+            charactersNoSpaces: "No Spaces",
             words: "Words",
             spaces: "Spaces",
             lines: "Lines",
             paragraphs: "Paragraphs",
+
+            copied: "Copied",
         },
 
         textShadowGenerator: {
