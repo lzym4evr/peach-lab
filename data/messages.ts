@@ -1233,10 +1233,16 @@ export const messages = {
 
         textGradientGenerator: {
             previewTitle: "Live Preview",
-            controlsTitle: "Controls",
+            controlsTitle: "Text Gradient Settings",
+            settingsButton: "Settings",
             outputTitle: "CSS Output",
 
-            previewDescription: "Create gradient text styles with live preview and copy-ready CSS.",
+            previewDescription:
+                "Create gradient text styles with live preview and copy-ready CSS.",
+
+            textGroupTitle: "Preview Text",
+            typographyGroupTitle: "Typography",
+            colorsGroupTitle: "Colors",
 
             sampleTextLabel: "Preview Text",
             sampleTextPlaceholder: "Type your preview text here",
@@ -1254,7 +1260,7 @@ export const messages = {
             extraBold: "Extra Bold",
 
             shuffle: "Shuffle",
-            randomAll: "Random All",
+            randomAll: "Random",
             copyCss: "Copy CSS",
             reset: "Reset",
 
