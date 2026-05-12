@@ -118,15 +118,35 @@ export default function CharacterCounterTool() {
 
     return (
         <>
-            <div className="space-y-6 pb-2 lg:pb-0">
+            <div className="space-y-5 pb-1 lg:space-y-6 lg:pb-0">
                 <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                    <div className="mb-4 flex items-start justify-between gap-4">
+                    <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4">
                         <div>
                             <SectionHeader title={text.enterText} />
 
                             <p className="mt-2 max-w-[420px] text-sm leading-6 text-gray-500">
                                 {text.description}
                             </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 md:flex md:shrink-0 md:flex-wrap md:justify-end">
+                            <button
+                                type="button"
+                                onClick={copyText}
+                                disabled={!inputText}
+                                className={`${primaryButtonClass} w-full md:w-auto`}
+                            >
+                                {copied ? text.copied : text.copyText}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={clearText}
+                                disabled={!inputText}
+                                className={`${whiteButtonClass} w-full md:w-auto`}
+                            >
+                                {text.clear}
+                            </button>
                         </div>
                     </div>
 
@@ -136,28 +156,6 @@ export default function CharacterCounterTool() {
                         placeholder={text.placeholder}
                         className="h-[240px] w-full resize-y rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-4 text-sm leading-6 text-gray-800 outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] md:h-[300px]"
                     />
-                </section>
-
-                <section>
-                    <div className="grid grid-cols-2 gap-3 md:flex md:flex-wrap">
-                        <button
-                            type="button"
-                            onClick={copyText}
-                            disabled={!inputText}
-                            className={`${primaryButtonClass} w-full md:w-auto`}
-                        >
-                            {copied ? text.copied : text.copyText}
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={clearText}
-                            disabled={!inputText}
-                            className={`${whiteButtonClass} w-full md:w-auto`}
-                        >
-                            {text.clear}
-                        </button>
-                    </div>
                 </section>
 
                 <section className="hidden md:block md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
