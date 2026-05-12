@@ -138,13 +138,13 @@ export default function CharacterCounterTool() {
                     />
                 </section>
 
-                <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
-                    <div className="flex flex-wrap gap-3">
+                <section>
+                    <div className="grid grid-cols-2 gap-3 md:flex md:flex-wrap">
                         <button
                             type="button"
                             onClick={copyText}
                             disabled={!inputText}
-                            className={primaryButtonClass}
+                            className={`${primaryButtonClass} w-full md:w-auto`}
                         >
                             {copied ? text.copied : text.copyText}
                         </button>
@@ -153,7 +153,7 @@ export default function CharacterCounterTool() {
                             type="button"
                             onClick={clearText}
                             disabled={!inputText}
-                            className={whiteButtonClass}
+                            className={`${whiteButtonClass} w-full md:w-auto`}
                         >
                             {text.clear}
                         </button>
