@@ -1034,24 +1034,23 @@ function ColorInput({
             </span>
 
             <div
-                className={
-                    compact
-                        ? "grid grid-cols-[34px_1fr] gap-1.5"
-                        : "grid grid-cols-[54px_1fr] gap-3"
-                }
+                className={`grid items-center rounded-2xl border border-[#F1E5DF] bg-white transition focus-within:border-[#F28C6F] focus-within:ring-4 focus-within:ring-[#FFF0EA] ${compact
+                        ? "grid-cols-[34px_1fr] gap-1.5 p-1.5"
+                        : "grid-cols-[42px_1fr] gap-2 p-2"
+                    }`}
             >
                 <input
                     type="color"
                     value={colorPickerValue}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-9" : "h-12"
+                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-8" : "h-10"
                         }`}
                 />
 
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className={`w-full min-w-0 rounded-xl border border-[#F1E5DF] bg-white font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-9 px-1.5 text-[9px]" : "h-12 px-4 text-sm"
+                    className={`min-w-0 border-none bg-transparent font-semibold uppercase outline-none ${compact ? "text-[10px]" : "text-xs"
                         }`}
                 />
             </div>
