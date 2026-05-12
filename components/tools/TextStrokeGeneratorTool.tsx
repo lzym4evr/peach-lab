@@ -746,17 +746,6 @@ function TextStrokeSettingsPanel({
                 </button>
             </div>
 
-            <SettingGroup title={text.textGroupTitle}>
-                <input
-                    value={settings.sampleText}
-                    onChange={(event) =>
-                        updateSetting("sampleText", event.target.value)
-                    }
-                    placeholder={text.sampleTextPlaceholder}
-                    className="h-12 w-full rounded-xl border border-[#F1E5DF] bg-white px-4 text-sm text-[#2A1F1B] outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
-                />
-            </SettingGroup>
-
             <SettingGroup title={text.styleGroupTitle}>
                 <div className="grid grid-cols-3 gap-2">
                     {strokeStyles.map((style) => {
@@ -777,6 +766,36 @@ function TextStrokeSettingsPanel({
                             </button>
                         );
                     })}
+                </div>
+            </SettingGroup>
+
+            <SettingGroup title={text.colorsGroupTitle}>
+                <div className={compact ? "grid grid-cols-2 gap-2" : "grid gap-4"}>
+                    <div className={compact ? "contents" : "grid grid-cols-2 gap-3"}>
+                        <ColorInput
+                            label={text.textColorLabel}
+                            value={settings.textColor}
+                            fallback="#F28C6F"
+                            compact={compact}
+                            onChange={(value) => updateSetting("textColor", value)}
+                        />
+
+                        <ColorInput
+                            label={text.strokeColorLabel}
+                            value={settings.strokeColor}
+                            fallback="#2A1F1B"
+                            compact={compact}
+                            onChange={(value) => updateSetting("strokeColor", value)}
+                        />
+                    </div>
+
+                    <ColorInput
+                        label={text.backgroundColorLabel}
+                        value={settings.backgroundColor}
+                        fallback="#FFF7F3"
+                        compact={compact}
+                        onChange={(value) => updateSetting("backgroundColor", value)}
+                    />
                 </div>
             </SettingGroup>
 
@@ -895,36 +914,6 @@ function TextStrokeSettingsPanel({
                 </div>
             </SettingGroup>
 
-            <SettingGroup title={text.colorsGroupTitle}>
-                <div className={compact ? "grid grid-cols-2 gap-2" : "grid gap-4"}>
-                    <div className={compact ? "contents" : "grid grid-cols-2 gap-3"}>
-                        <ColorInput
-                            label={text.textColorLabel}
-                            value={settings.textColor}
-                            fallback="#F28C6F"
-                            compact={compact}
-                            onChange={(value) => updateSetting("textColor", value)}
-                        />
-
-                        <ColorInput
-                            label={text.strokeColorLabel}
-                            value={settings.strokeColor}
-                            fallback="#2A1F1B"
-                            compact={compact}
-                            onChange={(value) => updateSetting("strokeColor", value)}
-                        />
-                    </div>
-
-                    <ColorInput
-                        label={text.backgroundColorLabel}
-                        value={settings.backgroundColor}
-                        fallback="#FFF7F3"
-                        compact={compact}
-                        onChange={(value) => updateSetting("backgroundColor", value)}
-                    />
-                </div>
-            </SettingGroup>
-
             <SettingGroup title={text.backgroundGroupTitle}>
                 <div className="grid grid-cols-2 gap-2">
                     {backgroundModes.map((mode) => {
@@ -992,8 +981,8 @@ function ColorInput({
 
             <div
                 className={`grid items-center rounded-2xl border border-[#F1E5DF] bg-white transition focus-within:border-[#F28C6F] focus-within:ring-4 focus-within:ring-[#FFF0EA] ${compact
-                        ? "grid-cols-[30px_1fr] gap-1.5 p-1.5"
-                        : "grid-cols-[34px_1fr] gap-1.5 p-2"
+                    ? "grid-cols-[30px_1fr] gap-1.5 p-1.5"
+                    : "grid-cols-[34px_1fr] gap-1.5 p-2"
                     }`}
             >
                 <input
