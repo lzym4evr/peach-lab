@@ -1035,22 +1035,22 @@ function ColorInput({
 
             <div
                 className={`grid items-center rounded-2xl border border-[#F1E5DF] bg-white transition focus-within:border-[#F28C6F] focus-within:ring-4 focus-within:ring-[#FFF0EA] ${compact
-                        ? "grid-cols-[34px_1fr] gap-1.5 p-1.5"
-                        : "grid-cols-[42px_1fr] gap-2 p-2"
+                    ? "grid-cols-[30px_1fr] gap-1.5 p-1.5"
+                    : "grid-cols-[34px_1fr] gap-1.5 p-2"
                     }`}
             >
                 <input
                     type="color"
                     value={colorPickerValue}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className={`w-full cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1 ${compact ? "h-8" : "h-10"
+                    className={`w-full cursor-pointer appearance-none rounded-md border-0 bg-transparent p-0 ${compact ? "h-8" : "h-9"
                         }`}
                 />
 
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
-                    className={`min-w-0 border-none bg-transparent font-semibold uppercase outline-none ${compact ? "text-[10px]" : "text-xs"
+                    className={`min-w-0 border-none bg-transparent font-semibold uppercase text-gray-800 outline-none ${compact ? "text-[10px]" : "text-xs"
                         }`}
                 />
             </div>
