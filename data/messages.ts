@@ -1118,7 +1118,7 @@ export const messages = {
         textCaseConverter: {
             enterText: "Enter Text",
             description:
-                "Convert text between uppercase, lowercase, title case, and sentence case.",
+                "Convert text between uppercase, lowercase, title case, sentence case, and developer-friendly formats.",
             placeholder: "Type or paste your text here...",
 
             actionsTitle: "Text Actions",
@@ -1128,6 +1128,14 @@ export const messages = {
             lowercase: "lowercase",
             titleCase: "Title Case",
             sentenceCase: "Sentence case",
+            camelCase: "camelCase",
+            pascalCase: "PascalCase",
+            snakeCase: "snake_case",
+            kebabCase: "kebab-case",
+            capitalizeWords: "Capitalize Words",
+            removeExtraSpaces: "Remove Extra Spaces",
+            removeLineBreaks: "Remove Line Breaks",
+            reverseText: "Reverse Text",
 
             copyResult: "Copy Result",
             clear: "Clear",
