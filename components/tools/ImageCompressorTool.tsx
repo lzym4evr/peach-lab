@@ -4,6 +4,7 @@ import {
     type ChangeEvent,
     type DragEvent,
     type PointerEvent,
+    useEffect,
     useMemo,
     useRef,
     useState,
@@ -298,8 +299,8 @@ export default function ImageCompressorTool() {
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
                                 className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                                        ? "border-[#F28C6F] bg-[#FFF0EA]"
-                                        : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                                    ? "border-[#F28C6F] bg-[#FFF0EA]"
+                                    : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                                     }`}
                             >
                                 <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
@@ -634,7 +635,7 @@ function MobileActionBar({
 }) {
     const actionBarRef = useRef<HTMLDivElement | null>(null);
 
-    useMemo(() => {
+    useEffect(() => {
         if (typeof window === "undefined") return;
 
         const updateSpace = () => {
@@ -642,9 +643,10 @@ function MobileActionBar({
             if (!element) return;
 
             const rect = element.getBoundingClientRect();
+
             document.documentElement.style.setProperty(
                 "--mobile-action-bar-space",
-                `${Math.ceil(rect.height + 28)}px`
+                `${Math.ceil(rect.height + 24)}px`
             );
         };
 
