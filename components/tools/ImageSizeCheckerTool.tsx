@@ -186,8 +186,8 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
         setTimeout(() => setCopiedResult(false), 1500);
     }
 
-    async function copySingleItem(key: string, value: string) {
-        await copyToClipboard(value);
+    async function copySingleItem(key: string, label: string, value: string) {
+        await copyToClipboard(`${label}: ${value}`);
         setCopiedItem(key);
         setTimeout(() => setCopiedItem((cur) => (cur === key ? "" : cur)), 1500);
     }
@@ -291,7 +291,7 @@ ${t.imageSizeChecker.transparency}: ${getTransparencyText(imageInfo)}`;
                                 <button
                                     key={item.key}
                                     type="button"
-                                    onClick={() => copySingleItem(item.key, item.value)}
+                                    onClick={() => copySingleItem(item.key, item.label, item.value)}
                                     className="min-w-0 rounded-2xl border border-[#F1E5DF] bg-[#FFFDFC] p-2.5 text-left transition hover:border-[#F4C8BA] hover:bg-[#FFF7F3] active:scale-[0.99] md:p-4"
                                 >
                                     <p className="truncate text-[10px] font-medium uppercase tracking-wide text-gray-500 md:text-xs">
