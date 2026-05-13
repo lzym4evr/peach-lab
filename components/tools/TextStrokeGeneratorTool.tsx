@@ -4,6 +4,7 @@ import {
     type CSSProperties,
     type ReactNode,
     useEffect,
+    useLayoutEffect,
     useMemo,
     useRef,
     useState,
@@ -1155,13 +1156,16 @@ function MobileSettingsSheet({
 }) {
     const [isVisible, setIsVisible] = useState(false);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const scrollY = window.scrollY;
-        const originalPosition = document.body.style.position;
-        const originalTop = document.body.style.top;
-        const originalWidth = document.body.style.width;
-        const originalOverflow = document.body.style.overflow;
+        const originalBodyPosition = document.body.style.position;
+        const originalBodyTop = document.body.style.top;
+        const originalBodyWidth = document.body.style.width;
+        const originalBodyOverflow = document.body.style.overflow;
+        const originalHtmlScrollBehavior =
+            document.documentElement.style.scrollBehavior;
 
+        document.documentElement.style.scrollBehavior = "auto";
         document.body.style.position = "fixed";
         document.body.style.top = `-${scrollY}px`;
         document.body.style.width = "100%";
@@ -1174,12 +1178,19 @@ function MobileSettingsSheet({
         return () => {
             cancelAnimationFrame(frame);
 
-            document.body.style.position = originalPosition;
-            document.body.style.top = originalTop;
-            document.body.style.width = originalWidth;
-            document.body.style.overflow = originalOverflow;
+            document.body.style.position = originalBodyPosition;
+            document.body.style.top = originalBodyTop;
+            document.body.style.width = originalBodyWidth;
+            document.body.style.overflow = originalBodyOverflow;
 
-            window.scrollTo(0, scrollY);
+            window.scrollTo({
+                top: scrollY,
+                left: 0,
+                behavior: "auto",
+            });
+
+            document.documentElement.style.scrollBehavior =
+                originalHtmlScrollBehavior;
         };
     }, []);
 
