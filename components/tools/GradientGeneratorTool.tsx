@@ -1,6 +1,13 @@
 "use client";
 
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import {
+    type ReactNode,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { t } from "@/data/messages";
 
 type GradientType = "linear" | "radial";
@@ -628,8 +635,8 @@ function ColorInput({
                     value={value}
                     onChange={(event) => onChange(event.target.value.toUpperCase())}
                     className={`w-full rounded-xl border border-[#F1E5DF] font-semibold uppercase outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact
-                            ? "h-10 px-2 text-[11px]"
-                            : "h-12 px-4 text-sm"
+                        ? "h-10 px-2 text-[11px]"
+                        : "h-12 px-4 text-sm"
                         }`}
                 />
             </div>
@@ -771,12 +778,42 @@ function MobileSettingsSheet({
 }) {
     const [isVisible, setIsVisible] = useState(false);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
+        const scrollY = window.scrollY;
+        const originalBodyPosition = document.body.style.position;
+        const originalBodyTop = document.body.style.top;
+        const originalBodyWidth = document.body.style.width;
+        const originalBodyOverflow = document.body.style.overflow;
+        const originalHtmlScrollBehavior =
+            document.documentElement.style.scrollBehavior;
+
+        document.documentElement.style.scrollBehavior = "auto";
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.width = "100%";
+        document.body.style.overflow = "hidden";
+
         const frame = requestAnimationFrame(() => {
             setIsVisible(true);
         });
 
-        return () => cancelAnimationFrame(frame);
+        return () => {
+            cancelAnimationFrame(frame);
+
+            document.body.style.position = originalBodyPosition;
+            document.body.style.top = originalBodyTop;
+            document.body.style.width = originalBodyWidth;
+            document.body.style.overflow = originalBodyOverflow;
+
+            window.scrollTo({
+                top: scrollY,
+                left: 0,
+                behavior: "auto",
+            });
+
+            document.documentElement.style.scrollBehavior =
+                originalHtmlScrollBehavior;
+        };
     }, []);
 
     function handleClose() {
@@ -789,33 +826,35 @@ function MobileSettingsSheet({
 
     return (
         <div
-            className={`fixed inset-0 z-[70] bg-[#2A1F1B]/35 px-3 pb-2 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[70] overscroll-contain bg-[#2A1F1B]/35 px-3 pb-2 pt-8 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
                 }`}
             onClick={handleClose}
         >
             <div
-                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
+                className={`ml-auto flex h-full max-h-[92dvh] w-full max-w-md flex-col overflow-hidden overscroll-contain rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
                 onClick={(event) => event.stopPropagation()}
             >
-                <div className="flex items-center justify-between gap-4 px-4 pb-2 pt-4">
-                    <div className="flex min-w-0 items-center gap-3">
-                        <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
-                        <h3 className="truncate text-lg font-semibold text-gray-900">
-                            {title}
-                        </h3>
-                    </div>
+                <div className="shrink-0 bg-white px-4 pb-2 pt-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex min-w-0 items-center gap-3">
+                            <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
+                            <h3 className="truncate text-lg font-semibold text-gray-900">
+                                {title}
+                            </h3>
+                        </div>
 
-                    <button
-                        type="button"
-                        onClick={handleClose}
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
-                    >
-                        ×
-                    </button>
+                        <button
+                            type="button"
+                            onClick={handleClose}
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
+                        >
+                            ×
+                        </button>
+                    </div>
                 </div>
 
-                <div className="min-h-0 flex-1 overflow-hidden px-4 pb-4 pt-2">
+                <div className="min-h-0 flex-1 overflow-hidden overscroll-contain px-4 pb-4 pt-2">
                     {children}
                 </div>
             </div>
