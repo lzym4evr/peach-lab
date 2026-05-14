@@ -37,21 +37,12 @@ export default function Hero() {
       <div className="relative flex items-center justify-center">
         <div className="absolute h-80 w-80 rounded-full bg-[#FFF0EA] blur-2xl" />
 
-        <div className="relative flex h-64 w-full max-w-lg items-center justify-center rounded-[2rem] bg-[#FFF7F3] sm:h-80">
-          <div className="text-[7rem] leading-none sm:text-[9rem]">🍑</div>
-
-          <div className="absolute left-8 top-8 rounded-2xl border border-[#F4C8BA] bg-white p-4 shadow-sm">
-            <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-[#F28C6F] to-[#FFD6C8]" />
-            <div className="mt-2 h-2 w-16 rounded-full bg-gradient-to-r from-red-400 via-yellow-300 to-blue-400" />
-          </div>
-
-          <div className="absolute right-8 top-10 rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm text-gray-500 shadow-sm">
-            ⌁
-          </div>
-
-          <div className="absolute bottom-8 right-8 rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm">
-            SVG
-          </div>
+        <div className="relative w-full max-w-lg overflow-hidden rounded-[2rem] bg-[#FFF7F3] shadow-sm">
+          <img
+            src="/brand/hero-peach-tools.webp"
+            alt="Peach Lab design tools illustration"
+            className="h-auto w-full object-cover"
+          />
         </div>
       </div>
     </section>
