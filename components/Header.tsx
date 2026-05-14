@@ -8,7 +8,7 @@ export default function Header() {
           <img
             src="/brand/peach-lab-logo.svg"
             alt="Peach Lab"
-            className="h-8 w-auto md:h-9"
+            className="h-11 w-auto md:h-10"
           />
         </a>
 
