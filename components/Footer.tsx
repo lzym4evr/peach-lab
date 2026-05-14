@@ -15,7 +15,7 @@ export default function Footer() {
             <img
               src="/brand/peach-lab-logo.svg"
               alt="Peach Lab"
-              className="h-12 w-auto md:h-12"
+              className="h-11 w-auto md:h-10"
             />
           </div>
 
