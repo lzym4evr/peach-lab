@@ -16,7 +16,7 @@ export default function BrandLogo({
             className={`inline-flex items-center ${className}`}
         >
             <img
-                src="/brand/logo.svg"
+                src="/brand/peach-lab-logo.svg"
                 alt="Peach Lab"
                 className={`h-9 w-auto md:h-10 ${imageClassName}`}
             />

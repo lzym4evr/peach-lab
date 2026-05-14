@@ -6,7 +6,7 @@ export default function Header() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <a href="/" className="flex items-center">
           <img
-            src="/brand/logo.svg"
+            src="/brand/peach-lab-logo.svg"
             alt="Peach Lab"
             className="h-11 w-auto md:h-10"
           />
