@@ -13,7 +13,7 @@ export default function Footer() {
         <div>
           <div className="mb-3 flex items-center">
             <img
-              src="/brand/peach-lab-logo.svg"
+              src="/brand/logo.svg"
               alt="Peach Lab"
               className="h-11 w-auto md:h-10"
             />
