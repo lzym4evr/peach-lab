@@ -11,14 +11,12 @@ export default function Footer() {
     >
       <div className="mx-auto max-w-7xl px-6 py-8 md:grid md:grid-cols-4 md:gap-8 md:py-10">
         <div>
-          <div className="mb-3 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F28C6F] text-xl text-white md:h-9 md:w-9 md:text-base">
-              🍑
-            </div>
-
-            <span className="text-xl font-semibold text-[#2A1F1B] md:text-lg">
-              Peach Lab
-            </span>
+          <div className="mb-3 flex items-center">
+            <img
+              src="/brand/peach-lab-logo.svg"
+              alt="Peach Lab"
+              className="h-10 w-auto md:h-9"
+            />
           </div>
 
           <p className="max-w-sm text-sm leading-6 text-gray-500 md:max-w-xs">
