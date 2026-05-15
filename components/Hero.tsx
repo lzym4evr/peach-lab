@@ -34,7 +34,7 @@ export default function Hero() {
         </div>
       </div>
 
-      <div className="flex items-center justify-center lg:justify-end">
+      <div className="hidden items-center justify-center md:flex lg:justify-end">
         <img
           src="/brand/heropeachtools.webp"
           alt="Peach Lab design tools illustration"
