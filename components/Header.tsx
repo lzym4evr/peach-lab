@@ -26,9 +26,9 @@ export default function Header() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <a href="/" className="flex items-center">
           <img
-            src="/brand/peach-lab-logo.svg"
+            src="/brand/peachlab-logo.svg"
             alt="Peach Lab"
-            className="h-10 w-auto md:h-9"
+            className="h-10 w-auto md:h-10"
           />
         </a>
 
@@ -60,14 +60,14 @@ export default function Header() {
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMenuOpen}
           onClick={() => setIsMenuOpen((current) => !current)}
-          className="flex h-11 w-11 items-center justify-center rounded-2xl text-3xl text-[#111827] transition hover:bg-[#FFF7F3] md:hidden"
+          className="flex h-10 w-10 items-center justify-center rounded-2xl text-2xl text-[#111827] transition hover:bg-[#FFF7F3] md:hidden"
         >
           {isMenuOpen ? "×" : "☰"}
         </button>
       </div>
 
       {isMenuOpen && (
-        <div className="border-t border-[#F1E5DF] bg-white px-6 py-4 md:hidden">
+        <div className="border-t border-[#F1E5DF] bg-white/95 px-6 py-4 backdrop-blur md:hidden">
           <nav className="mx-auto grid max-w-7xl gap-3">
             {navItems.map((item, index) => (
               <a
