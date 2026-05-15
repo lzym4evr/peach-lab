@@ -20,7 +20,7 @@ export default function CategoryGrid() {
               {category.icon}
             </div>
 
-            <h3 className="text-xs font-semibold md:text-sm">
+            <h3 className="min-h-[2rem] text-xs font-semibold leading-4 md:min-h-[2.5rem] md:text-sm md:leading-5">
               {category.name}
             </h3>
           </a>
