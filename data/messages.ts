@@ -24,7 +24,7 @@ export const messages = {
         // Home Page
         // =========================
         home: {
-            navTools: "Tools",
+            navTools: "Popular",
             navCategories: "Categories",
             navAllTools: "All Tools",
 
