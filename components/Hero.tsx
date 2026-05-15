@@ -17,19 +17,19 @@ export default function Hero() {
           {t.home.heroDescription}
         </p>
 
-        <div className="mt-6 flex flex-wrap gap-4 md:mt-8">
+        <div className="mt-6 grid grid-cols-2 gap-3 md:mt-8 md:flex md:flex-wrap md:gap-4">
           <a
             href="#popular"
-            className="rounded-xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+            className="rounded-xl bg-[#F28C6F] px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:px-6"
           >
             {t.home.exploreTools}
           </a>
 
           <a
             href="#categories"
-            className="rounded-xl border border-[#F4C8BA] bg-white px-6 py-3 text-sm font-semibold text-gray-800 transition hover:bg-[#FFF4EF]"
+            className="rounded-xl border border-[#F4C8BA] bg-white px-4 py-3 text-center text-sm font-semibold text-gray-800 transition hover:bg-[#FFF4EF] md:px-6"
           >
-            {t.home.browseByCategory}
+            {t.home.navCategories}
           </a>
         </div>
       </div>
