@@ -35,13 +35,19 @@ export default function Hero() {
       </div>
 
       <div className="relative flex items-center justify-center">
-        <div className="absolute h-72 w-72 rounded-full bg-[#FFF0EA] blur-2xl md:h-80 md:w-80" />
+        <div className="absolute h-72 w-72 rounded-full bg-[#FFF0EA] blur-3xl md:h-80 md:w-80" />
 
-        <div className="relative w-full max-w-lg overflow-hidden rounded-[1.75rem] bg-[#FFF7F3] shadow-sm md:rounded-[2rem]">
+        <div className="relative w-full max-w-lg">
           <img
             src="/brand/hero-peach-tools.webp"
             alt="Peach Lab design tools illustration"
-            className="h-auto w-full object-cover"
+            className="h-auto w-full object-contain"
+            style={{
+              WebkitMaskImage:
+                "radial-gradient(ellipse at center, black 58%, rgba(0,0,0,0.85) 70%, transparent 100%)",
+              maskImage:
+                "radial-gradient(ellipse at center, black 58%, rgba(0,0,0,0.85) 70%, transparent 100%)",
+            }}
           />
         </div>
       </div>
