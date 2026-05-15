@@ -36,7 +36,7 @@ export default function Hero() {
 
       <div className="flex items-center justify-center lg:justify-end">
         <img
-          src="/images/hero/heropeachtools.webp"
+          src="/brand/heropeachtools.webp"
           alt="Peach Lab design tools illustration"
           className="w-full max-w-[460px] object-contain sm:max-w-[560px] lg:max-w-[620px]"
         />
