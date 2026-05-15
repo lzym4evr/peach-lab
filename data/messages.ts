@@ -33,7 +33,7 @@ export const messages = {
             heroTitleHighlight: "simple",
             heroDescription:
                 "Fast, free and easy-to-use online tools for creators, developers and designers.",
-            exploreTools: "Explore Tools →",
+            exploreTools: "Explore Tools",
             viewAllTools: "View All Tools",
 
             searchPlaceholder: "Search tools, e.g. gradient, svg, noise...",
@@ -43,7 +43,7 @@ export const messages = {
             pressEnterHint: "Press Enter to open the first result.",
 
             popularTools: "Popular Tools",
-            viewAllPopularTools: "View all popular tools →",
+            viewAllPopularTools: "View all",
             openTool: "Open →",
 
             allTools: "All Tools",
