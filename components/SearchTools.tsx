@@ -57,7 +57,7 @@ export default function SearchTools() {
         ref={searchRef}
         onSubmit={handleSubmit}
         onBlur={handleBlur}
-        className="relative rounded-3xl border border-[#F1E5DF] bg-white p-3 shadow-sm"
+        className="relative"
       >
         <div className="relative">
           <input
