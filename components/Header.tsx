@@ -28,7 +28,7 @@ export default function Header() {
           <img
             src="/brand/peachlab-logo.svg"
             alt="Peach Lab"
-            className="h-10 w-auto md:h-10"
+            className="h-9 w-auto md:h-10"
           />
         </a>
 
