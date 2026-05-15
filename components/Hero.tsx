@@ -26,10 +26,10 @@ export default function Hero() {
           </a>
 
           <a
-            href="#all-tools"
+            href="#categories"
             className="rounded-xl border border-[#F4C8BA] bg-white px-6 py-3 text-sm font-semibold text-gray-800 transition hover:bg-[#FFF4EF]"
           >
-            {t.home.viewAllTools}
+            {t.home.browseByCategory}
           </a>
         </div>
       </div>

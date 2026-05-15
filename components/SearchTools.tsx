@@ -59,7 +59,7 @@ export default function SearchTools() {
         onBlur={handleBlur}
         className="relative rounded-3xl border border-[#F1E5DF] bg-white p-3 shadow-sm"
       >
-        <div className="flex flex-col gap-3 md:flex-row">
+        <div className="relative">
           <input
             value={query}
             onFocus={() => setIsOpen(true)}
@@ -68,15 +68,33 @@ export default function SearchTools() {
               setIsOpen(true);
             }}
             placeholder={t.home.searchPlaceholder}
-            className="min-h-12 flex-1 rounded-2xl border border-[#F1E5DF] px-4 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
+            className="min-h-12 w-full rounded-2xl border border-[#F1E5DF] px-4 pr-12 text-sm outline-none transition focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA]"
           />
 
-          <a
-            href="#categories"
-            className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-5 py-3 text-center text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+          <button
+            type="submit"
+            aria-label="Search tools"
+            className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl text-gray-400 transition hover:bg-[#FFF7F3] hover:text-[#F28C6F]"
           >
-            {t.home.browseByCategory}
-          </a>
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              className="h-5 w-5"
+              fill="none"
+            >
+              <path
+                d="M10.75 18.5a7.75 7.75 0 1 1 0-15.5 7.75 7.75 0 0 1 0 15.5Z"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              />
+              <path
+                d="m16.5 16.5 4 4"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
         </div>
 
         {query.trim() && isOpen && (
