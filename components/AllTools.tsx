@@ -3,7 +3,10 @@ import { t } from "@/data/messages";
 
 export default function AllTools() {
   return (
-    <section id="all-tools" className="mx-auto max-w-7xl px-6 py-4">
+    <section
+      id="all-tools"
+      className="scroll-mt-28 mx-auto max-w-7xl px-6 py-4 md:scroll-mt-24"
+    >
       <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="h-1 w-6 rounded-full bg-[#F28C6F]" />

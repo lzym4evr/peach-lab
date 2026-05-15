@@ -5,7 +5,7 @@ export default function PopularTools() {
   const popularTools = tools.filter((tool) => tool.featured).slice(0, 6);
 
   return (
-    <section id="popular" className="mx-auto max-w-7xl px-6 pt-4 pb-8">
+    <section id="popular" className="scroll-mt-28 mx-auto max-w-7xl px-6 pt-4 pb-8 md:scroll-mt-24">
       <div className="mb-5 flex items-center justify-between gap-4">
         <h2 className="flex items-center gap-3 text-xl font-semibold">
           <span className="h-1 w-6 rounded-full bg-[#F28C6F]" />
