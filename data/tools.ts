@@ -69,6 +69,14 @@ export const tools = [
     featured: false,
   },
   {
+    title: t.toolMeta.imageConverter.title,
+    slug: "image-converter",
+    category: "Image Tools",
+    description: t.toolMeta.imageConverter.description,
+    icon: "↔️",
+    featured: false,
+  },
+  {
     title: t.toolMeta.qrCodeGenerator.title,
     slug: "qr-code-generator",
     category: "Image Tools",

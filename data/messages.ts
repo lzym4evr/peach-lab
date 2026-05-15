@@ -105,6 +105,11 @@ export const messages = {
                 title: "Image Compressor",
                 description: "Compress JPG, PNG, and WebP images in your browser with adjustable quality and size.",
             },
+            imageConverter: {
+                title: "Image Converter",
+                description:
+                    "Convert JPG, PNG, WebP, and SVG images to PNG, JPG, or WebP in your browser.",
+            },
             qrCodeGenerator: {
                 title: "QR Code Generator",
                 description: "Create custom QR codes for links, text, email, and contact information.",
@@ -549,6 +554,54 @@ export const messages = {
             compressError: "Compression failed. Please try a different format or image.",
             noSavings:
                 "The compressed result is larger than the original. Try lower quality or JPG/WebP.",
+        },
+
+        imageConverter: {
+            localProcessing:
+                "Local processing: your image is converted in your browser. No files are uploaded.",
+
+            uploadTitle: "Upload Image",
+            uploadDescription:
+                "Choose or drag a JPG, PNG, WebP, or SVG image to convert it locally.",
+            supportedFormats:
+                "Supports JPG, PNG, WebP, SVG, and common browser-supported image formats.",
+            uploadButton: "Choose Image",
+            changeImage: "Change Image",
+            noFileSelected: "No file selected",
+            dropHint: "Drag and drop an image here, or click to choose a file.",
+
+            originalImage: "Original Image",
+            convertedImage: "Converted Image",
+            settingsTitle: "Convert Settings",
+            outputTitle: "Converted Result",
+
+            emptyTitle: "No image selected",
+            emptyDescription: "Upload an image to preview and convert it.",
+
+            outputFormat: "Output Format",
+            quality: "Quality",
+            backgroundColor: "Background Color",
+            backgroundHint: "Used when converting transparent images to JPG.",
+
+            convertImage: "Convert Image",
+            converting: "Converting...",
+            downloadImage: "Download Image",
+            reset: "Reset",
+
+            formatPng: "PNG",
+            formatJpg: "JPG",
+            formatWebp: "WebP",
+
+            originalSize: "Original Size",
+            convertedSize: "Converted Size",
+            saved: "Saved",
+            dimensions: "Dimensions",
+            format: "Format",
+
+            ready: "Image converted successfully.",
+            noFileError: "Please upload an image first.",
+            loadError: "Could not load this image. Please try another file.",
+            convertError: "Conversion failed. Please try a different image or format.",
         },
 
         qrCodeGenerator: {

@@ -16,6 +16,7 @@ import GradientGeneratorTool from "@/components/tools/GradientGeneratorTool";
 import ImageSizeCheckerTool from "@/components/tools/ImageSizeCheckerTool";
 import ImageResizerTool from "@/components/tools/ImageResizerTool";
 import ImageCompressorTool from "@/components/tools/ImageCompressorTool";
+import ImageConverterTool from "@/components/tools/ImageConverterTool";
 import QrCodeGeneratorTool from "@/components/tools/QrCodeGeneratorTool";
 import FaviconGeneratorTool from "@/components/tools/FaviconGeneratorTool";
 
@@ -101,6 +102,9 @@ export default function ToolRenderer({ slug, icon }: ToolRendererProps) {
     }
     if (slug === "image-compressor") {
         return <ImageCompressorTool />;
+    }
+    if (slug === "image-converter") {
+        return <ImageConverterTool />;
     }
     if (slug === "qr-code-generator") {
         return <QrCodeGeneratorTool />;
