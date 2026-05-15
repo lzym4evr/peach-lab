@@ -39,7 +39,7 @@ export default function Hero() {
 
         <div className="relative w-full max-w-lg">
           <img
-            src="/brand/hero-peach-tools.webp"
+            src="/brand/hero-peachtools.webp.webp"
             alt="Peach Lab design tools illustration"
             className="h-auto w-full object-contain"
             style={{
