@@ -4,7 +4,7 @@ export default function Hero() {
   return (
     <section className="mx-auto grid max-w-7xl items-center gap-6 px-6 pt-8 pb-8 sm:gap-8 sm:pt-10 sm:pb-10 lg:grid-cols-2 lg:gap-10 lg:pt-12 lg:pb-12">
       <div>
-        <h1 className="font-cusfont max-w-xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl">
+        <h1 className="max-w-xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl">
           {t.home.heroTitleLine1}
           <br />
           {t.home.heroTitleLine2}{" "}
