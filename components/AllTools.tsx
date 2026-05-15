@@ -19,19 +19,24 @@ export default function AllTools() {
         </select>
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-2">
-        <button className="rounded-full bg-[#FFF0EA] px-4 py-2 text-sm font-medium text-[#F28C6F]">
-          {t.home.all}
-        </button>
-
-        {categories.slice(0, 7).map((category) => (
-          <button
-            key={category.key}
-            className="rounded-full border border-[#F1E5DF] bg-white px-4 py-2 text-sm text-gray-600 transition hover:border-[#F28C6F]"
-          >
-            {category.name}
+      <div className="-mx-6 mb-6 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:flex md:flex-wrap md:gap-2 md:overflow-visible md:px-0 md:pb-0">
+        <div className="flex w-max gap-2 md:w-auto md:flex-wrap">
+          <button className="h-10 rounded-full bg-[#FFF0EA] px-5 text-sm font-semibold text-[#F28C6F] shadow-sm">
+            {t.home.all}
           </button>
-        ))}
+
+          {categories.slice(0, 7).map((category) => (
+            <button
+              key={category.key}
+              className="h-10 whitespace-nowrap rounded-full border border-[#F1E5DF] bg-white px-5 text-sm font-medium text-gray-600 shadow-sm transition hover:border-[#F28C6F] hover:bg-[#FFF7F3] hover:text-[#E6765B]"
+            >
+              <span className="md:hidden">
+                {category.name.replace(" Tools", "")}
+              </span>
+              <span className="hidden md:inline">{category.name}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
