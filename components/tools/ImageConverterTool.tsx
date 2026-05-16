@@ -57,7 +57,6 @@ function createImageFromUrl(url: string) {
 
 export default function ImageConverterTool() {
     const messages = t.imageConverter;
-
     const inputRef = useRef<HTMLInputElement | null>(null);
 
     const [file, setFile] = useState<File | null>(null);
@@ -315,6 +314,7 @@ export default function ImageConverterTool() {
                             onChange={(event) => setBackgroundColor(event.target.value)}
                             className="h-11 w-14 cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
                         />
+
                         <input
                             value={backgroundColor}
                             onChange={(event) => setBackgroundColor(event.target.value)}
@@ -413,15 +413,18 @@ export default function ImageConverterTool() {
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
                 <div className="space-y-5">
                     <div className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm md:p-5">
-                        <div className="mb-4">
-                            <h2 className="text-lg font-semibold text-[#2A1F1B]">
-                                {messages.originalImage}
-                            </h2>
-                            <p className="mt-1 text-sm text-gray-500">
-                                {imageInfo
-                                    ? `${imageInfo.width} × ${imageInfo.height}px · ${imageInfo.format}`
-                                    : messages.emptyDescription}
-                            </p>
+                        <div className="mb-4 flex items-start gap-3">
+                            <span className="mt-1 h-7 w-1 rounded-full bg-[#F28C6F]" />
+                            <div>
+                                <h2 className="text-lg font-semibold text-[#2A1F1B]">
+                                    {messages.originalImage}
+                                </h2>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    {imageInfo
+                                        ? `${imageInfo.width} × ${imageInfo.height}px · ${imageInfo.format}`
+                                        : messages.emptyDescription}
+                                </p>
+                            </div>
                         </div>
 
                         {originalUrl ? (
@@ -429,11 +432,11 @@ export default function ImageConverterTool() {
                                 <img
                                     src={originalUrl}
                                     alt={messages.originalImage}
-                                    className="max-h-[260px] max-w-full object-contain md:max-h-[320px]"
+                                    className="max-h-[240px] max-w-full object-contain md:max-h-[320px]"
                                 />
                             </div>
                         ) : (
-                            <div className="rounded-2xl bg-[#FFF7F3] p-8 text-center">
+                            <div className="rounded-2xl bg-[#FFF7F3] p-6 text-center md:p-8">
                                 <h3 className="text-base font-semibold text-[#2A1F1B]">
                                     {messages.emptyTitle}
                                 </h3>
@@ -445,14 +448,17 @@ export default function ImageConverterTool() {
                     </div>
 
                     <div className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm md:p-5">
-                        <div className="mb-4 flex items-center justify-between gap-3">
-                            <div>
-                                <h2 className="text-lg font-semibold text-[#2A1F1B]">
-                                    {messages.outputTitle}
-                                </h2>
-                                <p className="mt-1 text-sm text-gray-500">
-                                    {status || `${messages.outputFormat}: ${outputLabel}`}
-                                </p>
+                        <div className="mb-4 flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3">
+                                <span className="mt-1 h-7 w-1 rounded-full bg-[#F28C6F]" />
+                                <div>
+                                    <h2 className="text-lg font-semibold text-[#2A1F1B]">
+                                        {messages.outputTitle}
+                                    </h2>
+                                    <p className="mt-1 text-sm text-gray-500">
+                                        {status || `${messages.outputFormat}: ${outputLabel}`}
+                                    </p>
+                                </div>
                             </div>
 
                             <button
@@ -470,11 +476,11 @@ export default function ImageConverterTool() {
                                 <img
                                     src={convertedUrl}
                                     alt={messages.convertedImage}
-                                    className="max-h-[260px] max-w-full object-contain md:max-h-[320px]"
+                                    className="max-h-[240px] max-w-full object-contain md:max-h-[320px]"
                                 />
                             </div>
                         ) : (
-                            <div className="rounded-2xl bg-[#FFF7F3] p-8 text-center text-sm text-gray-500">
+                            <div className="rounded-2xl bg-[#FFF7F3] p-6 text-center text-sm text-gray-500 md:p-8">
                                 {messages.convertImage}
                             </div>
                         )}
@@ -482,11 +488,14 @@ export default function ImageConverterTool() {
                 </div>
 
                 <div className="hidden rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm md:p-5 lg:block">
-                    <h2 className="text-lg font-semibold text-[#2A1F1B]">
-                        {messages.settingsTitle}
-                    </h2>
+                    <div className="mb-5 flex items-start gap-3">
+                        <span className="mt-1 h-7 w-1 rounded-full bg-[#F28C6F]" />
+                        <h2 className="text-lg font-semibold text-[#2A1F1B]">
+                            {messages.settingsTitle}
+                        </h2>
+                    </div>
 
-                    <div className="mt-5">{settingsPanel}</div>
+                    {settingsPanel}
 
                     {imageInfo && (
                         <div className="mt-5 grid grid-cols-2 gap-3">
@@ -494,7 +503,7 @@ export default function ImageConverterTool() {
                                 <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
                                     {messages.originalSize}
                                 </p>
-                                <p className="mt-1 text-xl font-semibold text-[#2A1F1B]">
+                                <p className="mt-1 text-lg font-semibold text-[#2A1F1B]">
                                     {formatBytes(imageInfo.size)}
                                 </p>
                             </div>
@@ -503,7 +512,7 @@ export default function ImageConverterTool() {
                                 <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
                                     {messages.convertedSize}
                                 </p>
-                                <p className="mt-1 text-xl font-semibold text-[#2A1F1B]">
+                                <p className="mt-1 text-lg font-semibold text-[#2A1F1B]">
                                     {convertedSize ? formatBytes(convertedSize) : "—"}
                                 </p>
                             </div>
@@ -512,7 +521,7 @@ export default function ImageConverterTool() {
                                 <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
                                     {messages.dimensions}
                                 </p>
-                                <p className="mt-1 text-xl font-semibold text-[#2A1F1B]">
+                                <p className="mt-1 text-lg font-semibold text-[#2A1F1B]">
                                     {imageInfo.width}×{imageInfo.height}
                                 </p>
                             </div>
@@ -521,7 +530,7 @@ export default function ImageConverterTool() {
                                 <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
                                     {messages.saved}
                                 </p>
-                                <p className="mt-1 text-xl font-semibold text-[#2A1F1B]">
+                                <p className="mt-1 text-lg font-semibold text-[#2A1F1B]">
                                     {convertedSize ? `${savedPercent}%` : "—"}
                                 </p>
                             </div>
@@ -567,7 +576,7 @@ export default function ImageConverterTool() {
                         onClick={() => setIsSettingsOpen(false)}
                     />
 
-                    <div className="absolute bottom-0 left-0 right-0 max-h-[88dvh] overflow-y-auto rounded-t-[2rem] border border-[#F1E5DF] bg-white p-5 shadow-2xl">
+                    <div className="absolute bottom-0 left-0 right-0 max-h-[92dvh] overflow-y-auto rounded-t-[2rem] border border-[#F1E5DF] bg-white p-5 shadow-2xl">
                         <div className="mb-5 flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
                                 <span className="h-5 w-1 rounded-full bg-[#F28C6F]" />
@@ -601,7 +610,7 @@ export default function ImageConverterTool() {
                         className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-2.5 text-center transition hover:bg-[#FFF7F3]"
                     >
                         <span className="block text-[11px] font-semibold text-gray-400">
-                            {messages.outputFormat}
+                            {messages.settingsButton}
                         </span>
                         <span className="mt-0.5 block text-sm font-semibold text-[#2A1F1B]">
                             {outputLabel}
