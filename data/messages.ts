@@ -62,7 +62,7 @@ export const messages = {
             footerUpdateDescription: "Get updates on new tools and features.",
             footerEmailPlaceholder: "Enter your email",
             footerSubscribe: "Subscribe",
-            footerCopyright: "© 2024 Peach Lab. All rights reserved.",
+            footerCopyright: "© 2026 Peach Lab. All rights reserved.",
         },
 
         // =========================

@@ -8,6 +8,9 @@ type IconProps = {
 const hoverAccentClass =
     "fill-[#333333] transition-colors duration-200 group-hover:fill-[#F28C6F] group-active:fill-[#F28C6F]";
 
+const wholeIconHoverClass =
+    "text-[#333333] transition-colors duration-200 group-hover:text-[#F28C6F] group-active:text-[#F28C6F]";
+
 // =========================
 // Color Tools
 // =========================
@@ -24,18 +27,22 @@ export function ColorPickerIcon({ className = "h-8 w-8" }: IconProps) {
                 d="M15.0279 7.22682C15.516 6.73867 16.3075 6.73867 16.7956 7.22682C17.2838 7.71498 17.2839 8.50651 16.7957 8.99466C16.3075 9.48282 15.5161 9.48282 15.0279 8.99466C14.5398 8.50651 14.5397 7.71498 15.0279 7.22682Z"
                 className={hoverAccentClass}
             />
+
             <path
                 d="M9.01828 15.0053C8.53013 14.5171 7.73867 14.5171 7.25052 15.0053C6.76236 15.4934 6.76236 16.2849 7.25052 16.773C7.73867 17.2612 8.5302 17.2613 9.01836 16.7731C9.50651 16.2849 9.50644 15.4934 9.01828 15.0053Z"
                 className={hoverAccentClass}
             />
+
             <path
                 d="M7.0341 9.369C7.70093 9.54768 8.09666 10.2331 7.91798 10.8999C7.7393 11.5668 7.05386 11.9626 6.38702 11.7839C5.72019 11.6052 5.32446 10.9198 5.50314 10.253C5.68182 9.58615 6.36726 9.19032 7.0341 9.369Z"
                 className={hoverAccentClass}
             />
+
             <path
                 d="M10.9228 7.89465C11.5896 7.71598 11.9853 7.03056 11.8067 6.36372C11.628 5.69689 10.9426 5.30116 10.2757 5.47984C9.60889 5.65852 9.21306 6.34396 9.39174 7.0108C9.57042 7.67763 10.2559 8.07333 10.9228 7.89465Z"
                 className={hoverAccentClass}
             />
+
             <path
                 fillRule="evenodd"
                 clipRule="evenodd"
@@ -46,7 +53,23 @@ export function ColorPickerIcon({ className = "h-8 w-8" }: IconProps) {
     );
 }
 
-// export function HexRgbConverterIcon() {}
+export function HexRgbConverterIcon({ className = "h-8 w-8" }: IconProps) {
+    return (
+        <svg
+            viewBox="0 0 1024 1024"
+            xmlns="http://www.w3.org/2000/svg"
+            className={`${className} ${wholeIconHoverClass}`}
+            fill="none"
+            aria-hidden="true"
+        >
+            <path
+                d="M908.16 299.904h-132.288l39.744-172.416a45.696 45.696 0 0 0-89.088-20.48l-44.48 192.96h-241.28l39.808-172.48a45.696 45.696 0 0 0-89.024-20.48L346.88 299.904H207.552a45.696 45.696 0 1 0 0 91.392h118.336l-56.32 243.712H116.224a45.696 45.696 0 0 0 0 91.392h132.416l-39.808 172.48a45.696 45.696 0 0 0 89.088 20.48l44.544-192.96h241.28l-39.808 172.48a45.696 45.696 0 0 0 89.088 20.48l44.544-192.96h139.392a45.696 45.696 0 1 0 0-91.392h-118.336l56.256-243.712h153.472a45.696 45.696 0 1 0 0-91.392h-0.064zM604.8 635.008h-241.28l56.256-243.712h241.28l-56.256 243.712z"
+                fill="currentColor"
+            />
+        </svg>
+    );
+}
+
 // export function ColorPaletteGeneratorIcon() {}
 
 
