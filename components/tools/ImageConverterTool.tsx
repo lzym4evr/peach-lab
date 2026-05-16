@@ -86,19 +86,8 @@ export default function ImageConverterTool() {
     const [error, setError] = useState("");
 
     const settingsButtonText =
-        (text as { settingsButton?: string }).settingsButton ?? "Settings";
-
-    const actionConvertText =
-        (text as { actionConvert?: string }).actionConvert ?? "Convert";
-
-    const actionDownloadText =
-        (text as { actionDownload?: string }).actionDownload ?? "Download";
-
-    const readyShortText =
-        (text as { readyShort?: string }).readyShort ?? "Ready";
-
-    const notReadyText =
-        (text as { notReady?: string }).notReady ?? "Not ready";
+        (text as { settingsButton?: string }).settingsButton ??
+        "Convert Settings";
 
     useEffect(() => {
         return () => {
@@ -221,7 +210,6 @@ export default function ImageConverterTool() {
             setConvertedUrl(nextUrl);
             setConvertedSize(blob.size);
             setStatus(text.ready);
-            setIsMobileSettingsOpen(false);
         } catch {
             setError(text.convertError);
         } finally {
@@ -268,7 +256,10 @@ export default function ImageConverterTool() {
     const savedPercent =
         imageInfo && convertedSize
             ? Math.max(
-                Math.round(((imageInfo.size - convertedSize) / imageInfo.size) * 100),
+                Math.round(
+                    ((imageInfo.size - convertedSize) / imageInfo.size) *
+                    100,
+                ),
                 0,
             )
             : 0;
@@ -401,7 +392,8 @@ export default function ImageConverterTool() {
 
                                     <p className="mt-3 text-center text-xs font-medium text-[#7A5A4F] md:text-sm">
                                         {imageInfo.width} × {imageInfo.height}px ·{" "}
-                                        {imageInfo.format} · {formatBytes(imageInfo.size)}
+                                        {imageInfo.format} ·{" "}
+                                        {formatBytes(imageInfo.size)}
                                     </p>
                                 </div>
                             ) : (
@@ -422,15 +414,6 @@ export default function ImageConverterTool() {
                         <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
                             <div className="mb-4 flex items-center justify-between gap-4">
                                 <SectionHeader title={text.outputTitle} />
-
-                                <button
-                                    type="button"
-                                    onClick={handleDownload}
-                                    disabled={!convertedBlob}
-                                    className="hidden shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50 md:inline-flex"
-                                >
-                                    {text.downloadImage}
-                                </button>
                             </div>
 
                             {convertedUrl ? (
@@ -444,7 +427,8 @@ export default function ImageConverterTool() {
                                     </div>
 
                                     <p className="mt-3 text-center text-xs font-medium text-[#7A5A4F] md:text-sm">
-                                        {outputLabel} · {formatBytes(convertedSize)}
+                                        {outputLabel} ·{" "}
+                                        {formatBytes(convertedSize)}
                                     </p>
                                 </div>
                             ) : (
@@ -454,6 +438,15 @@ export default function ImageConverterTool() {
                                     </p>
                                 </div>
                             )}
+
+                            <button
+                                type="button"
+                                onClick={handleDownload}
+                                disabled={!convertedBlob}
+                                className="mt-4 w-full rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {text.downloadImage}
+                            </button>
 
                             {error && file ? (
                                 <p className="mt-3 text-sm font-medium text-red-500">
@@ -471,18 +464,8 @@ export default function ImageConverterTool() {
 
             <MobileActionBar
                 settingsButtonText={settingsButtonText}
-                convertText={actionConvertText}
-                downloadText={actionDownloadText}
-                readyText={readyShortText}
-                notReadyText={notReadyText}
                 outputLabel={outputLabel}
-                convertedSize={convertedSize}
-                canConvert={!!file}
-                canDownload={!!convertedBlob}
-                isConverting={isConverting}
                 onOpenSettings={() => setIsMobileSettingsOpen(true)}
-                onConvert={handleConvert}
-                onDownload={handleDownload}
             />
 
             {isMobileSettingsOpen ? (
@@ -551,7 +534,9 @@ function ImageConverterSettingsPanel({
                             <button
                                 key={format.value}
                                 type="button"
-                                onClick={() => setOutputFormat(format.value as OutputFormat)}
+                                onClick={() =>
+                                    setOutputFormat(format.value as OutputFormat)
+                                }
                                 className={`rounded-2xl border px-3 py-2 text-sm font-semibold transition ${outputFormat === format.value
                                         ? "border-[#F28C6F] bg-[#FFF0EA] text-[#E6765B]"
                                         : "border-[#F1E5DF] bg-white text-gray-600 hover:border-[#F28C6F]"
@@ -580,7 +565,9 @@ function ImageConverterSettingsPanel({
                             min="10"
                             max="100"
                             value={quality}
-                            onChange={(event) => setQuality(Number(event.target.value))}
+                            onChange={(event) =>
+                                setQuality(Number(event.target.value))
+                            }
                             className="w-full accent-[#F28C6F]"
                         />
                     </div>
@@ -644,12 +631,18 @@ function ImageConverterSettingsPanel({
                     <div className="mt-4 grid grid-cols-3 gap-2 lg:grid-cols-1 lg:gap-3">
                         <InfoBox
                             label={text.originalSize}
-                            value={imageInfo ? formatBytes(imageInfo.size) : "-"}
+                            value={
+                                imageInfo ? formatBytes(imageInfo.size) : "-"
+                            }
                         />
 
                         <InfoBox
                             label={text.convertedSize}
-                            value={convertedSize ? formatBytes(convertedSize) : "-"}
+                            value={
+                                convertedSize
+                                    ? formatBytes(convertedSize)
+                                    : "-"
+                            }
                         />
 
                         <InfoBox
@@ -659,7 +652,9 @@ function ImageConverterSettingsPanel({
                     </div>
 
                     {status ? (
-                        <p className="mt-3 text-sm text-[#7A5A4F]">{status}</p>
+                        <p className="mt-3 text-sm text-[#7A5A4F]">
+                            {status}
+                        </p>
                     ) : null}
 
                     {error && !imageInfo ? (
@@ -675,32 +670,12 @@ function ImageConverterSettingsPanel({
 
 function MobileActionBar({
     settingsButtonText,
-    convertText,
-    downloadText,
-    readyText,
-    notReadyText,
     outputLabel,
-    convertedSize,
-    canConvert,
-    canDownload,
-    isConverting,
     onOpenSettings,
-    onConvert,
-    onDownload,
 }: {
     settingsButtonText: string;
-    convertText: string;
-    downloadText: string;
-    readyText: string;
-    notReadyText: string;
     outputLabel: string;
-    convertedSize: number;
-    canConvert: boolean;
-    canDownload: boolean;
-    isConverting: boolean;
     onOpenSettings: () => void;
-    onConvert: () => void;
-    onDownload: () => void;
 }) {
     const actionBarRef = useRef<HTMLDivElement | null>(null);
 
@@ -735,49 +710,19 @@ function MobileActionBar({
         <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
             <div
                 ref={actionBarRef}
-                className="pointer-events-auto mx-auto grid max-w-md grid-cols-3 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+                className="pointer-events-auto mx-auto max-w-md rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
             >
                 <button
                     type="button"
                     onClick={onOpenSettings}
-                    className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-2.5 text-center leading-tight transition hover:bg-[#FFF7F3]"
+                    className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                 >
-                    <span className="block text-[11px] font-semibold text-gray-400">
+                    <span className="block leading-tight">
                         {settingsButtonText}
                     </span>
 
-                    <span className="mt-0.5 block text-sm font-semibold text-[#2A1F1B]">
+                    <span className="mt-0.5 block text-xs font-semibold text-white/80">
                         {outputLabel}
-                    </span>
-                </button>
-
-                <button
-                    type="button"
-                    onClick={onConvert}
-                    disabled={!canConvert || isConverting}
-                    className="rounded-2xl bg-[#F28C6F] px-2 py-2.5 text-center leading-tight text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
-                >
-                    <span className="block text-[11px] font-semibold text-white/80">
-                        {isConverting ? "..." : convertText}
-                    </span>
-
-                    <span className="mt-0.5 block text-sm font-semibold">
-                        {canDownload ? readyText : notReadyText}
-                    </span>
-                </button>
-
-                <button
-                    type="button"
-                    onClick={onDownload}
-                    disabled={!canDownload}
-                    className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-2.5 text-center leading-tight transition hover:bg-[#FFF7F3] disabled:opacity-60"
-                >
-                    <span className="block text-[11px] font-semibold text-gray-400">
-                        {downloadText}
-                    </span>
-
-                    <span className="mt-0.5 block text-sm font-semibold text-[#E6765B]">
-                        {convertedSize ? formatBytes(convertedSize) : "-"}
                     </span>
                 </button>
             </div>

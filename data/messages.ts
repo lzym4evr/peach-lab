@@ -573,7 +573,7 @@ export const messages = {
             originalImage: "Original Image",
             convertedImage: "Converted Image",
             settingsTitle: "Convert Settings",
-            settingsButton: "Settings",
+            settingsButton: "Convert Settings",
             outputTitle: "Converted Result",
 
             emptyTitle: "No image selected",
@@ -597,7 +597,7 @@ export const messages = {
             formatWebp: "WebP",
 
             originalSize: "Original Size",
-            convertedSize: "Converted Size",
+            convertedSize: "New Size",
             saved: "Saved",
             dimensions: "Dimensions",
             format: "Format",
