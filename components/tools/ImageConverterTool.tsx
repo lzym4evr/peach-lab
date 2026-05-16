@@ -291,6 +291,7 @@ export default function ImageConverterTool() {
             setBackgroundColor={setBackgroundColor}
             handleConvert={handleConvert}
             handleReset={handleReset}
+            handleDownload={handleDownload}
         />
     );
 
@@ -311,6 +312,7 @@ export default function ImageConverterTool() {
             setBackgroundColor={setBackgroundColor}
             handleConvert={handleConvert}
             handleReset={handleReset}
+            handleDownload={handleDownload}
             compact
         />
     );
@@ -458,10 +460,7 @@ export default function ImageConverterTool() {
 
             <MobileActionBar
                 settingsButtonText={settingsButtonText}
-                downloadText={actionDownloadText}
-                canDownload={!!convertedBlob}
                 onOpenSettings={() => setIsMobileSettingsOpen(true)}
-                onDownload={handleDownload}
             />
 
             {isMobileSettingsOpen ? (
@@ -492,6 +491,7 @@ function ImageConverterSettingsPanel({
     setBackgroundColor,
     handleConvert,
     handleReset,
+    handleDownload,
     compact = false,
 }: {
     text: typeof t.imageConverter;
@@ -509,6 +509,7 @@ function ImageConverterSettingsPanel({
     setBackgroundColor: (value: string) => void;
     handleConvert: () => void;
     handleReset: () => void;
+    handleDownload: () => void;
     compact?: boolean;
 }) {
     return (
@@ -627,18 +628,12 @@ function ImageConverterSettingsPanel({
                     <div className="mt-4 grid grid-cols-3 gap-2 lg:grid-cols-1 lg:gap-3">
                         <InfoBox
                             label={text.originalSize}
-                            value={
-                                imageInfo ? formatBytes(imageInfo.size) : "-"
-                            }
+                            value={imageInfo ? formatBytes(imageInfo.size) : "-"}
                         />
 
                         <InfoBox
                             label={text.convertedSize}
-                            value={
-                                convertedSize
-                                    ? formatBytes(convertedSize)
-                                    : "-"
-                            }
+                            value={convertedSize ? formatBytes(convertedSize) : "-"}
                         />
 
                         <InfoBox
@@ -666,16 +661,10 @@ function ImageConverterSettingsPanel({
 
 function MobileActionBar({
     settingsButtonText,
-    downloadText,
-    canDownload,
     onOpenSettings,
-    onDownload,
 }: {
     settingsButtonText: string;
-    downloadText: string;
-    canDownload: boolean;
     onOpenSettings: () => void;
-    onDownload: () => void;
 }) {
     const actionBarRef = useRef<HTMLDivElement | null>(null);
 
@@ -704,37 +693,25 @@ function MobileActionBar({
                 "--mobile-action-bar-space",
             );
         };
-    }, [canDownload]);
+    }, []);
 
     return (
         <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
             <div
                 ref={actionBarRef}
-                className={`pointer-events-auto mx-auto grid max-w-md gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur ${canDownload ? "grid-cols-2" : "grid-cols-1"
-                    }`}
+                className="pointer-events-auto mx-auto max-w-md rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
             >
                 <button
                     type="button"
                     onClick={onOpenSettings}
-                    className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                    className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                 >
                     {settingsButtonText}
                 </button>
-
-                {canDownload ? (
-                    <button
-                        type="button"
-                        onClick={onDownload}
-                        className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-center text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3]"
-                    >
-                        {downloadText}
-                    </button>
-                ) : null}
             </div>
         </div>
     );
 }
-
 function MobileSettingsSheet({
     title,
     children,
