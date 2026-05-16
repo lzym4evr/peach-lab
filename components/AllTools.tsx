@@ -53,7 +53,7 @@ export default function AllTools() {
           <a
             key={tool.slug}
             href={`/tools/${tool.slug}`}
-            className="group flex items-center gap-4 rounded-2xl border border-[#F1E5DF] bg-white p-4 shadow-sm transition hover:border-[#F28C6F] hover:bg-[#FFFDFC]"
+            className="group flex items-center gap-4 rounded-2xl border border-[#F1E5DF] bg-white p-4 shadow-sm transition duration-200 hover:border-[#F28C6F] hover:bg-[#FFFDFC] active:-translate-y-0.5 active:scale-[0.99] active:border-[#F28C6F] active:bg-[#FFF7F3]"
           >
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#FFF0EA] text-2xl">
               {renderToolIcon(tool)}

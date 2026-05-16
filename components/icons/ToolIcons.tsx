@@ -8,7 +8,7 @@ type IconProps = {
 const iconDarkFill = "#000000";
 
 const hoverAccentClass =
-    "fill-[#000000] transition-colors duration-200 group-hover:fill-[#F28C6F]";
+    "fill-[#000000] transition-colors duration-200 group-hover:fill-[#F28C6F] group-active:fill-[#F28C6F]";
 
 // =========================
 // Color Tools

@@ -34,7 +34,7 @@ export default function PopularTools() {
           <a
             key={tool.slug}
             href={`/tools/${tool.slug}`}
-            className="group rounded-2xl border border-[#F1E5DF] bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:border-[#F28C6F] hover:shadow-md sm:p-5"
+            className="group rounded-2xl border border-[#F1E5DF] bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-[#F28C6F] hover:shadow-md active:-translate-y-0.5 active:scale-[0.99] active:border-[#F28C6F] active:bg-[#FFF7F3] sm:p-5"
           >
             <div className="mb-3 flex h-12 items-center text-3xl sm:h-16 sm:text-4xl">
               {renderToolIcon(tool)}
