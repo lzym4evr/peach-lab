@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+    type ChangeEvent,
+    type DragEvent,
+    type ReactNode,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import { t } from "@/data/messages";
 
 type OutputFormat = "png" | "jpeg" | "webp";
@@ -17,9 +24,9 @@ function formatBytes(bytes: number) {
 
     const units = ["B", "KB", "MB", "GB"];
     const index = Math.floor(Math.log(bytes) / Math.log(1024));
-    const size = bytes / Math.pow(1024, index);
+    const value = bytes / 1024 ** index;
 
-    return `${size.toFixed(size >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
+    return `${value.toFixed(value >= 10 ? 1 : 2)} ${units[index]}`;
 }
 
 function getFormatLabel(file: File) {
@@ -56,8 +63,8 @@ function createImageFromUrl(url: string) {
 }
 
 export default function ImageConverterTool() {
-    const messages = t.imageConverter;
-    const inputRef = useRef<HTMLInputElement | null>(null);
+    const text = t.imageConverter;
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const [file, setFile] = useState<File | null>(null);
     const [originalUrl, setOriginalUrl] = useState("");
@@ -73,10 +80,25 @@ export default function ImageConverterTool() {
 
     const [isDragging, setIsDragging] = useState(false);
     const [isConverting, setIsConverting] = useState(false);
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);
 
     const [status, setStatus] = useState("");
     const [error, setError] = useState("");
+
+    const settingsButtonText =
+        (text as { settingsButton?: string }).settingsButton ?? "Settings";
+
+    const actionConvertText =
+        (text as { actionConvert?: string }).actionConvert ?? "Convert";
+
+    const actionDownloadText =
+        (text as { actionDownload?: string }).actionDownload ?? "Download";
+
+    const readyShortText =
+        (text as { readyShort?: string }).readyShort ?? "Ready";
+
+    const notReadyText =
+        (text as { notReady?: string }).notReady ?? "Not ready";
 
     useEffect(() => {
         return () => {
@@ -116,37 +138,43 @@ export default function ImageConverterTool() {
             });
         } catch {
             URL.revokeObjectURL(url);
-            setError(messages.loadError);
+            setError(text.loadError);
         }
     }
 
-    function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    function handleChooseFile(event: ChangeEvent<HTMLInputElement>) {
         const nextFile = event.target.files?.[0];
 
-        if (!nextFile) {
-            return;
-        }
+        if (!nextFile) return;
 
         loadFile(nextFile);
         event.target.value = "";
     }
 
-    function handleDrop(event: React.DragEvent<HTMLDivElement>) {
+    function handleDragOver(event: DragEvent<HTMLLabelElement>) {
+        event.preventDefault();
+        setIsDragging(true);
+    }
+
+    function handleDragLeave(event: DragEvent<HTMLLabelElement>) {
+        event.preventDefault();
+        setIsDragging(false);
+    }
+
+    function handleDrop(event: DragEvent<HTMLLabelElement>) {
         event.preventDefault();
         setIsDragging(false);
 
         const nextFile = event.dataTransfer.files?.[0];
 
-        if (!nextFile) {
-            return;
-        }
+        if (!nextFile) return;
 
         loadFile(nextFile);
     }
 
-    async function convertImage() {
+    async function handleConvert() {
         if (!file || !originalUrl || !imageInfo) {
-            setError(messages.noFileError);
+            setError(text.noFileError);
             return;
         }
 
@@ -173,13 +201,11 @@ export default function ImageConverterTool() {
 
             context.drawImage(image, 0, 0);
 
-            const mimeType = getOutputMimeType(outputFormat);
-
             const blob = await new Promise<Blob | null>((resolve) => {
                 canvas.toBlob(
                     resolve,
-                    mimeType,
-                    outputFormat === "png" ? undefined : quality / 100
+                    getOutputMimeType(outputFormat),
+                    outputFormat === "png" ? undefined : quality / 100,
                 );
             });
 
@@ -194,18 +220,18 @@ export default function ImageConverterTool() {
             setConvertedBlob(blob);
             setConvertedUrl(nextUrl);
             setConvertedSize(blob.size);
-            setStatus(messages.ready);
-            setIsSettingsOpen(false);
+            setStatus(text.ready);
+            setIsMobileSettingsOpen(false);
         } catch {
-            setError(messages.convertError);
+            setError(text.convertError);
         } finally {
             setIsConverting(false);
         }
     }
 
-    function downloadImage() {
+    function handleDownload() {
         if (!convertedBlob || !file) {
-            setError(messages.noFileError);
+            setError(text.noFileError);
             return;
         }
 
@@ -221,7 +247,7 @@ export default function ImageConverterTool() {
         URL.revokeObjectURL(url);
     }
 
-    function resetTool() {
+    function handleReset() {
         if (originalUrl) URL.revokeObjectURL(originalUrl);
         if (convertedUrl) URL.revokeObjectURL(convertedUrl);
 
@@ -236,416 +262,627 @@ export default function ImageConverterTool() {
         setOutputFormat("webp");
         setQuality(90);
         setBackgroundColor("#FFFFFF");
-        setIsSettingsOpen(false);
+        setIsMobileSettingsOpen(false);
     }
 
     const savedPercent =
         imageInfo && convertedSize
-            ? Math.round(((imageInfo.size - convertedSize) / imageInfo.size) * 100)
+            ? Math.max(
+                Math.round(((imageInfo.size - convertedSize) / imageInfo.size) * 100),
+                0,
+            )
             : 0;
 
     const outputLabel =
         outputFormat === "jpeg"
-            ? messages.formatJpg
+            ? text.formatJpg
             : outputFormat === "png"
-                ? messages.formatPng
-                : messages.formatWebp;
+                ? text.formatPng
+                : text.formatWebp;
 
     const settingsPanel = (
-        <div className="space-y-5">
-            <div>
-                <label className="mb-2 block text-sm font-semibold text-[#2A1F1B]">
-                    {messages.outputFormat}
-                </label>
+        <ImageConverterSettingsPanel
+            text={text}
+            outputFormat={outputFormat}
+            quality={quality}
+            backgroundColor={backgroundColor}
+            imageInfo={imageInfo}
+            convertedSize={convertedSize}
+            savedPercent={savedPercent}
+            status={status}
+            error={error}
+            isConverting={isConverting}
+            setOutputFormat={setOutputFormat}
+            setQuality={setQuality}
+            setBackgroundColor={setBackgroundColor}
+            handleConvert={handleConvert}
+            handleReset={handleReset}
+        />
+    );
 
-                <div className="grid grid-cols-3 gap-2">
-                    {[
-                        { value: "png", label: messages.formatPng },
-                        { value: "jpeg", label: messages.formatJpg },
-                        { value: "webp", label: messages.formatWebp },
-                    ].map((format) => (
-                        <button
-                            key={format.value}
-                            type="button"
-                            onClick={() => setOutputFormat(format.value as OutputFormat)}
-                            className={`rounded-2xl border px-3 py-2 text-sm font-semibold transition ${outputFormat === format.value
-                                    ? "border-[#F28C6F] bg-[#FFF0EA] text-[#E6765B]"
-                                    : "border-[#F1E5DF] bg-white text-gray-600 hover:border-[#F28C6F]"
-                                }`}
-                        >
-                            {format.label}
-                        </button>
-                    ))}
+    const mobileSettingsPanel = (
+        <ImageConverterSettingsPanel
+            text={text}
+            outputFormat={outputFormat}
+            quality={quality}
+            backgroundColor={backgroundColor}
+            imageInfo={imageInfo}
+            convertedSize={convertedSize}
+            savedPercent={savedPercent}
+            status={status}
+            error={error}
+            isConverting={isConverting}
+            setOutputFormat={setOutputFormat}
+            setQuality={setQuality}
+            setBackgroundColor={setBackgroundColor}
+            handleConvert={handleConvert}
+            handleReset={handleReset}
+            compact
+        />
+    );
+
+    return (
+        <>
+            <div className="space-y-6 pb-2 lg:pb-0">
+                <div className="rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-4 text-sm leading-6 text-[#7A5A4F]">
+                    {text.localProcessing}
                 </div>
-            </div>
 
-            {outputFormat !== "png" && (
-                <div>
-                    <div className="mb-2 flex items-center justify-between gap-3">
-                        <label className="text-sm font-semibold text-[#2A1F1B]">
-                            {messages.quality}
-                        </label>
-                        <span className="text-sm font-semibold text-[#E6765B]">
-                            {quality}%
-                        </span>
+                <label
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
+                            ? "border-[#F28C6F] bg-[#FFF0EA]"
+                            : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                        }`}
+                >
+                    <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
+                        {text.uploadTitle}
+                    </h2>
+
+                    <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-gray-500 md:mt-3 md:text-base md:leading-7">
+                        {text.uploadDescription}
+                    </p>
+
+                    <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
+                        {text.supportedFormats}
+                    </p>
+
+                    <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-[#A17F74] md:mt-3 md:text-sm">
+                        {text.dropHint}
+                    </p>
+
+                    <div className="mx-auto mt-4 inline-flex rounded-2xl bg-[#F28C6F] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:mt-5">
+                        {file ? text.changeImage : text.uploadButton}
                     </div>
 
                     <input
-                        type="range"
-                        min="10"
-                        max="100"
-                        value={quality}
-                        onChange={(event) => setQuality(Number(event.target.value))}
-                        className="w-full accent-[#F28C6F]"
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/svg+xml,image/gif,image/avif"
+                        onChange={handleChooseFile}
+                        className="hidden"
                     />
-                </div>
-            )}
 
-            {outputFormat === "jpeg" && (
+                    <p className="mx-auto mt-3 max-w-xl break-all text-sm font-medium text-gray-500">
+                        {file ? file.name : text.noFileSelected}
+                    </p>
+
+                    {error && !file ? (
+                        <p className="mt-4 text-sm font-medium text-red-500">
+                            {error}
+                        </p>
+                    ) : null}
+                </label>
+
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
+                    <div className="min-w-0 space-y-6">
+                        <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                            <div className="mb-4 flex items-center justify-between gap-4">
+                                <SectionHeader title={text.originalImage} />
+
+                                {file ? (
+                                    <span className="hidden max-w-[220px] truncate rounded-full bg-[#FFF7F3] px-3 py-1 text-xs font-semibold text-[#7A5A4F] md:block">
+                                        {file.name}
+                                    </span>
+                                ) : null}
+                            </div>
+
+                            {originalUrl && imageInfo ? (
+                                <div className="overflow-hidden rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-3 md:p-4">
+                                    <div className="flex items-center justify-center rounded-2xl bg-white/70 p-3 md:p-4">
+                                        <img
+                                            src={originalUrl}
+                                            alt={text.originalImage}
+                                            className="max-h-[220px] max-w-full object-contain md:max-h-[320px]"
+                                        />
+                                    </div>
+
+                                    <p className="mt-3 text-center text-xs font-medium text-[#7A5A4F] md:text-sm">
+                                        {imageInfo.width} × {imageInfo.height}px ·{" "}
+                                        {imageInfo.format} · {formatBytes(imageInfo.size)}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="flex min-h-[180px] items-center justify-center rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center md:min-h-[260px]">
+                                    <div>
+                                        <h4 className="text-lg font-semibold text-gray-900">
+                                            {text.emptyTitle}
+                                        </h4>
+
+                                        <p className="mt-2 max-w-sm text-sm leading-6 text-gray-500">
+                                            {text.emptyDescription}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </section>
+
+                        <section className="md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-5 md:shadow-sm">
+                            <div className="mb-4 flex items-center justify-between gap-4">
+                                <SectionHeader title={text.outputTitle} />
+
+                                <button
+                                    type="button"
+                                    onClick={handleDownload}
+                                    disabled={!convertedBlob}
+                                    className="hidden shrink-0 rounded-xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50 md:inline-flex"
+                                >
+                                    {text.downloadImage}
+                                </button>
+                            </div>
+
+                            {convertedUrl ? (
+                                <div className="overflow-hidden rounded-3xl border border-[#F1E5DF] bg-[#FFF7F3] p-3 md:p-4">
+                                    <div className="flex items-center justify-center rounded-2xl bg-white/70 p-3 md:p-4">
+                                        <img
+                                            src={convertedUrl}
+                                            alt={text.convertedImage}
+                                            className="max-h-[220px] max-w-full object-contain md:max-h-[320px]"
+                                        />
+                                    </div>
+
+                                    <p className="mt-3 text-center text-xs font-medium text-[#7A5A4F] md:text-sm">
+                                        {outputLabel} · {formatBytes(convertedSize)}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="flex min-h-[150px] items-center justify-center rounded-3xl border border-dashed border-[#F4C8BA] bg-[#FFF7F3] p-6 text-center md:min-h-[220px]">
+                                    <p className="text-sm leading-6 text-gray-500">
+                                        {text.convertImage}
+                                    </p>
+                                </div>
+                            )}
+
+                            {error && file ? (
+                                <p className="mt-3 text-sm font-medium text-red-500">
+                                    {error}
+                                </p>
+                            ) : null}
+                        </section>
+                    </div>
+
+                    <section className="hidden min-w-0 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm lg:block">
+                        {settingsPanel}
+                    </section>
+                </div>
+            </div>
+
+            <MobileActionBar
+                settingsButtonText={settingsButtonText}
+                convertText={actionConvertText}
+                downloadText={actionDownloadText}
+                readyText={readyShortText}
+                notReadyText={notReadyText}
+                outputLabel={outputLabel}
+                convertedSize={convertedSize}
+                canConvert={!!file}
+                canDownload={!!convertedBlob}
+                isConverting={isConverting}
+                onOpenSettings={() => setIsMobileSettingsOpen(true)}
+                onConvert={handleConvert}
+                onDownload={handleDownload}
+            />
+
+            {isMobileSettingsOpen ? (
+                <MobileSettingsSheet
+                    title={text.settingsTitle}
+                    onClose={() => setIsMobileSettingsOpen(false)}
+                >
+                    {mobileSettingsPanel}
+                </MobileSettingsSheet>
+            ) : null}
+        </>
+    );
+}
+
+function ImageConverterSettingsPanel({
+    text,
+    outputFormat,
+    quality,
+    backgroundColor,
+    imageInfo,
+    convertedSize,
+    savedPercent,
+    status,
+    error,
+    isConverting,
+    setOutputFormat,
+    setQuality,
+    setBackgroundColor,
+    handleConvert,
+    handleReset,
+    compact = false,
+}: {
+    text: typeof t.imageConverter;
+    outputFormat: OutputFormat;
+    quality: number;
+    backgroundColor: string;
+    imageInfo: ImageInfo | null;
+    convertedSize: number;
+    savedPercent: number;
+    status: string;
+    error: string;
+    isConverting: boolean;
+    setOutputFormat: (value: OutputFormat) => void;
+    setQuality: (value: number) => void;
+    setBackgroundColor: (value: string) => void;
+    handleConvert: () => void;
+    handleReset: () => void;
+    compact?: boolean;
+}) {
+    return (
+        <div className={compact ? "space-y-4" : ""}>
+            {!compact ? <SectionHeader title={text.settingsTitle} /> : null}
+
+            <div className={compact ? "space-y-4" : "mt-5 space-y-5"}>
                 <div>
                     <label className="mb-2 block text-sm font-semibold text-[#2A1F1B]">
-                        {messages.backgroundColor}
+                        {text.outputFormat}
                     </label>
 
-                    <div className="flex items-center gap-3">
-                        <input
-                            type="color"
-                            value={backgroundColor}
-                            onChange={(event) => setBackgroundColor(event.target.value)}
-                            className="h-11 w-14 cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
-                        />
+                    <div className="grid grid-cols-3 gap-2">
+                        {[
+                            { value: "png", label: text.formatPng },
+                            { value: "jpeg", label: text.formatJpg },
+                            { value: "webp", label: text.formatWebp },
+                        ].map((format) => (
+                            <button
+                                key={format.value}
+                                type="button"
+                                onClick={() => setOutputFormat(format.value as OutputFormat)}
+                                className={`rounded-2xl border px-3 py-2 text-sm font-semibold transition ${outputFormat === format.value
+                                        ? "border-[#F28C6F] bg-[#FFF0EA] text-[#E6765B]"
+                                        : "border-[#F1E5DF] bg-white text-gray-600 hover:border-[#F28C6F]"
+                                    }`}
+                            >
+                                {format.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {outputFormat !== "png" ? (
+                    <div>
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                            <label className="text-sm font-semibold text-[#2A1F1B]">
+                                {text.quality}
+                            </label>
+
+                            <span className="text-sm font-semibold text-[#E6765B]">
+                                {quality}%
+                            </span>
+                        </div>
 
                         <input
-                            value={backgroundColor}
-                            onChange={(event) => setBackgroundColor(event.target.value)}
-                            className="min-w-0 flex-1 rounded-xl border border-[#F1E5DF] px-3 py-2 text-sm outline-none focus:border-[#F28C6F]"
+                            type="range"
+                            min="10"
+                            max="100"
+                            value={quality}
+                            onChange={(event) => setQuality(Number(event.target.value))}
+                            className="w-full accent-[#F28C6F]"
+                        />
+                    </div>
+                ) : null}
+
+                {outputFormat === "jpeg" ? (
+                    <div>
+                        <label className="mb-2 block text-sm font-semibold text-[#2A1F1B]">
+                            {text.backgroundColor}
+                        </label>
+
+                        <div className="flex items-center gap-3">
+                            <input
+                                type="color"
+                                value={backgroundColor}
+                                onChange={(event) =>
+                                    setBackgroundColor(event.target.value)
+                                }
+                                className="h-11 w-14 cursor-pointer rounded-xl border border-[#F1E5DF] bg-white p-1"
+                            />
+
+                            <input
+                                value={backgroundColor}
+                                onChange={(event) =>
+                                    setBackgroundColor(event.target.value)
+                                }
+                                className="min-w-0 flex-1 rounded-xl border border-[#F1E5DF] px-3 py-2 text-sm outline-none focus:border-[#F28C6F]"
+                            />
+                        </div>
+
+                        <p className="mt-2 text-xs leading-5 text-gray-500">
+                            {text.backgroundHint}
+                        </p>
+                    </div>
+                ) : null}
+
+                <div className="grid grid-cols-2 gap-3">
+                    <button
+                        type="button"
+                        onClick={handleConvert}
+                        disabled={!imageInfo || isConverting}
+                        className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {isConverting ? text.converting : text.convertImage}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handleReset}
+                        className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF0EA]"
+                    >
+                        {text.reset}
+                    </button>
+                </div>
+
+                <div>
+                    <h3 className="font-semibold text-gray-900">
+                        {text.convertedImage}
+                    </h3>
+
+                    <div className="mt-4 grid grid-cols-3 gap-2 lg:grid-cols-1 lg:gap-3">
+                        <InfoBox
+                            label={text.originalSize}
+                            value={imageInfo ? formatBytes(imageInfo.size) : "-"}
+                        />
+
+                        <InfoBox
+                            label={text.convertedSize}
+                            value={convertedSize ? formatBytes(convertedSize) : "-"}
+                        />
+
+                        <InfoBox
+                            label={text.saved}
+                            value={convertedSize ? `${savedPercent}%` : "-"}
                         />
                     </div>
 
-                    <p className="mt-2 text-xs leading-5 text-gray-500">
-                        {messages.backgroundHint}
-                    </p>
-                </div>
-            )}
+                    {status ? (
+                        <p className="mt-3 text-sm text-[#7A5A4F]">{status}</p>
+                    ) : null}
 
-            <div className="grid gap-2">
+                    {error && !imageInfo ? (
+                        <p className="mt-3 text-sm font-medium text-red-500">
+                            {error}
+                        </p>
+                    ) : null}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function MobileActionBar({
+    settingsButtonText,
+    convertText,
+    downloadText,
+    readyText,
+    notReadyText,
+    outputLabel,
+    convertedSize,
+    canConvert,
+    canDownload,
+    isConverting,
+    onOpenSettings,
+    onConvert,
+    onDownload,
+}: {
+    settingsButtonText: string;
+    convertText: string;
+    downloadText: string;
+    readyText: string;
+    notReadyText: string;
+    outputLabel: string;
+    convertedSize: number;
+    canConvert: boolean;
+    canDownload: boolean;
+    isConverting: boolean;
+    onOpenSettings: () => void;
+    onConvert: () => void;
+    onDownload: () => void;
+}) {
+    const actionBarRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const updateSpace = () => {
+            const element = actionBarRef.current;
+            if (!element) return;
+
+            const rect = element.getBoundingClientRect();
+
+            document.documentElement.style.setProperty(
+                "--mobile-action-bar-space",
+                `${Math.ceil(rect.height + 24)}px`,
+            );
+        };
+
+        const timer = window.setTimeout(updateSpace, 0);
+        window.addEventListener("resize", updateSpace);
+
+        return () => {
+            window.clearTimeout(timer);
+            window.removeEventListener("resize", updateSpace);
+            document.documentElement.style.removeProperty(
+                "--mobile-action-bar-space",
+            );
+        };
+    }, []);
+
+    return (
+        <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
+            <div
+                ref={actionBarRef}
+                className="pointer-events-auto mx-auto grid max-w-md grid-cols-3 gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+            >
                 <button
                     type="button"
-                    onClick={convertImage}
-                    disabled={!file || isConverting}
-                    className="rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40"
+                    onClick={onOpenSettings}
+                    className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-2.5 text-center leading-tight transition hover:bg-[#FFF7F3]"
                 >
-                    {isConverting ? messages.converting : messages.convertImage}
+                    <span className="block text-[11px] font-semibold text-gray-400">
+                        {settingsButtonText}
+                    </span>
+
+                    <span className="mt-0.5 block text-sm font-semibold text-[#2A1F1B]">
+                        {outputLabel}
+                    </span>
                 </button>
 
                 <button
                     type="button"
-                    onClick={resetTool}
-                    className="rounded-2xl border border-[#F4C8BA] bg-white px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-[#FFF7F3]"
+                    onClick={onConvert}
+                    disabled={!canConvert || isConverting}
+                    className="rounded-2xl bg-[#F28C6F] px-2 py-2.5 text-center leading-tight text-white shadow-sm transition hover:bg-[#E6765B] disabled:bg-[#F8D9CF] disabled:opacity-75"
                 >
-                    {messages.reset}
+                    <span className="block text-[11px] font-semibold text-white/80">
+                        {isConverting ? "..." : convertText}
+                    </span>
+
+                    <span className="mt-0.5 block text-sm font-semibold">
+                        {canDownload ? readyText : notReadyText}
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onDownload}
+                    disabled={!canDownload}
+                    className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-2.5 text-center leading-tight transition hover:bg-[#FFF7F3] disabled:opacity-60"
+                >
+                    <span className="block text-[11px] font-semibold text-gray-400">
+                        {downloadText}
+                    </span>
+
+                    <span className="mt-0.5 block text-sm font-semibold text-[#E6765B]">
+                        {convertedSize ? formatBytes(convertedSize) : "-"}
+                    </span>
                 </button>
             </div>
         </div>
     );
+}
+
+function MobileSettingsSheet({
+    title,
+    children,
+    onClose,
+}: {
+    title: string;
+    children: ReactNode;
+    onClose: () => void;
+}) {
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const previousOverflow = document.body.style.overflow;
+        const previousTouchAction = document.body.style.touchAction;
+
+        document.body.style.overflow = "hidden";
+        document.body.style.touchAction = "none";
+
+        const frame = requestAnimationFrame(() => {
+            setIsVisible(true);
+        });
+
+        return () => {
+            cancelAnimationFrame(frame);
+            document.body.style.overflow = previousOverflow;
+            document.body.style.touchAction = previousTouchAction;
+        };
+    }, []);
+
+    function handleClose() {
+        setIsVisible(false);
+
+        window.setTimeout(() => {
+            onClose();
+        }, 180);
+    }
 
     return (
-        <div className="space-y-5 pb-28 md:space-y-6 md:pb-1 lg:pb-0">
-            <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] px-4 py-3 text-sm leading-6 text-gray-600">
-                <span className="font-semibold text-[#E6765B]">
-                    {t.common.localProcessing}:
-                </span>{" "}
-                {messages.localProcessing.replace("Local processing: ", "")}
-            </div>
-
+        <div
+            className={`fixed inset-0 z-[70] overscroll-none bg-[#2A1F1B]/35 px-3 pb-3 pt-24 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${isVisible ? "opacity-100" : "opacity-0"
+                }`}
+            onClick={handleClose}
+            onTouchMove={(event) => event.preventDefault()}
+        >
             <div
-                role="button"
-                tabIndex={0}
-                onClick={() => inputRef.current?.click()}
-                onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                        inputRef.current?.click();
-                    }
-                }}
-                onDragOver={(event) => {
-                    event.preventDefault();
-                    setIsDragging(true);
-                }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={handleDrop}
-                className={`rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                        ? "border-[#F28C6F] bg-[#FFF0EA]"
-                        : "border-[#F4C8BA] bg-white"
+                className={`ml-auto flex h-full max-h-[78vh] w-full max-w-md flex-col overflow-hidden rounded-[28px] border border-[#F4C8BA] bg-white shadow-[0_18px_50px_rgba(42,31,27,0.2)] transition-transform duration-200 ease-out ${isVisible ? "translate-y-0" : "translate-y-full"
                     }`}
+                onClick={(event) => event.stopPropagation()}
             >
-                <input
-                    ref={inputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/svg+xml,image/gif,image/avif"
-                    onChange={handleFileChange}
-                    className="hidden"
-                />
+                <div className="flex shrink-0 items-center justify-between gap-4 px-4 pb-2 pt-4">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <span className="h-7 w-1.5 shrink-0 rounded-full bg-[#F28C6F]" />
 
-                <h2 className="text-lg font-semibold text-[#2A1F1B]">
-                    {messages.uploadTitle}
-                </h2>
+                        <h3 className="truncate text-lg font-semibold text-gray-900">
+                            {title}
+                        </h3>
+                    </div>
 
-                <p className="mt-2 text-sm leading-6 text-gray-500 md:mt-3">
-                    {messages.uploadDescription}
-                </p>
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF7F3] text-2xl font-semibold leading-none text-[#2A1F1B] transition hover:bg-[#FFF0EA]"
+                    >
+                        ×
+                    </button>
+                </div>
 
-                <p className="mt-2 text-xs text-gray-400 md:mt-3">
-                    {messages.supportedFormats}
-                </p>
-
-                <button
-                    type="button"
-                    className="mt-4 rounded-2xl bg-[#F28C6F] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] md:mt-5"
+                <div
+                    className="min-h-0 flex-1 overscroll-contain overflow-y-auto px-4 pb-4 pt-2"
+                    onTouchMove={(event) => event.stopPropagation()}
                 >
-                    {file ? messages.changeImage : messages.uploadButton}
-                </button>
-
-                <p className="mt-3 text-sm text-gray-500">
-                    {file ? file.name : messages.noFileSelected}
-                </p>
-            </div>
-
-            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-                <div className="space-y-5">
-                    <div className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm md:p-5">
-                        <div className="mb-4 flex items-start gap-3">
-                            <span className="mt-1 h-7 w-1 rounded-full bg-[#F28C6F]" />
-                            <div>
-                                <h2 className="text-lg font-semibold text-[#2A1F1B]">
-                                    {messages.originalImage}
-                                </h2>
-                                <p className="mt-1 text-sm text-gray-500">
-                                    {imageInfo
-                                        ? `${imageInfo.width} × ${imageInfo.height}px · ${imageInfo.format}`
-                                        : messages.emptyDescription}
-                                </p>
-                            </div>
-                        </div>
-
-                        {originalUrl ? (
-                            <div className="flex justify-center rounded-2xl bg-[#FFF7F3] p-3">
-                                <img
-                                    src={originalUrl}
-                                    alt={messages.originalImage}
-                                    className="max-h-[240px] max-w-full object-contain md:max-h-[320px]"
-                                />
-                            </div>
-                        ) : (
-                            <div className="rounded-2xl bg-[#FFF7F3] p-6 text-center md:p-8">
-                                <h3 className="text-base font-semibold text-[#2A1F1B]">
-                                    {messages.emptyTitle}
-                                </h3>
-                                <p className="mt-2 text-sm text-gray-500">
-                                    {messages.emptyDescription}
-                                </p>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm md:p-5">
-                        <div className="mb-4 flex items-start justify-between gap-3">
-                            <div className="flex items-start gap-3">
-                                <span className="mt-1 h-7 w-1 rounded-full bg-[#F28C6F]" />
-                                <div>
-                                    <h2 className="text-lg font-semibold text-[#2A1F1B]">
-                                        {messages.outputTitle}
-                                    </h2>
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        {status || `${messages.outputFormat}: ${outputLabel}`}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={downloadImage}
-                                disabled={!convertedBlob}
-                                className="hidden rounded-2xl bg-[#F28C6F] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
-                            >
-                                {messages.downloadImage}
-                            </button>
-                        </div>
-
-                        {convertedUrl ? (
-                            <div className="flex justify-center rounded-2xl bg-[#FFF7F3] p-3">
-                                <img
-                                    src={convertedUrl}
-                                    alt={messages.convertedImage}
-                                    className="max-h-[240px] max-w-full object-contain md:max-h-[320px]"
-                                />
-                            </div>
-                        ) : (
-                            <div className="rounded-2xl bg-[#FFF7F3] p-6 text-center text-sm text-gray-500 md:p-8">
-                                {messages.convertImage}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="hidden rounded-3xl border border-[#F1E5DF] bg-white p-4 shadow-sm md:p-5 lg:block">
-                    <div className="mb-5 flex items-start gap-3">
-                        <span className="mt-1 h-7 w-1 rounded-full bg-[#F28C6F]" />
-                        <h2 className="text-lg font-semibold text-[#2A1F1B]">
-                            {messages.settingsTitle}
-                        </h2>
-                    </div>
-
-                    {settingsPanel}
-
-                    {imageInfo && (
-                        <div className="mt-5 grid grid-cols-2 gap-3">
-                            <div className="rounded-2xl bg-[#FFF7F3] p-4">
-                                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                                    {messages.originalSize}
-                                </p>
-                                <p className="mt-1 text-lg font-semibold text-[#2A1F1B]">
-                                    {formatBytes(imageInfo.size)}
-                                </p>
-                            </div>
-
-                            <div className="rounded-2xl bg-[#FFF7F3] p-4">
-                                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                                    {messages.convertedSize}
-                                </p>
-                                <p className="mt-1 text-lg font-semibold text-[#2A1F1B]">
-                                    {convertedSize ? formatBytes(convertedSize) : "—"}
-                                </p>
-                            </div>
-
-                            <div className="rounded-2xl bg-[#FFF7F3] p-4">
-                                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                                    {messages.dimensions}
-                                </p>
-                                <p className="mt-1 text-lg font-semibold text-[#2A1F1B]">
-                                    {imageInfo.width}×{imageInfo.height}
-                                </p>
-                            </div>
-
-                            <div className="rounded-2xl bg-[#FFF7F3] p-4">
-                                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                                    {messages.saved}
-                                </p>
-                                <p className="mt-1 text-lg font-semibold text-[#2A1F1B]">
-                                    {convertedSize ? `${savedPercent}%` : "—"}
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {status && (
-                        <p className="mt-5 rounded-2xl bg-[#FFF7F3] px-4 py-3 text-sm text-[#E6765B]">
-                            {status}
-                        </p>
-                    )}
-
-                    {error && (
-                        <p className="mt-5 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
-                            {error}
-                        </p>
-                    )}
+                    {children}
                 </div>
             </div>
+        </div>
+    );
+}
 
-            {(status || error) && (
-                <div className="lg:hidden">
-                    {status && (
-                        <p className="rounded-2xl bg-[#FFF7F3] px-4 py-3 text-sm text-[#E6765B]">
-                            {status}
-                        </p>
-                    )}
+function SectionHeader({ title }: { title: string }) {
+    return (
+        <div className="flex items-center gap-3">
+            <span className="h-7 w-1.5 rounded-full bg-[#F28C6F]" />
 
-                    {error && (
-                        <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
-                            {error}
-                        </p>
-                    )}
-                </div>
-            )}
+            <h3 className="font-semibold text-gray-900">{title}</h3>
+        </div>
+    );
+}
 
-            {isSettingsOpen && (
-                <div className="fixed inset-0 z-[80] bg-black/25 lg:hidden">
-                    <button
-                        type="button"
-                        aria-label={messages.close}
-                        className="absolute inset-0 h-full w-full cursor-default"
-                        onClick={() => setIsSettingsOpen(false)}
-                    />
+function InfoBox({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="rounded-2xl border border-[#F1E5DF] bg-[#FFF7F3] p-2.5 lg:p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9C7B70] lg:text-xs">
+                {label}
+            </p>
 
-                    <div className="absolute bottom-0 left-0 right-0 max-h-[92dvh] overflow-y-auto rounded-t-[2rem] border border-[#F1E5DF] bg-white p-5 shadow-2xl">
-                        <div className="mb-5 flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                                <span className="h-5 w-1 rounded-full bg-[#F28C6F]" />
-                                <h2 className="text-lg font-semibold text-[#2A1F1B]">
-                                    {messages.settingsTitle}
-                                </h2>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() => setIsSettingsOpen(false)}
-                                className="flex h-9 w-9 items-center justify-center rounded-full border border-[#F1E5DF] text-lg text-gray-500 transition hover:bg-[#FFF7F3]"
-                            >
-                                ×
-                            </button>
-                        </div>
-
-                        {settingsPanel}
-                    </div>
-                </div>
-            )}
-
-            <div
-                className="fixed bottom-4 left-4 right-4 z-[70] rounded-[1.75rem] border border-[#F4C8BA] bg-white/95 p-2 shadow-[0_16px_40px_rgba(42,31,27,0.16)] backdrop-blur lg:hidden"
-                style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
-            >
-                <div className="grid grid-cols-3 gap-2">
-                    <button
-                        type="button"
-                        onClick={() => setIsSettingsOpen(true)}
-                        className="rounded-2xl border border-[#F1E5DF] bg-white px-2 py-2.5 text-center transition hover:bg-[#FFF7F3]"
-                    >
-                        <span className="block text-[11px] font-semibold text-gray-400">
-                            {messages.settingsButton}
-                        </span>
-                        <span className="mt-0.5 block text-sm font-semibold text-[#2A1F1B]">
-                            {outputLabel}
-                        </span>
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={convertImage}
-                        disabled={!file || isConverting}
-                        className="rounded-2xl bg-[#F28C6F] px-2 py-2.5 text-center text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                        <span className="block text-[11px] font-semibold text-white/80">
-                            {isConverting ? messages.converting : messages.actionConvert}
-                        </span>
-                        <span className="mt-0.5 block text-sm font-semibold">
-                            {convertedBlob ? messages.readyShort : messages.notReady}
-                        </span>
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={downloadImage}
-                        disabled={!convertedBlob}
-                        className="rounded-2xl border border-[#F4C8BA] bg-[#FFF7F3] px-2 py-2.5 text-center transition hover:bg-[#FFF0EA] disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                        <span className="block text-[11px] font-semibold text-gray-400">
-                            {messages.actionDownload}
-                        </span>
-                        <span className="mt-0.5 block text-sm font-semibold text-[#E6765B]">
-                            {convertedSize ? formatBytes(convertedSize) : "—"}
-                        </span>
-                    </button>
-                </div>
-            </div>
+            <p className="mt-1 text-base font-bold text-gray-900 lg:mt-2 lg:text-lg">
+                {value}
+            </p>
         </div>
     );
 }
