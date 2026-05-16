@@ -89,6 +89,9 @@ export default function ImageConverterTool() {
         (text as { settingsButton?: string }).settingsButton ??
         "Convert Settings";
 
+    const actionDownloadText =
+        (text as { actionDownload?: string }).actionDownload ?? "Download";
+
     useEffect(() => {
         return () => {
             if (originalUrl) URL.revokeObjectURL(originalUrl);
@@ -324,8 +327,8 @@ export default function ImageConverterTool() {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     className={`block cursor-pointer rounded-3xl border-2 border-dashed p-4 text-center transition md:p-8 ${isDragging
-                            ? "border-[#F28C6F] bg-[#FFF0EA]"
-                            : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
+                        ? "border-[#F28C6F] bg-[#FFF0EA]"
+                        : "border-[#F4C8BA] bg-[#FFF7F3] hover:bg-[#FFF0EA]"
                         }`}
                 >
                     <h2 className="text-xl font-semibold leading-tight text-[#111827] md:text-3xl">
@@ -439,15 +442,6 @@ export default function ImageConverterTool() {
                                 </div>
                             )}
 
-                            <button
-                                type="button"
-                                onClick={handleDownload}
-                                disabled={!convertedBlob}
-                                className="mt-4 w-full rounded-2xl bg-[#F28C6F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B] disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                {text.downloadImage}
-                            </button>
-
                             {error && file ? (
                                 <p className="mt-3 text-sm font-medium text-red-500">
                                     {error}
@@ -464,8 +458,10 @@ export default function ImageConverterTool() {
 
             <MobileActionBar
                 settingsButtonText={settingsButtonText}
-                outputLabel={outputLabel}
+                downloadText={actionDownloadText}
+                canDownload={!!convertedBlob}
                 onOpenSettings={() => setIsMobileSettingsOpen(true)}
+                onDownload={handleDownload}
             />
 
             {isMobileSettingsOpen ? (
@@ -538,8 +534,8 @@ function ImageConverterSettingsPanel({
                                     setOutputFormat(format.value as OutputFormat)
                                 }
                                 className={`rounded-2xl border px-3 py-2 text-sm font-semibold transition ${outputFormat === format.value
-                                        ? "border-[#F28C6F] bg-[#FFF0EA] text-[#E6765B]"
-                                        : "border-[#F1E5DF] bg-white text-gray-600 hover:border-[#F28C6F]"
+                                    ? "border-[#F28C6F] bg-[#FFF0EA] text-[#E6765B]"
+                                    : "border-[#F1E5DF] bg-white text-gray-600 hover:border-[#F28C6F]"
                                     }`}
                             >
                                 {format.label}
@@ -670,12 +666,16 @@ function ImageConverterSettingsPanel({
 
 function MobileActionBar({
     settingsButtonText,
-    outputLabel,
+    downloadText,
+    canDownload,
     onOpenSettings,
+    onDownload,
 }: {
     settingsButtonText: string;
-    outputLabel: string;
+    downloadText: string;
+    canDownload: boolean;
     onOpenSettings: () => void;
+    onDownload: () => void;
 }) {
     const actionBarRef = useRef<HTMLDivElement | null>(null);
 
@@ -704,27 +704,32 @@ function MobileActionBar({
                 "--mobile-action-bar-space",
             );
         };
-    }, []);
+    }, [canDownload]);
 
     return (
         <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[60] px-3 lg:hidden">
             <div
                 ref={actionBarRef}
-                className="pointer-events-auto mx-auto max-w-md rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur"
+                className={`pointer-events-auto mx-auto grid max-w-md gap-2 rounded-[28px] border border-[#F4C8BA] bg-white/95 p-2.5 shadow-[0_10px_30px_rgba(42,31,27,0.12)] backdrop-blur ${canDownload ? "grid-cols-2" : "grid-cols-1"
+                    }`}
             >
                 <button
                     type="button"
                     onClick={onOpenSettings}
-                    className="w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                    className="rounded-2xl bg-[#F28C6F] px-4 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
                 >
-                    <span className="block leading-tight">
-                        {settingsButtonText}
-                    </span>
-
-                    <span className="mt-0.5 block text-xs font-semibold text-white/80">
-                        {outputLabel}
-                    </span>
+                    {settingsButtonText}
                 </button>
+
+                {canDownload ? (
+                    <button
+                        type="button"
+                        onClick={onDownload}
+                        className="rounded-2xl border border-[#F4C8BA] bg-white px-4 py-3 text-center text-sm font-semibold text-[#E6765B] transition hover:bg-[#FFF7F3]"
+                    >
+                        {downloadText}
+                    </button>
+                ) : null}
             </div>
         </div>
     );
