@@ -2,6 +2,10 @@ import { categories } from "@/data/tools";
 import { t } from "@/data/messages";
 import IconRenderer from "@/components/icons/IconRenderer";
 
+function getCategoryId(categoryKey: string) {
+  return categoryKey.toLowerCase().replaceAll(" ", "-");
+}
+
 export default function CategoryGrid() {
   return (
     <section
@@ -17,7 +21,8 @@ export default function CategoryGrid() {
         {categories.map((category) => (
           <a
             key={category.key}
-            href={`#${category.key.toLowerCase().replaceAll(" ", "-")}`}
+            href={`#all-tools`}
+            data-category-target={getCategoryId(category.key)}
             className="group rounded-2xl border border-[#F1E5DF] bg-white p-3 text-center shadow-sm transition duration-200 hover:border-[#F28C6F] hover:bg-[#FFF7F3] active:-translate-y-0.5 active:scale-[0.98] active:border-[#F28C6F] active:bg-[#FFF7F3] md:p-4"
           >
             <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF0EA] text-xl md:mb-3 md:h-12 md:w-12 md:text-2xl">
