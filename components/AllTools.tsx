@@ -1,19 +1,37 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { categories, tools } from "@/data/tools";
 import { t } from "@/data/messages";
 import IconRenderer from "@/components/icons/IconRenderer";
 
 type SortType = "popular" | "newest";
 
-function getCategoryId(categoryKey: string) {
-  return categoryKey.toLowerCase().replaceAll(" ", "-");
-}
-
 export default function AllTools() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [sortType, setSortType] = useState<SortType>("popular");
+
+  useEffect(() => {
+    function handleCategoryFilter(event: Event) {
+      const customEvent = event as CustomEvent<{ category: string }>;
+      const category = customEvent.detail?.category;
+
+      if (!category) return;
+
+      setActiveCategory(category);
+
+      window.setTimeout(() => {
+        const target = document.getElementById("all-tools");
+        target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 0);
+    }
+
+    window.addEventListener("peachlab:filter-category", handleCategoryFilter);
+
+    return () => {
+      window.removeEventListener("peachlab:filter-category", handleCategoryFilter);
+    };
+  }, []);
 
   const filteredTools = useMemo(() => {
     const nextTools =
@@ -108,7 +126,6 @@ export default function AllTools() {
         {filteredTools.map((tool) => (
           <a
             key={tool.slug}
-            id={getCategoryId(tool.category)}
             href={`/tools/${tool.slug}`}
             className="group flex items-center gap-4 rounded-2xl border border-[#F1E5DF] bg-white p-4 shadow-sm transition duration-200 hover:border-[#F28C6F] hover:bg-[#FFFDFC] active:-translate-y-0.5 active:scale-[0.99] active:border-[#F28C6F] active:bg-[#FFF7F3]"
           >
