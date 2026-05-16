@@ -94,10 +94,19 @@ export default function ImageConverterTool() {
 
     useEffect(() => {
         return () => {
-            if (originalUrl) URL.revokeObjectURL(originalUrl);
-            if (convertedUrl) URL.revokeObjectURL(convertedUrl);
+            if (originalUrl) {
+                URL.revokeObjectURL(originalUrl);
+            }
         };
-    }, [originalUrl, convertedUrl]);
+    }, [originalUrl]);
+
+    useEffect(() => {
+        return () => {
+            if (convertedUrl) {
+                URL.revokeObjectURL(convertedUrl);
+            }
+        };
+    }, [convertedUrl]);
 
     async function loadFile(nextFile: File) {
         setError("");
