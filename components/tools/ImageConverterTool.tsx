@@ -642,6 +642,16 @@ function ImageConverterSettingsPanel({
                         />
                     </div>
 
+                    {convertedSize ? (
+                        <button
+                            type="button"
+                            onClick={handleDownload}
+                            className="mt-4 w-full rounded-2xl bg-[#F28C6F] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E6765B]"
+                        >
+                            {text.downloadImage}
+                        </button>
+                    ) : null}
+
                     {status ? (
                         <p className="mt-3 text-sm text-[#7A5A4F]">
                             {status}
