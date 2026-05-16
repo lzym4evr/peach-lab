@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import {
     ColorPickerIcon,
     HexRgbConverterIcon,
+    ColorPaletteGeneratorIcon,
 } from "@/components/icons/ToolIcons";
 
 type IconRendererProps = {
@@ -26,6 +27,10 @@ export default function IconRenderer({
 
     if (type === "tool" && name === "hex-rgb-converter") {
         return <HexRgbConverterIcon className={className} />;
+    }
+
+    if (type === "tool" && name === "color-palette-generator") {
+        return <ColorPaletteGeneratorIcon className={className} />;
     }
 
     // =========================
