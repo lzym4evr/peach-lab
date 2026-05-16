@@ -11,6 +11,11 @@ const hoverAccentClass =
 const wholeIconHoverClass =
     "text-[#333333] transition-colors duration-200 group-hover:text-[#F28C6F] group-active:text-[#F28C6F]";
 
+const staticStrokeClass = "stroke-[#333333]";
+
+const hoverAccentStrokeClass =
+    "stroke-[#333333] transition-colors duration-200 group-hover:stroke-[#F28C6F] group-active:stroke-[#F28C6F]";
+
 // =========================
 // Color Tools
 // =========================
@@ -73,18 +78,42 @@ export function HexRgbConverterIcon({ className = "h-8 w-8" }: IconProps) {
 export function ColorPaletteGeneratorIcon({ className = "h-8 w-8" }: IconProps) {
     return (
         <svg
-            viewBox="0 0 1024 1024"
+            viewBox="0 0 24 24"
+            fill="none"
             xmlns="http://www.w3.org/2000/svg"
             className={className}
             aria-hidden="true"
         >
             <path
-                d="M99.50000029 812.07500029v-600.00000029A112.5 112.5 0 0 1 211.92499971 99.50000029h150.15000058A112.46249971 112.46249971 0 0 1 474.49999971 212.075v70.10624971l62.30625029-62.30624942c43.96875029-43.96875029 115.25625-44.06249971 159.14999971-0.18750058l108.3375 108.37500029c43.93125 43.91250029 43.81875 115.14375-0.18749971 159.13125L741.8375 549.50000029H811.99999971c62.11874971 0 112.5 50.32500029 112.5 112.42499942v150.15000058C924.49999971 874.1375 874.06250029 924.49999971 811.99999971 924.49999971H212.00000029c-62.11874971 0-112.5-50.32500029-112.5-112.42499942z m299.99999971-454.89375V212.075C399.5 191.2625 382.75624971 174.5 362.07500029 174.5H211.92499971A37.50000029 37.50000029 0 0 0 174.5 212.075v370.95000029c2.43749971-2.99999971 5.0625-5.92499971 7.875-8.71875L399.5 357.18125029zM313.25000029 549.50000029h322.49999971l115.33124971-115.33125058a37.51875 37.51875 0 0 0 0.18750058-53.08124942l-108.35625058-108.35625058a37.575 37.575 0 0 0-53.06249971 0.18750058L313.25000029 549.50000029zM174.5 661.92499971v150.15000058C174.5 832.7375 191.28124971 849.5 212.00000029 849.5h599.99999942c20.66249971 0 37.50000029-16.81875 37.50000029-37.42499971v-150.15000058A37.4625 37.4625 0 0 0 811.99999971 624.5H212.00000029c-20.66249971 0-37.50000029 16.81875-37.50000029 37.42499971z"
-                fill="#333333"
+                d="M11 17a4 4 0 0 1-8 0V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2Z"
+                className={staticStrokeClass}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
             />
+
             <path
-                d="M287 793.25a56.25 56.25 0 1 1 0-112.5 56.25 56.25 0 0 1 0 112.5z"
-                className={hoverAccentClass}
+                d="M16.7 13H19a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H7"
+                className={staticStrokeClass}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+
+            <path
+                d="M7 17h.01"
+                className={hoverAccentStrokeClass}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+
+            <path
+                d="m11 8 2.3-2.3a2.4 2.4 0 0 1 3.404.004L18.6 7.6a2.4 2.4 0 0 1 .026 3.434L9.9 19.8"
+                className={staticStrokeClass}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
             />
         </svg>
     );

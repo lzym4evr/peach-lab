@@ -33,6 +33,8 @@ export default function IconRenderer({
         return <ColorPaletteGeneratorIcon className={className} />;
     }
 
+
+
     // =========================
     // Gradient Tools
     // =========================
