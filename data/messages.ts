@@ -562,9 +562,9 @@ export const messages = {
 
             uploadTitle: "Upload Image",
             uploadDescription:
-                "Choose or drag a JPG, PNG, WebP, or SVG image to convert it locally.",
+                "Choose or drag a JPG, PNG, WebP, SVG, GIF, or AVIF image to convert it locally.",
             supportedFormats:
-                "Supports JPG, PNG, WebP, SVG, and common browser-supported image formats.",
+                "Supports JPG, PNG, WebP, SVG, GIF, AVIF, and common browser-supported image formats.",
             uploadButton: "Choose Image",
             changeImage: "Change Image",
             noFileSelected: "No file selected",
@@ -573,6 +573,7 @@ export const messages = {
             originalImage: "Original Image",
             convertedImage: "Converted Image",
             settingsTitle: "Convert Settings",
+            settingsButton: "Settings",
             outputTitle: "Converted Result",
 
             emptyTitle: "No image selected",
@@ -584,9 +585,12 @@ export const messages = {
             backgroundHint: "Used when converting transparent images to JPG.",
 
             convertImage: "Convert Image",
+            actionConvert: "Convert",
             converting: "Converting...",
             downloadImage: "Download Image",
+            actionDownload: "Download",
             reset: "Reset",
+            close: "Close",
 
             formatPng: "PNG",
             formatJpg: "JPG",
@@ -599,6 +603,8 @@ export const messages = {
             format: "Format",
 
             ready: "Image converted successfully.",
+            readyShort: "Ready",
+            notReady: "Not ready",
             noFileError: "Please upload an image first.",
             loadError: "Could not load this image. Please try another file.",
             convertError: "Conversion failed. Please try a different image or format.",
