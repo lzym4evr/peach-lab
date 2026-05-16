@@ -1,17 +1,9 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ToolRenderer from "@/components/tools/ToolRenderer";
+import IconRenderer from "@/components/icons/IconRenderer";
 import { tools } from "@/data/tools";
 import { t } from "@/data/messages";
-import { ColorPickerIcon } from "@/components/icons/ToolIcons";
-
-function renderToolHeaderIcon(tool: (typeof tools)[number]) {
-  if (tool.slug === "color-picker") {
-    return <ColorPickerIcon className="h-9 w-9 md:h-10 md:w-10" />;
-  }
-
-  return tool.icon;
-}
 
 type ToolPageProps = {
   params: Promise<{
@@ -76,11 +68,16 @@ export default async function ToolPage({ params }: ToolPageProps) {
           </a>
         </div>
 
-        <div className="mt-6 rounded-3xl border border-[#F1E5DF] bg-white p-5 shadow-sm md:mt-8 md:p-10">
+        <div className="mt-6 md:mt-8 md:rounded-3xl md:border md:border-[#F1E5DF] md:bg-white md:p-10 md:shadow-sm">
           <div className="md:block">
             <div className="flex items-center gap-4 md:block">
               <div className="group flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#FFF0EA] text-3xl md:mb-5 md:h-16 md:w-16 md:text-4xl">
-                {renderToolHeaderIcon(tool)}
+                <IconRenderer
+                  type="tool"
+                  name={tool.slug}
+                  fallback={tool.icon}
+                  className="h-9 w-9 md:h-10 md:w-10"
+                />
               </div>
 
               <div className="min-w-0 flex-1">

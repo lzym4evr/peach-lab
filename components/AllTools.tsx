@@ -1,14 +1,6 @@
 import { categories, tools } from "@/data/tools";
 import { t } from "@/data/messages";
-import { ColorPickerIcon } from "@/components/icons/ToolIcons";
-
-function renderToolIcon(tool: (typeof tools)[number]) {
-  if (tool.slug === "color-picker") {
-    return <ColorPickerIcon className="h-8 w-8" />;
-  }
-
-  return tool.icon;
-}
+import IconRenderer from "@/components/icons/IconRenderer";
 
 export default function AllTools() {
   return (
@@ -56,7 +48,12 @@ export default function AllTools() {
             className="group flex items-center gap-4 rounded-2xl border border-[#F1E5DF] bg-white p-4 shadow-sm transition duration-200 hover:border-[#F28C6F] hover:bg-[#FFFDFC] active:-translate-y-0.5 active:scale-[0.99] active:border-[#F28C6F] active:bg-[#FFF7F3]"
           >
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#FFF0EA] text-2xl">
-              {renderToolIcon(tool)}
+              <IconRenderer
+                type="tool"
+                name={tool.slug}
+                fallback={tool.icon}
+                className="h-8 w-8"
+              />
             </div>
 
             <div className="min-w-0 flex-1">

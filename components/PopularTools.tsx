@@ -1,14 +1,6 @@
 import { tools } from "@/data/tools";
 import { t } from "@/data/messages";
-import { ColorPickerIcon } from "@/components/icons/ToolIcons";
-
-function renderToolIcon(tool: (typeof tools)[number]) {
-  if (tool.slug === "color-picker") {
-    return <ColorPickerIcon className="h-10 w-10 sm:h-12 sm:w-12" />;
-  }
-
-  return tool.icon;
-}
+import IconRenderer from "@/components/icons/IconRenderer";
 
 export default function PopularTools() {
   const popularTools = tools.filter((tool) => tool.featured).slice(0, 6);
@@ -37,7 +29,12 @@ export default function PopularTools() {
             className="group rounded-2xl border border-[#F1E5DF] bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-[#F28C6F] hover:shadow-md active:-translate-y-0.5 active:scale-[0.99] active:border-[#F28C6F] active:bg-[#FFF7F3] sm:p-5"
           >
             <div className="mb-3 flex h-12 items-center text-3xl sm:h-16 sm:text-4xl">
-              {renderToolIcon(tool)}
+              <IconRenderer
+                type="tool"
+                name={tool.slug}
+                fallback={tool.icon}
+                className="h-10 w-10 sm:h-12 sm:w-12"
+              />
             </div>
 
             <h3 className="text-sm font-semibold text-gray-900 sm:text-base">
