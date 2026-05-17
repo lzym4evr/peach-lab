@@ -3,7 +3,9 @@ import {
     ColorPickerIcon,
     HexRgbConverterIcon,
     ColorPaletteGeneratorIcon,
+    GradientGeneratorIcon
 } from "@/components/icons/ToolIcons";
+
 
 type IconRendererProps = {
     type: "tool" | "category";
@@ -38,7 +40,13 @@ export default function IconRenderer({
     // =========================
     // Gradient Tools
     // =========================
+    if (type === "tool" && name === "gradient-generator") {
+        return <GradientGeneratorIcon className={className} />;
+    }
 
+    if (type === "category" && name === "Gradient Tools") {
+        return <GradientGeneratorIcon className={className} />;
+    }
     // =========================
     // Image Tools
     // =========================

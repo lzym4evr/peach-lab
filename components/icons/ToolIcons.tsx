@@ -18,6 +18,15 @@ const hoverAccentStrokeClass =
 
 const staticFillClass = "fill-[#333333]";
 
+const hoverAccentFillTopClass =
+    "fill-[#333333] transition-colors duration-200 delay-150 group-hover:fill-[#F28C6F] group-active:fill-[#F28C6F]";
+
+const hoverAccentFillMiddleClass =
+    "fill-[#333333] transition-colors duration-200 delay-75 group-hover:fill-[#F28C6F] group-active:fill-[#F28C6F]";
+
+const hoverAccentFillBottomClass =
+    "fill-[#333333] transition-colors duration-200 delay-0 group-hover:fill-[#F28C6F] group-active:fill-[#F28C6F]";
+
 // =========================
 // Color Tools
 // =========================
@@ -160,7 +169,44 @@ export function ColorPaletteGeneratorIcon({ className = "h-8 w-8" }: IconProps) 
 // =========================
 // Gradient Tools
 // =========================
-// export function GradientGeneratorIcon() {}
+
+export function GradientGeneratorIcon({ className = "h-8 w-8" }: IconProps) {
+    return (
+        <svg
+            viewBox="0 0 1024 1024"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className={className}
+            aria-hidden="true"
+        >
+            {/* 外框保持不变 */}
+            <path
+                d="M864 192a32 32 0 0 0-32-32H192a32 32 0 0 0-32 32v640a32 32 0 0 0 32 32h640a32 32 0 0 0 32-32V192z m64 640a96 96 0 0 1-96 96H192A96 96 0 0 1 96 832V192A96 96 0 0 1 192 96h640A96 96 0 0 1 928 192v640z"
+                className={staticFillClass}
+            />
+
+            {/* 上 */}
+            <path
+                d="M256 256m64 0l384 0q64 0 64 64l0 0q0 64-64 64l-384 0q-64 0-64-64l0 0q0-64 64-64Z"
+                className={hoverAccentFillTopClass}
+            />
+
+            {/* 中 */}
+            <path
+                d="M256 448m64 0l384 0q64 0 64 64l0 0q0 64-64 64l-384 0q-64 0-64-64l0 0q0-64 64-64Z"
+                className={hoverAccentFillMiddleClass}
+                opacity="0.6"
+            />
+
+            {/* 下 */}
+            <path
+                d="M256 640m64 0l384 0q64 0 64 64l0 0q0 64-64 64l-384 0q-64 0-64-64l0 0q0-64 64-64Z"
+                className={hoverAccentFillBottomClass}
+                opacity="0.3"
+            />
+        </svg>
+    );
+}
 
 
 // =========================
