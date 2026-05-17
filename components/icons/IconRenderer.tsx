@@ -9,6 +9,8 @@ import {
     BlobGeneratorIcon,
     TextCaseConverterIcon,
     SvgToPngIcon,
+    CharacterCounterIcon,
+    ImageResizerIcon,
 } from "@/components/icons/ToolIcons";
 
 
@@ -55,6 +57,9 @@ export default function IconRenderer({
     if (type === "tool" && name === "image-size-checker") {
         return <ImageSizeCheckerIcon className={className} />;
     }
+    if (type === "tool" && name === "image-resizer") {
+        return <ImageResizerIcon className={className} />;
+    }
     // =========================
     // Background Tools
     // =========================
@@ -86,6 +91,9 @@ export default function IconRenderer({
     // =========================
     if (type === "tool" && name === "text-case-converter") {
         return <TextCaseConverterIcon className={className} />;
+    }
+    if (type === "tool" && name === "character-counter") {
+        return <CharacterCounterIcon className={className} />;
     }
     // =========================
     // Category Icons
