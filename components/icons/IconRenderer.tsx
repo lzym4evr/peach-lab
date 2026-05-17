@@ -3,7 +3,8 @@ import {
     ColorPickerIcon,
     HexRgbConverterIcon,
     ColorPaletteGeneratorIcon,
-    GradientGeneratorIcon
+    GradientGeneratorIcon,
+    ImageSizeCheckerIcon
 } from "@/components/icons/ToolIcons";
 
 
@@ -34,9 +35,6 @@ export default function IconRenderer({
     if (type === "tool" && name === "color-palette-generator") {
         return <ColorPaletteGeneratorIcon className={className} />;
     }
-
-
-
     // =========================
     // Gradient Tools
     // =========================
@@ -50,7 +48,9 @@ export default function IconRenderer({
     // =========================
     // Image Tools
     // =========================
-
+    if (type === "tool" && name === "image-size-checker") {
+        return <ImageSizeCheckerIcon className={className} />;
+    }
     // =========================
     // Background Tools
     // =========================
