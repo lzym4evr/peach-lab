@@ -11,6 +11,8 @@ import {
     SvgToPngIcon,
     CharacterCounterIcon,
     ImageResizerIcon,
+    ImageCompressorIcon,
+    ImageConverterIcon,
 } from "@/components/icons/ToolIcons";
 
 
@@ -59,6 +61,12 @@ export default function IconRenderer({
     }
     if (type === "tool" && name === "image-resizer") {
         return <ImageResizerIcon className={className} />;
+    }
+    if (type === "tool" && name === "image-compressor") {
+        return <ImageCompressorIcon className={className} />;
+    }
+    if (type === "tool" && name === "image-converter") {
+        return <ImageConverterIcon className={className} />;
     }
     // =========================
     // Background Tools
