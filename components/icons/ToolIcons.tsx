@@ -27,6 +27,9 @@ const hoverAccentFillMiddleClass =
 const hoverAccentFillBottomClass =
     "fill-[#333333] transition-colors duration-200 delay-0 group-hover:fill-[#F28C6F] group-active:fill-[#F28C6F]";
 
+const wholeIconHoverDelayClass =
+    "text-[#333333] transition-colors duration-300 delay-75 group-hover:text-[#F28C6F] group-active:text-[#F28C6F]";
+
 // =========================
 // Color Tools
 // =========================
@@ -290,7 +293,22 @@ export function NoiseTextureGeneratorIcon({ className = "h-8 w-8" }: IconProps) 
 // =========================
 // Shape Tools
 // =========================
-// export function BlobGeneratorIcon() {}
+export function BlobGeneratorIcon({ className = "h-8 w-8" }: IconProps) {
+    return (
+        <svg
+            viewBox="0 0 300 300"
+            xmlns="http://www.w3.org/2000/svg"
+            className={`${className} ${wholeIconHoverDelayClass}`}
+            fill="none"
+            aria-hidden="true"
+        >
+            <path
+                d="M 272.32 150.00 C 269.26 198.45, 251.54 194.59, 207.38 221.95 C 163.21 249.31, 182.62 243.73, 129.85 238.27 C 77.09 232.80, 57.36 244.42, 37.18 204.33 C 16.99 164.24, 36.18 153.90, 64.73 108.94 C 93.29 63.98, 82.01 72.72, 129.30 59.30 C 176.58 45.88, 172.93 37.53, 217.27 65.65 C 261.61 93.76, 275.39 101.55, 272.32 150.00 Z"
+                fill="currentColor"
+            />
+        </svg>
+    );
+}
 // export function BoxShadowGeneratorIcon() {}
 // export function BorderRadiusGeneratorIcon() {}
 // export function CssButtonGeneratorIcon() {}

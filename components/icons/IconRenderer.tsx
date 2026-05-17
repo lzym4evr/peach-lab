@@ -6,6 +6,7 @@ import {
     GradientGeneratorIcon,
     ImageSizeCheckerIcon,
     NoiseTextureGeneratorIcon,
+    BlobGeneratorIcon,
 } from "@/components/icons/ToolIcons";
 
 
@@ -69,7 +70,9 @@ export default function IconRenderer({
     // =========================
     // Shape Tools
     // =========================
-
+    if (type === "tool" && name === "blob-generator") {
+        return <BlobGeneratorIcon className={className} />;
+    }
     // =========================
     // SVG Tools
     // =========================
