@@ -7,6 +7,8 @@ import {
     ImageSizeCheckerIcon,
     NoiseTextureGeneratorIcon,
     BlobGeneratorIcon,
+    TextCaseConverterIcon,
+    SvgToPngIcon,
 } from "@/components/icons/ToolIcons";
 
 
@@ -76,11 +78,15 @@ export default function IconRenderer({
     // =========================
     // SVG Tools
     // =========================
-
+    if (type === "tool" && name === "svg-to-png") {
+        return <SvgToPngIcon className={className} />;
+    }
     // =========================
     // Text Tools
     // =========================
-
+    if (type === "tool" && name === "text-case-converter") {
+        return <TextCaseConverterIcon className={className} />;
+    }
     // =========================
     // Category Icons
     // =========================
