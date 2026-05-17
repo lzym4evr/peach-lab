@@ -4,7 +4,8 @@ import {
     HexRgbConverterIcon,
     ColorPaletteGeneratorIcon,
     GradientGeneratorIcon,
-    ImageSizeCheckerIcon
+    ImageSizeCheckerIcon,
+    NoiseTextureGeneratorIcon,
 } from "@/components/icons/ToolIcons";
 
 
@@ -62,7 +63,9 @@ export default function IconRenderer({
     // =========================
     // Texture Tools
     // =========================
-
+    if (type === "tool" && name === "noise-texture-generator") {
+        return <NoiseTextureGeneratorIcon className={className} />;
+    }
     // =========================
     // Shape Tools
     // =========================
