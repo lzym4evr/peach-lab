@@ -16,6 +16,8 @@ const staticStrokeClass = "stroke-[#333333]";
 const hoverAccentStrokeClass =
     "stroke-[#333333] transition-colors duration-200 group-hover:stroke-[#F28C6F] group-active:stroke-[#F28C6F]";
 
+const staticFillClass = "fill-[#333333]";
+
 // =========================
 // Color Tools
 // =========================
@@ -61,15 +63,50 @@ export function ColorPickerIcon({ className = "h-8 w-8" }: IconProps) {
 export function HexRgbConverterIcon({ className = "h-8 w-8" }: IconProps) {
     return (
         <svg
-            viewBox="0 0 1024 1024"
+            viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
-            className={`${className} ${wholeIconHoverClass}`}
+            className={className}
             fill="none"
             aria-hidden="true"
         >
-            <path
-                d="M908.16 299.904h-132.288l39.744-172.416a45.696 45.696 0 0 0-89.088-20.48l-44.48 192.96h-241.28l39.808-172.48a45.696 45.696 0 0 0-89.024-20.48L346.88 299.904H207.552a45.696 45.696 0 1 0 0 91.392h118.336l-56.32 243.712H116.224a45.696 45.696 0 0 0 0 91.392h132.416l-39.808 172.48a45.696 45.696 0 0 0 89.088 20.48l44.544-192.96h241.28l-39.808 172.48a45.696 45.696 0 0 0 89.088 20.48l44.544-192.96h139.392a45.696 45.696 0 1 0 0-91.392h-118.336l56.256-243.712h153.472a45.696 45.696 0 1 0 0-91.392h-0.064zM604.8 635.008h-241.28l56.256-243.712h241.28l-56.256 243.712z"
-                fill="currentColor"
+            {/* vertical bars - stay dark */}
+            <rect
+                x="7.2"
+                y="1.4"
+                width="1.5"
+                height="21.2"
+                rx="0.75"
+                transform="rotate(11 7.95 12)"
+                className={staticFillClass}
+            />
+
+            <rect
+                x="14.4"
+                y="1.4"
+                width="1.5"
+                height="21.2"
+                rx="0.75"
+                transform="rotate(11 15.15 12)"
+                className={staticFillClass}
+            />
+
+            {/* horizontal bars - hover accent */}
+            <rect
+                x="4.1"
+                y="7.55"
+                width="15.8"
+                height="1.5"
+                rx="0.75"
+                className={hoverAccentClass}
+            />
+
+            <rect
+                x="3.35"
+                y="14.95"
+                width="15.8"
+                height="1.5"
+                rx="0.75"
+                className={hoverAccentClass}
             />
         </svg>
     );
@@ -118,8 +155,6 @@ export function ColorPaletteGeneratorIcon({ className = "h-8 w-8" }: IconProps) 
         </svg>
     );
 }
-
-// export function ColorPaletteGeneratorIcon() {}
 
 
 // =========================
