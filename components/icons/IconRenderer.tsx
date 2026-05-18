@@ -26,6 +26,7 @@ import {
     TextShadowIcon,
     TextGradientGeneratorIcon,
     TextStrokeGeneratorIcon,
+    FluidTypographyGeneratorIcon,
 } from "@/components/icons/ToolIcons";
 
 
@@ -152,6 +153,9 @@ export default function IconRenderer({
     }
     if (type === "tool" && name === "text-stroke-generator") {
         return <TextStrokeGeneratorIcon className={className} />;
+    }
+    if (type === "tool" && name === "fluid-typography-generator") {
+        return <FluidTypographyGeneratorIcon className={className} />;
     }
     // =========================
     // Category Icons
