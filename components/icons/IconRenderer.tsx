@@ -13,6 +13,10 @@ import {
     ImageResizerIcon,
     ImageCompressorIcon,
     ImageConverterIcon,
+    QrCodeGeneratorIcon,
+    FaviconGeneratorIcon,
+    BackgroundGeneratorIcon,
+    GlassmorphismGeneratorIcon,
 } from "@/components/icons/ToolIcons";
 
 
@@ -68,10 +72,21 @@ export default function IconRenderer({
     if (type === "tool" && name === "image-converter") {
         return <ImageConverterIcon className={className} />;
     }
+    if (type === "tool" && name === "qr-code-generator") {
+        return <QrCodeGeneratorIcon className={className} />;
+    }
+    if (type === "tool" && name === "favicon-generator") {
+        return <FaviconGeneratorIcon className={className} />;
+    }
     // =========================
     // Background Tools
     // =========================
-
+    if (type === "tool" && name === "background-generator") {
+        return <BackgroundGeneratorIcon className={className} />;
+    }
+    if (type === "tool" && name === "glassmorphism-generator") {
+        return <GlassmorphismGeneratorIcon className={className} />;
+    }
     // =========================
     // Pattern Tools
     // =========================
