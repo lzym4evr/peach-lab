@@ -23,6 +23,8 @@ import {
     CssButtonGeneratorIcon,
     SvgColorChangerIcon,
     SvgOptimizerIcon,
+    TextShadowIcon,
+    TextGradientIcon,
 } from "@/components/icons/ToolIcons";
 
 
@@ -140,6 +142,12 @@ export default function IconRenderer({
     }
     if (type === "tool" && name === "character-counter") {
         return <CharacterCounterIcon className={className} />;
+    }
+    if (type === "tool" && name === "text-shadow-generator") {
+        return <TextShadowIcon className={className} />;
+    }
+    if (type === "tool" && name === "text-gradient-generator") {
+        return <TextGradientIcon className={className} />;
     }
     // =========================
     // Category Icons

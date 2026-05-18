@@ -803,8 +803,83 @@ export function CharacterCounterIcon({ className = "h-8 w-8" }: IconProps) {
         </svg>
     );
 }
-// export function TextShadowGeneratorIcon() {}
-// export function TextGradientGeneratorIcon() {}
+export function TextShadowIcon({ className = "h-8 w-8" }: IconProps) {
+    return (
+        <svg
+            viewBox="0 0 1024 1024"
+            xmlns="http://www.w3.org/2000/svg"
+            className={className}
+            fill="none"
+            aria-hidden="true"
+        >
+            <g transform="matrix(0.9272589,0,0,0.9272589,-6.7551491,-2.1838741)">
+                {/* right shadow T - hover / active */}
+                <path
+                    d="m 857.49409,274.89683 c 19.6875,0 35.775,-16.14375 35.775,-35.83125 a 35.8875,35.8875 0 0 0 -35.775,-35.775 h-501.1875 a 35.8875,35.8875 0 0 0 -35.775,35.775 c 0,19.6875 16.0875,35.83125 35.775,35.83125 h 214.81875 v 680.0625 c 0,19.6875 16.0875,35.83125 35.775,35.83125 19.6875,0 35.775,-16.0875 35.775,-35.775 V 274.89683 Z"
+                    className={hoverAccentClass}
+                />
+
+                {/* main T - static */}
+                <path
+                    d="m 762.59375,189.85625 c 19.6875,0 35.775,-16.14375 35.775,-35.83125 a 35.8875,35.8875 0 0 0 -35.775,-35.775 h-501.1875 a 35.8875,35.8875 0 0 0 -35.775,35.775 c 0,19.6875 16.0875,35.83125 35.775,35.83125 H 476.225 v 680.0625 c 0,19.6875 16.0875,35.83125 35.775,35.83125 19.6875,0 35.775,-16.0875 35.775,-35.775 V 189.85625 Z"
+                    className={staticFillClass}
+                />
+            </g>
+        </svg>
+    );
+}
+export function TextGradientIcon({ className = "h-8 w-8" }: IconProps) {
+    return (
+        <svg
+            viewBox="0 0 1024 1024"
+            xmlns="http://www.w3.org/2000/svg"
+            className={className}
+            fill="none"
+            aria-hidden="true"
+        >
+            <defs>
+                <clipPath id="text-gradient-icon-clip">
+                    <path d="m 762.59375,189.85625 c 19.6875,0 35.775,-16.14375 35.775,-35.83125 a 35.8875,35.8875 0 0 0 -35.775,-35.775 h-501.1875 a 35.8875,35.8875 0 0 0 -35.775,35.775 c 0,19.6875 16.0875,35.83125 35.775,35.83125 H 476.225 v 680.0625 c 0,19.6875 16.0875,35.83125 35.775,35.83125 19.6875,0 35.775,-16.0875 35.775,-35.775 V 189.85625 Z" />
+                </clipPath>
+            </defs>
+
+            {/* base T */}
+            <path
+                d="m 762.59375,189.85625 c 19.6875,0 35.775,-16.14375 35.775,-35.83125 a 35.8875,35.8875 0 0 0 -35.775,-35.775 h-501.1875 a 35.8875,35.8875 0 0 0 -35.775,35.775 c 0,19.6875 16.0875,35.83125 35.775,35.83125 H 476.225 v 680.0625 c 0,19.6875 16.0875,35.83125 35.775,35.83125 19.6875,0 35.775,-16.0875 35.775,-35.775 V 189.85625 Z"
+                className={staticFillClass}
+            />
+
+            <g clipPath="url(#text-gradient-icon-clip)">
+                {/* bottom hover layer */}
+                <rect
+                    x="0"
+                    y="650"
+                    width="1024"
+                    height="260"
+                    className="fill-[#F28C6F] opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100"
+                />
+
+                {/* middle hover layer */}
+                <rect
+                    x="0"
+                    y="390"
+                    width="1024"
+                    height="260"
+                    className="fill-[#F28C6F] opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100 group-hover:delay-100 group-active:delay-100"
+                />
+
+                {/* top hover layer */}
+                <rect
+                    x="0"
+                    y="110"
+                    width="1024"
+                    height="280"
+                    className="fill-[#F28C6F] opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100 group-hover:delay-200 group-active:delay-200"
+                />
+            </g>
+        </svg>
+    );
+}
 // export function TextStrokeGeneratorIcon() {}
 // export function FluidTypographyGeneratorIcon() {}
 
