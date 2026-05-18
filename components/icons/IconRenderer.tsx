@@ -17,6 +17,12 @@ import {
     FaviconGeneratorIcon,
     BackgroundGeneratorIcon,
     GlassmorphismGeneratorIcon,
+    PatternGeneratorIcon,
+    BoxShadowGeneratorIcon,
+    BorderRadiusGeneratorIcon,
+    CssButtonGeneratorIcon,
+    SvgColorChangerIcon,
+    SvgOptimizerIcon,
 } from "@/components/icons/ToolIcons";
 
 
@@ -90,7 +96,9 @@ export default function IconRenderer({
     // =========================
     // Pattern Tools
     // =========================
-
+    if (type === "tool" && name === "pattern-generator") {
+        return <PatternGeneratorIcon className={className} />;
+    }
     // =========================
     // Texture Tools
     // =========================
@@ -103,11 +111,26 @@ export default function IconRenderer({
     if (type === "tool" && name === "blob-generator") {
         return <BlobGeneratorIcon className={className} />;
     }
+    if (type === "tool" && name === "box-shadow-generator") {
+        return <BoxShadowGeneratorIcon className={className} />;
+    }
+    if (type === "tool" && name === "border-radius-generator") {
+        return <BorderRadiusGeneratorIcon className={className} />;
+    }
+    if (type === "tool" && name === "css-button-generator") {
+        return <CssButtonGeneratorIcon className={className} />;
+    }
     // =========================
     // SVG Tools
     // =========================
     if (type === "tool" && name === "svg-to-png") {
         return <SvgToPngIcon className={className} />;
+    }
+    if (type === "tool" && name === "svg-color-changer") {
+        return <SvgColorChangerIcon className={className} />;
+    }
+    if (type === "tool" && name === "svg-optimizer") {
+        return <SvgOptimizerIcon className={className} />;
     }
     // =========================
     // Text Tools
