@@ -24,7 +24,8 @@ import {
     SvgColorChangerIcon,
     SvgOptimizerIcon,
     TextShadowIcon,
-    TextGradientIcon,
+    TextGradientGeneratorIcon,
+    TextStrokeGeneratorIcon,
 } from "@/components/icons/ToolIcons";
 
 
@@ -147,7 +148,10 @@ export default function IconRenderer({
         return <TextShadowIcon className={className} />;
     }
     if (type === "tool" && name === "text-gradient-generator") {
-        return <TextGradientIcon className={className} />;
+        return <TextGradientGeneratorIcon className={className} />;
+    }
+    if (type === "tool" && name === "text-stroke-generator") {
+        return <TextStrokeGeneratorIcon className={className} />;
     }
     // =========================
     // Category Icons

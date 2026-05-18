@@ -21,3 +21,86 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+@keyframes text-gradient-bottom-fill {
+
+  0%,
+  20% {
+    fill: #808080;
+  }
+
+  45%,
+  80% {
+    fill: #f9c5b4;
+  }
+
+  100% {
+    fill: #f28c6f;
+  }
+}
+
+@keyframes text-gradient-middle-fill {
+
+  0%,
+  35% {
+    fill: rgba(128, 128, 128, 0.2);
+  }
+
+  55%,
+  80% {
+    fill: #f6a88f;
+  }
+
+  100% {
+    fill: #f28c6f;
+  }
+}
+
+@keyframes text-gradient-top-fill {
+
+  0%,
+  50% {
+    fill: #bfbfbf;
+  }
+
+  65%,
+  80% {
+    fill: #f39a7c;
+  }
+
+  100% {
+    fill: #f28c6f;
+  }
+}
+
+@keyframes text-gradient-main-fill {
+
+  0%,
+  70% {
+    fill: #333333;
+  }
+
+  100% {
+    fill: #f28c6f;
+  }
+}
+
+.group:hover .text-gradient-main,
+.group:active .text-gradient-main {
+  animation: text-gradient-main-fill 520ms ease forwards;
+}
+
+.group:hover .text-gradient-bottom,
+.group:active .text-gradient-bottom {
+  animation: text-gradient-bottom-fill 520ms ease forwards;
+}
+
+.group:hover .text-gradient-middle,
+.group:active .text-gradient-middle {
+  animation: text-gradient-middle-fill 520ms ease forwards;
+}
+
+.group:hover .text-gradient-top,
+.group:active .text-gradient-top {
+  animation: text-gradient-top-fill 520ms ease forwards;
+}

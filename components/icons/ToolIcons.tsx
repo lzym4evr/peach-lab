@@ -828,7 +828,7 @@ export function TextShadowIcon({ className = "h-8 w-8" }: IconProps) {
         </svg>
     );
 }
-export function TextGradientIcon({ className = "h-8 w-8" }: IconProps) {
+export function TextGradientGeneratorIcon({ className = "h-8 w-8" }: IconProps) {
     return (
         <svg
             viewBox="0 0 1024 1024"
@@ -837,50 +837,58 @@ export function TextGradientIcon({ className = "h-8 w-8" }: IconProps) {
             fill="none"
             aria-hidden="true"
         >
-            <defs>
-                <clipPath id="text-gradient-icon-clip">
-                    <path d="m 762.59375,189.85625 c 19.6875,0 35.775,-16.14375 35.775,-35.83125 a 35.8875,35.8875 0 0 0 -35.775,-35.775 h-501.1875 a 35.8875,35.8875 0 0 0 -35.775,35.775 c 0,19.6875 16.0875,35.83125 35.775,35.83125 H 476.225 v 680.0625 c 0,19.6875 16.0875,35.83125 35.775,35.83125 19.6875,0 35.775,-16.0875 35.775,-35.775 V 189.85625 Z" />
-                </clipPath>
-            </defs>
-
-            {/* base T */}
             <path
-                d="m 762.59375,189.85625 c 19.6875,0 35.775,-16.14375 35.775,-35.83125 a 35.8875,35.8875 0 0 0 -35.775,-35.775 h-501.1875 a 35.8875,35.8875 0 0 0 -35.775,35.775 c 0,19.6875 16.0875,35.83125 35.775,35.83125 H 476.225 v 680.0625 c 0,19.6875 16.0875,35.83125 35.775,35.83125 19.6875,0 35.775,-16.0875 35.775,-35.775 V 189.85625 Z"
-                className={staticFillClass}
+                d="m 762.59375,189.85625 c 19.6875,0 35.775,-16.14375 35.775,-35.83125 a 35.8875,35.8875 0 0 0 -35.775,-35.775 h -501.1875 a 35.8875,35.8875 0 0 0 -35.775,35.775 c 0,19.6875 16.0875,35.83125 35.775,35.83125 H 476.225 v 680.0625 c 0,19.6875 16.0875,35.83125 35.775,35.83125 19.6875,0 35.775,-16.0875 35.775,-35.775 V 189.85625 Z"
+                className="text-gradient-main"
+                fill="#333333"
             />
-
-            <g clipPath="url(#text-gradient-icon-clip)">
-                {/* bottom hover layer */}
-                <rect
-                    x="0"
-                    y="650"
-                    width="1024"
-                    height="260"
-                    className="fill-[#F28C6F] opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100"
-                />
-
-                {/* middle hover layer */}
-                <rect
-                    x="0"
-                    y="390"
-                    width="1024"
-                    height="260"
-                    className="fill-[#F28C6F] opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100 group-hover:delay-100 group-active:delay-100"
-                />
-
-                {/* top hover layer */}
-                <rect
-                    x="0"
-                    y="110"
-                    width="1024"
-                    height="280"
-                    className="fill-[#F28C6F] opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100 group-hover:delay-200 group-active:delay-200"
-                />
-            </g>
+            <rect
+                x="476.16"
+                y="666.42871"
+                width="71.862877"
+                height="239.35999"
+                ry="35.84"
+                className="text-gradient-top"
+                fill="#bfbfbf"
+            />
+            <rect
+                x="476.16"
+                y="506.67242"
+                width="71.68"
+                height="199.67999"
+                className="text-gradient-bottom"
+                fill="#808080"
+            />
+            <rect
+                x="476.16"
+                y="307.18542"
+                width="71.68"
+                height="199.67999"
+                className="text-gradient-middle"
+                fill="rgba(128,128,128,0.2)"
+            />
         </svg>
     );
 }
-// export function TextStrokeGeneratorIcon() {}
+export function TextStrokeGeneratorIcon({ className = "h-8 w-8" }: IconProps) {
+    return (
+        <svg
+            viewBox="0 0 1024 1024"
+            xmlns="http://www.w3.org/2000/svg"
+            className={className}
+            fill="none"
+            aria-hidden="true"
+        >
+            <path
+                d="m 762.59375,189.85625 c 19.6875,0 35.775,-16.14375 35.775,-35.83125 a 35.8875,35.8875 0 0 0 -35.775,-35.775 h -501.1875 a 35.8875,35.8875 0 0 0 -35.775,35.775 c 0,19.6875 16.0875,35.83125 35.775,35.83125 H 476.225 v 680.0625 c 0,19.6875 16.0875 35.83125 35.775 35.83125 19.6875,0 35.775,-16.0875 35.775,-35.775 V 189.85625 Z"
+                className={hoverAccentStrokeClass}
+                strokeWidth="15.36"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </svg>
+    );
+}
 // export function FluidTypographyGeneratorIcon() {}
 
 
