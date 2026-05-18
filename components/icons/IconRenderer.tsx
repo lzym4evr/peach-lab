@@ -27,6 +27,13 @@ import {
     TextGradientGeneratorIcon,
     TextStrokeGeneratorIcon,
     FluidTypographyGeneratorIcon,
+    ImageToolsCategoryIcon,
+    BackgroundToolsCategoryIcon,
+    PatternToolsCategoryIcon,
+    TextureToolsCategoryIcon,
+    ShapeToolsCategoryIcon,
+    SvgToolsCategoryIcon,
+    TextToolsCategoryIcon,
 } from "@/components/icons/ToolIcons";
 
 
@@ -162,6 +169,27 @@ export default function IconRenderer({
     // =========================
     if (type === "category" && name === "Color Tools") {
         return <ColorPickerIcon className={className} />;
+    }
+    if (type === "category" && name === "Image Tools") {
+        return <ImageToolsCategoryIcon className={className} />;
+    }
+    if (type === "category" && name === "Background Tools") {
+        return <BackgroundToolsCategoryIcon className={className} />;
+    }
+    if (type === "category" && name === "Pattern Tools") {
+        return <PatternToolsCategoryIcon className={className} />;
+    }
+    if (type === "category" && name === "Texture Tools") {
+        return <TextureToolsCategoryIcon className={className} />;
+    }
+    if (type === "category" && name === "Shape Tools") {
+        return <ShapeToolsCategoryIcon className={className} />;
+    }
+    if (type === "category" && name === "SVG Tools") {
+        return <SvgToolsCategoryIcon className={className} />;
+    }
+    if (type === "category" && name === "Text Tools") {
+        return <TextToolsCategoryIcon className={className} />;
     }
 
     return <>{fallback}</>;
