@@ -747,6 +747,27 @@ function TextStrokeSettingsPanel({
                 </button>
             </div>
 
+            <SettingGroup title={text.textGroupTitle}>
+                <label className="block">
+                    <span
+                        className={`mb-2 block font-semibold text-gray-800 ${compact ? "text-xs" : "text-sm"
+                            }`}
+                    >
+                        {text.sampleTextLabel}
+                    </span>
+
+                    <input
+                        value={settings.sampleText}
+                        onChange={(event) =>
+                            updateSetting("sampleText", event.target.value)
+                        }
+                        placeholder={text.sampleTextPlaceholder}
+                        className={`w-full rounded-2xl border border-[#F1E5DF] bg-white px-4 font-medium text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[#F28C6F] focus:ring-4 focus:ring-[#FFF0EA] ${compact ? "h-10 text-sm" : "h-12 text-sm"
+                            }`}
+                    />
+                </label>
+            </SettingGroup>
+
             <SettingGroup title={text.styleGroupTitle}>
                 <div className="grid grid-cols-3 gap-2">
                     {strokeStyles.map((style) => {
