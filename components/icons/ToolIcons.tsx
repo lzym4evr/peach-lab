@@ -937,8 +937,81 @@ export function FluidTypographyGeneratorIcon({ className = "h-8 w-8" }: IconProp
 // =========================
 // Category Icons
 // =========================
-// export function ColorToolsCategoryIcon() {}
-// export function GradientToolsCategoryIcon() {}
+export function ColorToolsCategoryIcon({ className = "h-8 w-8" }: IconProps) {
+    return (
+        <svg
+            viewBox="0 0 25 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className={className}
+            aria-hidden="true"
+        >
+            {/* color dots - hover / active */}
+            <path
+                d="M15.0279 7.22682C15.516 6.73867 16.3075 6.73867 16.7956 7.22682C17.2838 7.71498 17.2839 8.50651 16.7957 8.99466C16.3075 9.48282 15.5161 9.48282 15.0279 8.99466C14.5398 8.50651 14.5397 7.71498 15.0279 7.22682Z"
+                className={hoverAccentClass}
+            />
+            <path
+                d="M9.01828 15.0053C8.53013 14.5171 7.73867 14.5171 7.25052 15.0053C6.76236 15.4934 6.76236 16.2849 7.25052 16.773C7.73867 17.2612 8.5302 17.2613 9.01836 16.7731C9.50651 16.2849 9.50644 15.4934 9.01828 15.0053Z"
+                className={hoverAccentClass}
+            />
+            <path
+                d="M7.0341 9.369C7.70093 9.54768 8.09666 10.2331 7.91798 10.8999C7.7393 11.5668 7.05386 11.9626 6.38702 11.7839C5.72019 11.6052 5.32446 10.9198 5.50314 10.253C5.68182 9.58615 6.36726 9.19032 7.0341 9.369Z"
+                className={hoverAccentClass}
+            />
+            <path
+                d="M10.9228 7.89465C11.5896 7.71598 11.9853 7.03056 11.8067 6.36372C11.628 5.69689 10.9426 5.30116 10.2757 5.47984C9.60889 5.65852 9.21306 6.34396 9.39174 7.0108C9.57042 7.67763 10.2559 8.07333 10.9228 7.89465Z"
+                className={hoverAccentClass}
+            />
+
+            {/* palette outline - static */}
+            <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M2.02344 12C2.02344 6.47715 6.50059 2 12.0234 2C17.5463 2 22.0234 6.47715 22.0234 12C22.0234 12.7351 21.4156 13.2734 20.7352 13.2734H17.0372C15.3782 13.2734 14.0332 14.6184 14.0332 16.2775C14.0332 17.0726 14.3484 17.8353 14.9098 18.3984C15.4491 18.9393 15.6486 19.6836 15.5 20.3542C15.3477 21.042 14.8269 21.6373 14.0164 21.8012C13.3717 21.9317 12.7052 22 12.0234 22C6.50059 22 2.02344 17.5228 2.02344 12ZM12.0234 3.5C7.32902 3.5 3.52344 7.30558 3.52344 12C3.52344 16.6944 7.32902 20.5 12.0234 20.5C12.6047 20.5 13.1717 20.4418 13.7189 20.331C13.9076 20.2929 14.0023 20.18 14.0355 20.0297C14.0727 19.8622 14.028 19.6385 13.8476 19.4575C13.0059 18.6132 12.5332 17.4696 12.5332 16.2775C12.5332 13.79 14.5497 11.7734 17.0372 11.7734H20.5205C20.4004 7.18374 16.6421 3.5 12.0234 3.5Z"
+                className={staticFillClass}
+            />
+        </svg>
+    );
+}
+
+export function GradientToolsCategoryIcon({ className = "h-8 w-8" }: IconProps) {
+    return (
+        <svg
+            viewBox="0 0 1024 1024"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className={className}
+            aria-hidden="true"
+        >
+            {/* frame - static */}
+            <path
+                d="M864 192a32 32 0 0 0-32-32H192a32 32 0 0 0-32 32v640a32 32 0 0 0 32 32h640a32 32 0 0 0 32-32V192z m64 640a96 96 0 0 1-96 96H192A96 96 0 0 1 96 832V192A96 96 0 0 1 192 96h640A96 96 0 0 1 928 192v640z"
+                className={staticFillClass}
+            />
+
+            {/* top line */}
+            <path
+                d="M256 256m64 0l384 0q64 0 64 64l0 0q0 64-64 64l-384 0q-64 0-64-64l0 0q0-64 64-64Z"
+                className={hoverAccentFillTopClass}
+            />
+
+            {/* middle line */}
+            <path
+                d="M256 448m64 0l384 0q64 0 64 64l0 0q0 64-64 64l-384 0q-64 0-64-64l0 0q0-64 64-64Z"
+                className={hoverAccentFillMiddleClass}
+                opacity="0.6"
+            />
+
+            {/* bottom line */}
+            <path
+                d="M256 640m64 0l384 0q64 0 64 64l0 0q0 64-64 64l-384 0q-64 0-64-64l0 0q0-64 64-64Z"
+                className={hoverAccentFillBottomClass}
+                opacity="0.3"
+            />
+        </svg>
+    );
+}
 export function ImageToolsCategoryIcon({ className = "h-8 w-8" }: IconProps) {
     return (
         <svg
@@ -948,32 +1021,32 @@ export function ImageToolsCategoryIcon({ className = "h-8 w-8" }: IconProps) {
             fill="none"
             aria-hidden="true"
         >
-            {/* 外框 */}
+            {/* base icon - stay dark, transparent background */}
             <path
-                d="M197 107h630a90 90 0 0 1 90 90v630a90 90 0 0 1-90 90H197a90 90 0 0 1-90-90V197a90 90 0 0 1 90-90z"
-                className="fill-[#333333]"
+                d="M152 698.165l222.975-123.93a112.5 112.5 0 0 1 115.425 3.69l94.95 60.975a67.5 67.5 0 0 0 77.535-3.24L872 475.325V197a45 45 0 0 0-45-45H197a45 45 0 0 0-45 45v501.165z m0 51.48V827a45 45 0 0 0 45 45h630a45 45 0 0 0 45-45v-294.975l-181.71 139.365a112.5 112.5 0 0 1-129.24 5.4l-94.95-60.975a67.5 67.5 0 0 0-69.3-2.25L152 749.69zM197 107h630a90 90 0 0 1 90 90v630a90 90 0 0 1-90 90H197a90 90 0 0 1-90-90V197a90 90 0 0 1 90-90z m135 337.5a112.5 112.5 0 1 1 0-225 112.5 112.5 0 0 1 0 225z m0-45a67.5 67.5 0 1 0 0-135 67.5 67.5 0 0 0 0 135z"
+                className="fill-[#2A1F1B]"
             />
 
-            {/* 内部主图形底色 */}
-            <path
-                d="M152 698.165l222.975-123.93a112.5 112.5 0 0 1 115.425 3.69l94.95 60.975a67.5 67.5 0 0 0 77.535-3.24L872 475.325V197a45 45 0 0 0-45-45H197a45 45 0 0 0-45 45v501.165z"
-                className="fill-white"
-            />
-            <path
-                d="M152 749.645V827a45 45 0 0 0 45 45h630a45 45 0 0 0 45-45v-294.975l-181.71 139.365a112.5 112.5 0 0 1-129.24 5.4l-94.95-60.975a67.5 67.5 0 0 0-69.3-2.25L152 749.645z"
-                className="fill-white"
-            />
-
-            {/* 左上圆圈 hover */}
-            <path
-                d="M332 444.5a112.5 112.5 0 1 1 0-225 112.5 112.5 0 0 1 0 225z m0-45a67.5 67.5 0 1 0 0-135 67.5 67.5 0 0 0 0 135z"
-                className="fill-[#333333] transition-colors duration-200 group-hover:fill-[#F28C6F] group-active:fill-[#F28C6F]"
+            {/* circle - first */}
+            <circle
+                cx="332"
+                cy="332"
+                r="90"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="45"
+                className="text-[#2A1F1B] transition-colors duration-200 group-hover:text-[#F28C6F] group-active:text-[#F28C6F]"
             />
 
-            {/* 中间曲线 hover */}
+            {/* middle curve - second */}
             <path
-                d="M152 698.165l222.975-123.93a112.5 112.5 0 0 1 115.425 3.69l94.95 60.975a67.5 67.5 0 0 0 77.535-3.24L872 475.325v56.7l-181.71 139.365a112.5 112.5 0 0 1-129.24 5.4l-94.95-60.975a67.5 67.5 0 0 0-69.3-2.25L152 749.69z"
-                className="fill-[#333333] transition-colors duration-200 group-hover:fill-[#F28C6F] group-active:fill-[#F28C6F]"
+                d="M152 749.69l289.8-136.125a67.5 67.5 0 0 1 69.3 2.25l94.95 60.975a112.5 112.5 0 0 0 129.24-5.4L872 532.025"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="45"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-[#2A1F1B] transition-colors duration-200 delay-150 group-hover:text-[#F28C6F] group-active:text-[#F28C6F]"
             />
         </svg>
     );
@@ -1125,38 +1198,39 @@ export function TextToolsCategoryIcon({ className = "h-8 w-8" }: IconProps) {
             aria-hidden="true"
         >
             {/* outer frame - stay dark */}
-            <path
-                d="M849.5 118.25H174.5a56.25 56.25 0 0 0-56.25 56.25v675a56.25 56.25 0 0 0 56.25 56.25h675a56.25 56.25 0 0 0 56.25-56.25V174.5a56.25 56.25 0 0 0-56.25-56.25z"
-                className={staticFillClass}
+            <rect
+                x="139.31087"
+                y="139.31087"
+                width="745.37823"
+                height="745.37823"
+                ry="86.00117"
+                className="fill-none stroke-[#2A1F1B]"
+                strokeWidth="47.06"
+                strokeLinecap="round"
+                strokeLinejoin="round"
             />
 
-            {/* T - first */}
+            {/* big T - first */}
             <path
-                d="M230.75 283.484375v-52.734375h281.25v70.3125h-52.734375v-17.578125h-61.5234375v175.78125h43.9453125v52.734375H301.0625v-52.734375h43.9453125V283.484375h-61.5234375v17.578125h-52.734375z"
+                d="M265.16646 331.34887c-20.84983 0-37.71924-16.14282-37.71924-36.1713 0-19.90211 16.86941-36.04493 37.71924-36.04493h301.3748c20.78664 0 37.62446 16.14282 37.62446 36.04493 0 20.02847-16.83782 36.1713-37.62446 36.1713H453.41514v289.02286c0.0632 19.93369-16.74304 36.1397-37.59287 36.1397-20.75506 0-37.71924-16.20601-37.71924-36.20288V331.34887Z"
                 className="fill-[#2A1F1B] transition-colors duration-200 group-hover:fill-[#F28C6F] group-active:fill-[#F28C6F]"
             />
 
-            {/* short lines - sequential */}
+            {/* top short line - second */}
             <path
-                d="M793.25 287h-225v-56.25h225z"
+                d="M758.9599 475.8445H645.86538c-20.72346 0-37.62447-16.14282-37.62447-36.04492 0-20.06007 16.90101-36.20289 37.62447-36.20289H758.9599c20.75506 0 37.59288 16.14282 37.59288 36.20289 0 19.9021-16.83782 36.04492-37.59288 36.04492Z"
                 className="fill-[#2A1F1B] transition-colors duration-200 delay-75 group-hover:fill-[#F28C6F] group-active:fill-[#F28C6F]"
             />
+
+            {/* middle line - third */}
             <path
-                d="M793.25 413.5625h-225v-56.25h225z"
-                className="fill-[#2A1F1B] transition-colors duration-200 delay-100 group-hover:fill-[#F28C6F] group-active:fill-[#F28C6F]"
-            />
-            <path
-                d="M793.25 540.125h-225v-56.25h225z"
+                d="M758.9599 620.30855H570.49008c-20.75505 0-37.59286-16.14283-37.59286-36.04494 0-20.06007 16.83781-36.17129 37.59286-36.17129h188.40664c20.78665 0 37.59288 16.11122 37.59288 36.17129 0.0632 19.90211-16.77464 36.04494-37.5297 36.04494Z"
                 className="fill-[#2A1F1B] transition-colors duration-200 delay-150 group-hover:fill-[#F28C6F] group-active:fill-[#F28C6F]"
             />
 
-            {/* long lines - sequential */}
+            {/* bottom long line - last */}
             <path
-                d="M793.25 666.6875H230.75v-56.25h562.5z"
-                className="fill-[#2A1F1B] transition-colors duration-200 delay-200 group-hover:fill-[#F28C6F] group-active:fill-[#F28C6F]"
-            />
-            <path
-                d="M793.25 793.25H230.75v-56.25h562.5z"
+                d="M758.9599 764.86736H265.16646c-20.78665 0-37.71924-16.14283-37.71924-36.04493 0-20.06006 16.86941-36.20289 37.71924-36.20289H758.9599c20.75506 0 37.59288 16.14283 37.59288 36.20289 0 19.9021-16.83782 36.04493-37.59288 36.04493Z"
                 className="fill-[#2A1F1B] transition-colors duration-200 delay-300 group-hover:fill-[#F28C6F] group-active:fill-[#F28C6F]"
             />
         </svg>

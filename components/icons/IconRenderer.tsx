@@ -34,6 +34,8 @@ import {
     ShapeToolsCategoryIcon,
     SvgToolsCategoryIcon,
     TextToolsCategoryIcon,
+    ColorToolsCategoryIcon,
+    GradientToolsCategoryIcon,
 } from "@/components/icons/ToolIcons";
 
 
@@ -68,10 +70,6 @@ export default function IconRenderer({
     // Gradient Tools
     // =========================
     if (type === "tool" && name === "gradient-generator") {
-        return <GradientGeneratorIcon className={className} />;
-    }
-
-    if (type === "category" && name === "Gradient Tools") {
         return <GradientGeneratorIcon className={className} />;
     }
     // =========================
@@ -168,7 +166,10 @@ export default function IconRenderer({
     // Category Icons
     // =========================
     if (type === "category" && name === "Color Tools") {
-        return <ColorPickerIcon className={className} />;
+        return <ColorToolsCategoryIcon className={className} />;
+    }
+    if (type === "category" && name === "Gradient Tools") {
+        return <GradientToolsCategoryIcon className={className} />;
     }
     if (type === "category" && name === "Image Tools") {
         return <ImageToolsCategoryIcon className={className} />;
